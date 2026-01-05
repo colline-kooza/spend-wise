@@ -1,0 +1,1230 @@
+---
+title: Build Ultra-Fast Next.js APIs with Hono - Complete CRUD Guide with Prisma & React Query
+description: Master building lightning-fast, type-safe Next.js APIs using Hono framework with Prisma ORM and React Query. Learn RPC-based type safety, Zod validation, server-side data fetching, and seamless Vercel deployment with this comprehensive CRUD tutorial.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwfWRipxM9aB2GAq6wtmJQHUsIV8TRSxaFDvP1e
+category: tutorial
+createdAt: 2025-11-29
+updatedAt: 2025-11-29
+---
+
+# Building a CRUD API with Hono in Next.js
+
+Complete guide for creating a type-safe, high-performance Product CRUD API using Hono, Prisma ORM, and React Query in Next.js.
+
+## Table of Contents
+
+- [What is Hono?](#what-is-hono)
+- [Prerequisites](#prerequisites)
+- [Project Setup](#project-setup)
+- [Prisma Configuration](#prisma-configuration)
+- [Hono API Setup](#hono-api-setup)
+- [React Query Integration](#react-query-integration)
+- [Usage Examples](#usage-examples)
+- [Deployment to Vercel](#deployment-to-vercel)
+
+---
+
+## What is Hono?
+
+Hono is a fast, lightweight web framework built on Web Standards that works across multiple runtimes including Cloudflare Workers, Vercel, Node.js, Bun, and Deno. It provides:
+
+- **Lightning Fast Performance**: Minimal overhead with optimized routing
+- **Type-Safe RPC**: End-to-end type safety from server to client
+- **Web Standards**: Built on standard Web APIs (WinterCG compliant)
+- **Easy Integration**: Works seamlessly with Next.js App Router
+- **Small Bundle Size**: Lightweight with no dependencies
+
+---
+
+## Prerequisites
+
+- Node.js 18+ or Bun runtime
+- Basic knowledge of Next.js, TypeScript, and React
+- Understanding of REST APIs
+- PostgreSQL database (or any Prisma-supported database)
+
+---
+
+## Project Setup
+
+### 1. Create Next.js Project
+
+```bash
+npx create-next-app@latest hono-crud-app
+cd hono-crud-app
+```
+
+Choose the following options:
+
+- TypeScript: Yes
+- ESLint: Yes
+- Tailwind CSS: Yes
+- App Router: Yes
+- src/ directory: Yes
+
+### 2. Install Dependencies
+
+```bash
+# Core dependencies
+npm install hono
+npm install prisma @prisma/client
+npm install @tanstack/react-query
+npm install zod @hono/zod-validator
+
+# Development dependencies
+npm install -D prisma
+```
+
+### 3. Initialize Prisma
+
+```bash
+npx prisma init
+```
+
+---
+
+## Prisma Configuration
+
+### 1. Configure Database (`.env`)
+
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/products_db"
+# For development with SQLite:
+# DATABASE_URL="file:./dev.db"
+```
+
+### 2. Define Schema (`prisma/schema.prisma`)
+
+```prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  stock       Int      @default(0)
+  category    String
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([createdAt])
+}
+```
+
+### 3. Generate Prisma Client & Run Migrations
+
+```bash
+npx prisma generate
+npx prisma migrate dev --name init
+```
+
+### 4. Create Prisma Client Instance (`src/lib/prisma.ts`)
+
+```typescript
+import { PrismaClient } from "@prisma/client";
+
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+export const prisma = globalForPrisma.prisma ?? new PrismaClient();
+
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = prisma;
+}
+```
+
+---
+
+## Hono API Setup
+
+### 1. Create Catch-All Route (`src/app/api/[[...route]]/route.ts`)
+
+This uses a catch-all route pattern where all API requests are forwarded to a single central endpoint that Hono handles.
+
+```typescript
+import { Hono } from "hono";
+import { handle } from "hono/vercel";
+import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+
+// Define runtime (can use 'edge' or 'nodejs')
+export const runtime = "nodejs";
+
+// Create Hono app with base path
+const app = new Hono().basePath("/api");
+
+// Validation schemas
+const productSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+  price: z.number().positive("Price must be positive"),
+  stock: z.number().int().min(0, "Stock cannot be negative"),
+  category: z.string().min(1, "Category is required"),
+  imageUrl: z.string().url().optional().or(z.literal("")),
+});
+
+const updateProductSchema = productSchema.partial();
+
+// Routes
+
+// Get all products
+app.get("/products", async (c) => {
+  try {
+    const products = await prisma.product.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+    return c.json({ products });
+  } catch (error) {
+    return c.json({ error: "Failed to fetch products" }, 500);
+  }
+});
+
+// Get single product by ID
+app.get("/products/:id", async (c) => {
+  const id = c.req.param("id");
+
+  try {
+    const product = await prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      return c.json({ error: "Product not found" }, 404);
+    }
+
+    return c.json({ product });
+  } catch (error) {
+    return c.json({ error: "Failed to fetch product" }, 500);
+  }
+});
+
+// Create product
+app.post("/products", zValidator("json", productSchema), async (c) => {
+  const data = c.req.valid("json");
+
+  try {
+    const product = await prisma.product.create({
+      data: {
+        ...data,
+        imageUrl: data.imageUrl || null,
+      },
+    });
+    return c.json({ product }, 201);
+  } catch (error) {
+    return c.json({ error: "Failed to create product" }, 500);
+  }
+});
+
+// Update product
+app.put("/products/:id", zValidator("json", updateProductSchema), async (c) => {
+  const id = c.req.param("id");
+  const data = c.req.valid("json");
+
+  try {
+    const product = await prisma.product.update({
+      where: { id },
+      data: {
+        ...data,
+        imageUrl: data.imageUrl === "" ? null : data.imageUrl,
+      },
+    });
+    return c.json({ product });
+  } catch (error) {
+    return c.json({ error: "Failed to update product" }, 500);
+  }
+});
+
+// Delete product
+app.delete("/products/:id", async (c) => {
+  const id = c.req.param("id");
+
+  try {
+    await prisma.product.delete({
+      where: { id },
+    });
+    return c.json({ success: true, message: "Product deleted" });
+  } catch (error) {
+    return c.json({ error: "Failed to delete product" }, 500);
+  }
+});
+
+// Get products by category
+app.get("/products/category/:category", async (c) => {
+  const category = c.req.param("category");
+
+  try {
+    const products = await prisma.product.findMany({
+      where: { category },
+      orderBy: { createdAt: "desc" },
+    });
+    return c.json({ products });
+  } catch (error) {
+    return c.json({ error: "Failed to fetch products by category" }, 500);
+  }
+});
+
+// Export the app type for RPC client
+export type AppType = typeof app;
+
+// Export handlers for Next.js
+export const GET = handle(app);
+export const POST = handle(app);
+export const PUT = handle(app);
+export const DELETE = handle(app);
+```
+
+### 2. Environment Variables (`.env.local`)
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3000
+DATABASE_URL="postgresql://user:password@localhost:5432/products_db"
+```
+
+---
+
+## React Query Integration
+
+### 1. Create React Query Provider (`src/providers/query-provider.tsx`)
+
+```typescript
+'use client'
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { useState } from 'react'
+
+export function QueryProvider({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60 * 1000, // 1 minute
+        refetchOnWindowFocus: false,
+      },
+    },
+  }))
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
+  )
+}
+```
+
+### 2. Wrap App with Provider (`src/app/layout.tsx`)
+
+```typescript
+import { QueryProvider } from '@/providers/query-provider'
+import './globals.css'
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <QueryProvider>
+          {children}
+        </QueryProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+### 3. Create Type-Safe API Client (`src/lib/api-client.ts`)
+
+Hono's RPC feature allows sharing API specifications between server and client with end-to-end type safety using the hc function.
+
+```typescript
+import { hc } from "hono/client";
+import type { AppType } from "@/app/api/[[...route]]/route";
+
+export const client = hc<AppType>(
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+);
+
+export const api = client.api;
+```
+
+### 4. Create Product Hooks (`src/hooks/use-products.ts`)
+
+```typescript
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api-client";
+import type { InferRequestType, InferResponseType } from "hono/client";
+
+// Type inference from Hono routes
+type ProductsResponse = InferResponseType<typeof api.products.$get>;
+type ProductResponse = InferResponseType<(typeof api.products)[":id"]["$get"]>;
+type CreateProductRequest = InferRequestType<typeof api.products.$post>;
+type UpdateProductRequest = InferRequestType<
+  (typeof api.products)[":id"]["$put"]
+>;
+
+// Get all products
+export function useProducts() {
+  return useQuery({
+    queryKey: ["products"],
+    queryFn: async () => {
+      const res = await api.products.$get();
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch products");
+      }
+
+      const data = await res.json();
+      return data.products;
+    },
+  });
+}
+
+// Get single product
+export function useProduct(id: string) {
+  return useQuery({
+    queryKey: ["products", id],
+    queryFn: async () => {
+      const res = await api.products[":id"].$get({
+        param: { id },
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch product");
+      }
+
+      const data = await res.json();
+      return data.product;
+    },
+    enabled: !!id,
+  });
+}
+
+// Create product
+export function useCreateProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (json: CreateProductRequest["json"]) => {
+      const res = await api.products.$post({ json });
+
+      if (!res.ok) {
+        throw new Error("Failed to create product");
+      }
+
+      const data = await res.json();
+      return data.product;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+  });
+}
+
+// Update product
+export function useUpdateProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      json,
+    }: {
+      id: string;
+      json: UpdateProductRequest["json"];
+    }) => {
+      const res = await api.products[":id"].$put({
+        param: { id },
+        json,
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to update product");
+      }
+
+      const data = await res.json();
+      return data.product;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["products", variables.id] });
+    },
+  });
+}
+
+// Delete product
+export function useDeleteProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await api.products[":id"].$delete({
+        param: { id },
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to delete product");
+      }
+
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+  });
+}
+
+// Get products by category
+export function useProductsByCategory(category: string) {
+  return useQuery({
+    queryKey: ["products", "category", category],
+    queryFn: async () => {
+      const res = await api.products.category[":category"].$get({
+        param: { category },
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch products by category");
+      }
+
+      const data = await res.json();
+      return data.products;
+    },
+    enabled: !!category,
+  });
+}
+```
+
+---
+
+## Usage Examples
+
+### Example 1: Products List Component (`src/components/products-list.tsx`)
+
+```typescript
+'use client'
+
+import { useProducts, useDeleteProduct } from '@/hooks/use-products'
+
+export function ProductsList() {
+  const { data: products, isLoading, error } = useProducts()
+  const deleteProduct = useDeleteProduct()
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center p-8">
+        <div className="text-lg">Loading products...</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
+        Error loading products: {error.message}
+      </div>
+    )
+  }
+
+  if (!products || products.length === 0) {
+    return (
+      <div className="text-center p-8 text-gray-500">
+        No products found. Create your first product!
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {products.map((product) => (
+        <div key={product.id} className="border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
+          {product.imageUrl && (
+            <img
+              src={product.imageUrl}
+              alt={product.name}
+              className="w-full h-48 object-cover rounded-md mb-4"
+            />
+          )}
+
+          <h3 className="font-bold text-xl mb-2">{product.name}</h3>
+
+          {product.description && (
+            <p className="text-gray-600 mb-4 line-clamp-2">{product.description}</p>
+          )}
+
+          <div className="flex justify-between items-center mb-4">
+            <p className="text-2xl font-semibold text-green-600">
+              ${product.price.toFixed(2)}
+            </p>
+            <p className="text-sm text-gray-500">
+              Stock: {product.stock}
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+              {product.category}
+            </span>
+
+            <button
+              onClick={() => {
+                if (confirm('Are you sure you want to delete this product?')) {
+                  deleteProduct.mutate(product.id)
+                }
+              }}
+              disabled={deleteProduct.isPending}
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            >
+              {deleteProduct.isPending ? 'Deleting...' : 'Delete'}
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+### Example 2: Create Product Form (`src/components/create-product-form.tsx`)
+
+```typescript
+'use client'
+
+import { useCreateProduct } from '@/hooks/use-products'
+import { useState, FormEvent } from 'react'
+
+export function CreateProductForm() {
+  const createProduct = useCreateProduct()
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    price: '',
+    stock: '',
+    category: '',
+    imageUrl: ''
+  })
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+
+    try {
+      await createProduct.mutateAsync({
+        name: formData.name,
+        description: formData.description || undefined,
+        price: parseFloat(formData.price),
+        stock: parseInt(formData.stock),
+        category: formData.category,
+        imageUrl: formData.imageUrl || undefined
+      })
+
+      // Reset form on success
+      setFormData({
+        name: '',
+        description: '',
+        price: '',
+        stock: '',
+        category: '',
+        imageUrl: ''
+      })
+
+      alert('Product created successfully!')
+    } catch (error) {
+      alert('Failed to create product. Please check your inputs.')
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl">
+      <div>
+        <label htmlFor="name" className="block text-sm font-medium mb-2">
+          Product Name *
+        </label>
+        <input
+          id="name"
+          type="text"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          required
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="Enter product name"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="description" className="block text-sm font-medium mb-2">
+          Description
+        </label>
+        <textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          rows={4}
+          placeholder="Enter product description"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="price" className="block text-sm font-medium mb-2">
+            Price ($) *
+          </label>
+          <input
+            id="price"
+            type="number"
+            step="0.01"
+            min="0"
+            value={formData.price}
+            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+            required
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="0.00"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="stock" className="block text-sm font-medium mb-2">
+            Stock *
+          </label>
+          <input
+            id="stock"
+            type="number"
+            min="0"
+            value={formData.stock}
+            onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+            required
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="0"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="category" className="block text-sm font-medium mb-2">
+          Category *
+        </label>
+        <input
+          id="category"
+          type="text"
+          value={formData.category}
+          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+          required
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="e.g., Electronics, Clothing, Food"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="imageUrl" className="block text-sm font-medium mb-2">
+          Image URL
+        </label>
+        <input
+          id="imageUrl"
+          type="url"
+          value={formData.imageUrl}
+          onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="https://example.com/image.jpg"
+        />
+      </div>
+
+      <button
+        type="submit"
+        disabled={createProduct.isPending}
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+      >
+        {createProduct.isPending ? 'Creating...' : 'Create Product'}
+      </button>
+
+      {createProduct.isError && (
+        <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg">
+          {createProduct.error.message}
+        </div>
+      )}
+    </form>
+  )
+}
+```
+
+### Example 3: Update Product Form (`src/components/update-product-form.tsx`)
+
+```typescript
+'use client'
+
+import { useProduct, useUpdateProduct } from '@/hooks/use-products'
+import { useEffect, useState, FormEvent } from 'react'
+
+interface UpdateProductFormProps {
+  productId: string
+}
+
+export function UpdateProductForm({ productId }: UpdateProductFormProps) {
+  const { data: product, isLoading } = useProduct(productId)
+  const updateProduct = useUpdateProduct()
+
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    price: '',
+    stock: '',
+    category: '',
+    imageUrl: ''
+  })
+
+  useEffect(() => {
+    if (product) {
+      setFormData({
+        name: product.name,
+        description: product.description || '',
+        price: product.price.toString(),
+        stock: product.stock.toString(),
+        category: product.category,
+        imageUrl: product.imageUrl || ''
+      })
+    }
+  }, [product])
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+
+    try {
+      await updateProduct.mutateAsync({
+        id: productId,
+        json: {
+          name: formData.name,
+          description: formData.description || undefined,
+          price: parseFloat(formData.price),
+          stock: parseInt(formData.stock),
+          category: formData.category,
+          imageUrl: formData.imageUrl || undefined
+        }
+      })
+
+      alert('Product updated successfully!')
+    } catch (error) {
+      alert('Failed to update product')
+    }
+  }
+
+  if (isLoading) {
+    return <div className="text-center p-8">Loading product...</div>
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl">
+      <div>
+        <label htmlFor="name" className="block text-sm font-medium mb-2">
+          Product Name *
+        </label>
+        <input
+          id="name"
+          type="text"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          required
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="description" className="block text-sm font-medium mb-2">
+          Description
+        </label>
+        <textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          rows={4}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="price" className="block text-sm font-medium mb-2">
+            Price ($) *
+          </label>
+          <input
+            id="price"
+            type="number"
+            step="0.01"
+            min="0"
+            value={formData.price}
+            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+            required
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="stock" className="block text-sm font-medium mb-2">
+            Stock *
+          </label>
+          <input
+            id="stock"
+            type="number"
+            min="0"
+            value={formData.stock}
+            onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+            required
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="category" className="block text-sm font-medium mb-2">
+          Category *
+        </label>
+        <input
+          id="category"
+          type="text"
+          value={formData.category}
+          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+          required
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="imageUrl" className="block text-sm font-medium mb-2">
+          Image URL
+        </label>
+        <input
+          id="imageUrl"
+          type="url"
+          value={formData.imageUrl}
+          onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+
+      <button
+        type="submit"
+        disabled={updateProduct.isPending}
+        className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+      >
+        {updateProduct.isPending ? 'Updating...' : 'Update Product'}
+      </button>
+    </form>
+  )
+}
+```
+
+### Example 4: Main Page (`src/app/page.tsx`)
+
+```typescript
+import { ProductsList } from '@/components/products-list'
+import { CreateProductForm } from '@/components/create-product-form'
+
+export default function Home() {
+  return (
+    <main className="container mx-auto px-4 py-8">
+      <header className="mb-8">
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          Product Management System
+        </h1>
+        <p className="text-gray-600">
+          Built with Hono, Next.js, Prisma, and React Query
+        </p>
+      </header>
+
+      <div className="grid lg:grid-cols-3 gap-8 mb-12">
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-lg shadow-md p-6 sticky top-8">
+            <h2 className="text-2xl font-semibold mb-6">Create New Product</h2>
+            <CreateProductForm />
+          </div>
+        </div>
+
+        <div className="lg:col-span-2">
+          <h2 className="text-2xl font-semibold mb-6">All Products</h2>
+          <ProductsList />
+        </div>
+      </div>
+    </main>
+  )
+}
+```
+
+---
+
+## Deployment to Vercel
+
+Vercel provides native support for Hono applications and automatically detects them, provisioning optimal resources for deployment.
+
+### 1. Prepare for Deployment
+
+Make sure your environment variables are set:
+
+```env
+# .env.production
+DATABASE_URL="your_production_database_url"
+NEXT_PUBLIC_API_URL="https://your-domain.vercel.app"
+```
+
+### 2. Deploy to Vercel
+
+#### Option A: Using Vercel CLI
+
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Login to Vercel
+vercel login
+
+# Deploy
+vercel deploy --prod
+```
+
+#### Option B: Using Vercel Dashboard
+
+1. Push your code to GitHub
+2. Go to [vercel.com](https://vercel.com)
+3. Click "New Project"
+4. Import your repository
+5. Add environment variables:
+   - `DATABASE_URL`
+   - `NEXT_PUBLIC_API_URL`
+6. Click "Deploy"
+
+### 3. Configure Environment Variables
+
+In your Vercel project dashboard:
+
+1. Go to Settings → Environment Variables
+2. Add the following:
+   ```
+   DATABASE_URL = your_production_database_url
+   NEXT_PUBLIC_API_URL = https://your-project.vercel.app
+   ```
+
+### 4. Run Database Migrations
+
+After deploying, run migrations:
+
+```bash
+# Using Vercel CLI
+vercel env pull .env.production.local
+npx prisma migrate deploy
+```
+
+### 5. Test Your Deployment
+
+Visit your deployed URL and test all CRUD operations to ensure everything works correctly.
+
+---
+
+## Advanced Features
+
+### 1. Add Search Functionality
+
+```typescript
+// In src/app/api/[[...route]]/route.ts
+app.get("/products/search", async (c) => {
+  const query = c.req.query("q");
+
+  if (!query) {
+    return c.json({ error: "Search query required" }, 400);
+  }
+
+  try {
+    const products = await prisma.product.findMany({
+      where: {
+        OR: [
+          { name: { contains: query, mode: "insensitive" } },
+          { description: { contains: query, mode: "insensitive" } },
+          { category: { contains: query, mode: "insensitive" } },
+        ],
+      },
+    });
+    return c.json({ products });
+  } catch (error) {
+    return c.json({ error: "Search failed" }, 500);
+  }
+});
+```
+
+### 2. Add Pagination
+
+```typescript
+// In src/app/api/[[...route]]/route.ts
+app.get("/products/paginated", async (c) => {
+  const page = parseInt(c.req.query("page") || "1");
+  const limit = parseInt(c.req.query("limit") || "10");
+  const skip = (page - 1) * limit;
+
+  try {
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.product.count(),
+    ]);
+
+    return c.json({
+      products,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    return c.json({ error: "Failed to fetch products" }, 500);
+  }
+});
+```
+
+### 3. Add Error Handling Middleware
+
+```typescript
+import { HTTPException } from "hono/http-exception";
+
+app.onError((err, c) => {
+  if (err instanceof HTTPException) {
+    return c.json({ error: err.message }, err.status);
+  }
+
+  console.error(err);
+  return c.json({ error: "Internal Server Error" }, 500);
+});
+```
+
+---
+
+## Key Benefits
+
+### 1. Type Safety
+
+- Full end-to-end type safety from database to frontend
+- No code generation required - types work in real-time
+- TypeScript inference for all API endpoints
+
+### 2. Performance
+
+- Lightweight framework with minimal overhead
+- Fast routing and request handling
+- Optimized for edge deployment
+
+### 3. Developer Experience
+
+- Clean, intuitive API design
+- Automatic type inference with RPC
+- Built-in validation with Zod
+- React Query for optimal data fetching
+
+### 4. Deployment Flexibility
+
+- Deploy to Vercel, Cloudflare, or any Node.js environment
+- WinterCG compliance ensures portability
+- Native Vercel support with automatic detection
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**1. Type errors in Hono client:**
+
+- Ensure you're exporting the `AppType` from your route file
+- Check that the API URL matches your environment
+- Verify Hono versions match between dependencies
+
+**2. Database connection errors:**
+
+- Verify your `DATABASE_URL` is correct
+- Run `npx prisma generate` after schema changes
+- Ensure migrations are applied: `npx prisma migrate deploy`
+
+**3. API not responding:**
+
+- Verify the catch-all route is in: `src/app/api/[[...route]]/route.ts`
+- Check that you're exporting GET, POST, PUT, DELETE handlers
+- Ensure the Hono basePath matches your API path
+
+**4. CORS issues:**
+
+- Add CORS middleware to your Hono app if needed:
+
+```typescript
+import { cors } from "hono/cors";
+app.use("/*", cors());
+```
+
+---
+
+## Comparison: Hono vs Elysia
+
+| Feature        | Hono                                  | Elysia                         |
+| -------------- | ------------------------------------- | ------------------------------ |
+| Runtime        | Multi-runtime (Node, Bun, Deno, Edge) | Primarily Bun                  |
+| Performance    | Very fast                             | Extremely fast (Bun-optimized) |
+| Type Safety    | RPC with hc client                    | Eden Treaty client             |
+| Learning Curve | Easy                                  | Moderate                       |
+| Community      | Large                                 | Growing                        |
+| Validation     | Zod, custom                           | Built-in schema validation     |
+| Best For       | Universal deployment                  | Bun-specific projects          |
+
+---
+
+## Additional Resources
+
+- [Hono Documentation](https://hono.dev)
+- [Hono RPC Guide](https://hono.dev/docs/guides/rpc)
+- [Prisma Documentation](https://www.prisma.io/docs)
+- [React Query Documentation](https://tanstack.com/query)
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Vercel Deployment Guide](https://vercel.com/docs)
+
+---
+
+## Quick Start Commands
+
+```bash
+# Create project
+npx create-next-app@latest my-hono-app
+
+# Install dependencies
+npm install hono prisma @prisma/client @tanstack/react-query zod @hono/zod-validator
+
+# Initialize Prisma
+npx prisma init
+
+# Generate Prisma Client
+npx prisma generate
+
+# Run migrations
+npx prisma migrate dev
+
+# Start development server
+npm run dev
+
+# Deploy to Vercel
+vercel deploy --prod
+```
+
+---
+
+## License
+
+This guide is provided as-is for educational purposes.

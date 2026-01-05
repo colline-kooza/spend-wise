@@ -1,0 +1,394 @@
+{
+  "meta": {
+    "company": "DesisHub",
+    "file": "industries-3.json",
+    "industries": ["Sales & Marketing", "Project Management & Collaboration", "Manufacturing & Supply Chain", "Hospitality & Travel"],
+    "last_updated": "January 2026"
+  },
+  "industries": [
+    {
+      "id": 7,
+      "slug": "sales-marketing",
+      "name": "Sales & Marketing",
+      "tagline": "Drive Growth with Modern Sales & Marketing Tools",
+      "shortDescription": "Universal business need with focus on customer acquisition and retention",
+      "longDescription": "The sales and marketing technology sector provides essential tools for customer acquisition, engagement, and retention. From CRM systems to marketing automation, modern solutions enable businesses to understand customers, optimize campaigns, and drive predictable revenue growth through data-driven strategies.",
+      "seo": {
+        "metaTitle": "Sales & Marketing Software Solutions | CRM & Marketing Platform | DesisHub",
+        "metaDescription": "Transform sales and marketing with comprehensive solutions. CRM, email marketing, social media, lead generation, and more. Trusted by 6,000+ businesses.",
+        "keywords": ["sales software", "marketing automation", "CRM system", "email marketing platform", "social media management", "lead generation", "marketing analytics", "sales pipeline", "customer engagement", "marketing technology"],
+        "ogTitle": "Complete Sales & Marketing Solutions for Growing Businesses",
+        "ogDescription": "Acquire, engage, and retain customers with modern sales and marketing technology.",
+        "ogImage": "/images/industries/sales-marketing-og.jpg"
+      },
+      "hero": {
+        "headline": "Accelerate Revenue Growth",
+        "subheadline": "Convert more leads, close more deals, and retain more customers with integrated sales and marketing solutions",
+        "ctaText": "Explore Sales & Marketing Solutions",
+        "ctaLink": "/industries/sales-marketing/solutions",
+        "imageUrl": "/images/heroes/sales-marketing.jpg"
+      },
+      "stats": [
+        {"value": "6K+", "label": "Businesses"},
+        {"value": "45%", "label": "Increase in Conversions"},
+        {"value": "3x", "label": "ROI on Marketing Spend"},
+        {"value": "60%", "label": "Time Saved on Outreach"}
+      ],
+      "problemStatement": {
+        "title": "Sales & Marketing Challenges",
+        "description": "Businesses struggle with disconnected tools and inefficient processes that hurt growth.",
+        "problems": [
+          {"title": "Scattered Customer Data", "description": "Customer information spread across multiple tools and spreadsheets", "icon": "database"},
+          {"title": "Manual Outreach", "description": "Time-consuming manual follow-ups and email campaigns", "icon": "mail"},
+          {"title": "Poor Lead Quality", "description": "Difficulty identifying and prioritizing high-value prospects", "icon": "users"},
+          {"title": "No Visibility", "description": "Lack of insights into campaign performance and sales pipeline", "icon": "eye-off"}
+        ]
+      },
+      "solutions": {
+        "title": "Integrated Sales & Marketing Platform",
+        "description": "Complete ecosystem for customer acquisition and growth",
+        "totalApps": 6,
+        "appIds": [37, 38, 39, 40, 41, 42]
+      },
+      "benefits": [
+        {"title": "Unified Customer View", "description": "360° customer profiles with interaction history, preferences, and engagement data.", "icon": "users"},
+        {"title": "Marketing Automation", "description": "Automate email campaigns, social posts, and lead nurturing to save 60% of time.", "icon": "zap"},
+        {"title": "Better Lead Quality", "description": "Lead scoring and qualification help sales focus on high-value opportunities.", "icon": "trending-up"},
+        {"title": "Data-Driven Decisions", "description": "Real-time analytics on campaigns, pipeline, and ROI guide strategy.", "icon": "bar-chart"},
+        {"title": "Improved Conversions", "description": "Personalized outreach and optimized funnels increase conversion rates by 45%.", "icon": "target"},
+        {"title": "Seamless Collaboration", "description": "Unified platform aligns sales and marketing teams around common goals.", "icon": "users-check"}
+      ],
+      "whoIsThisFor": [
+        {"title": "B2B Companies", "description": "Organizations with complex sales cycles needing CRM and marketing automation.", "icon": "briefcase"},
+        {"title": "E-Commerce Businesses", "description": "Online retailers focusing on customer acquisition and retention marketing.", "icon": "shopping-cart"},
+        {"title": "Marketing Agencies", "description": "Agencies managing campaigns for multiple clients and need scalable tools.", "icon": "users"},
+        {"title": "SaaS Companies", "description": "Subscription businesses requiring lead nurturing and customer success tools.", "icon": "cloud"},
+        {"title": "Growing Startups", "description": "Fast-growing companies needing affordable, scalable sales and marketing infrastructure.", "icon": "rocket"}
+      ],
+      "features": [
+        {"category": "CRM & Sales", "items": ["Contact Management", "Deal Pipeline", "Sales Automation", "Activity Tracking", "Email Integration", "Sales Forecasting"]},
+        {"category": "Marketing Automation", "items": ["Email Campaigns", "Drip Sequences", "Lead Nurturing", "Segmentation", "A/B Testing", "Landing Pages"]},
+        {"category": "Social & Content", "items": ["Social Scheduling", "Content Calendar", "Multi-Platform Posting", "Engagement Tracking", "Hashtag Research", "Analytics"]},
+        {"category": "Analytics & Reporting", "items": ["Marketing Dashboards", "Attribution Tracking", "ROI Analysis", "Pipeline Reports", "Campaign Performance", "Custom Reports"]}
+      ],
+      "faqs": [
+        {"question": "How does the CRM integrate with email?", "answer": "Seamless integration with Gmail, Outlook, and other email providers. Track all customer emails, schedule follow-ups, and use templates directly from your inbox."},
+        {"question": "Can I automate email marketing campaigns?", "answer": "Yes, create drip campaigns, welcome sequences, and nurture flows that automatically send based on triggers like signups, purchases, or behavior. Personalize content for each recipient."},
+        {"question": "Do you support social media management?", "answer": "Absolutely. Schedule posts across Facebook, Instagram, Twitter, LinkedIn, and more from one dashboard. Track engagement, respond to comments, and analyze performance."},
+        {"question": "How does lead scoring work?", "answer": "Assign points based on demographics, behavior, and engagement. Leads are automatically scored and qualified so sales can prioritize the hottest prospects."},
+        {"question": "Can I track marketing ROI?", "answer": "Yes, our attribution tracking connects marketing activities to revenue. See which campaigns, channels, and content drive conversions and calculate ROI."},
+        {"question": "What integrations do you offer?", "answer": "We integrate with 1,000+ tools including Zapier, Salesforce, HubSpot, WordPress, Shopify, Slack, and all major email/calendar platforms."},
+        {"question": "Can multiple team members use the system?", "answer": "Yes, unlimited users on all plans. Set role-based permissions, assign leads/accounts, and collaborate with shared pipelines and campaign workflows."},
+        {"question": "Do you provide training and support?", "answer": "Comprehensive onboarding includes video tutorials, live training, documentation, and ongoing support via chat, email, and phone."}
+      ],
+      "testimonials": [
+        {"quote": "Our lead-to-customer conversion rate increased from 2% to 5% in 3 months. The marketing automation alone has been worth 10x the investment.", "author": "Sarah Johnson", "role": "VP of Marketing", "organization": "CloudTech SaaS", "avatar": "/images/testimonials/sales-1.jpg"},
+        {"quote": "We were using 5 different tools and nothing was connected. Now everything is unified - sales knows what marketing is doing and vice versa. Revenue is up 40%.", "author": "Mike Chen", "role": "Sales Director", "organization": "B2B Solutions Inc", "avatar": "/images/testimonials/sales-2.jpg"},
+        {"quote": "Managing social media for 10 clients was overwhelming. This platform lets us schedule a month of content in a few hours. Productivity skyrocketed.", "author": "Emily Rodriguez", "role": "Agency Owner", "organization": "Digital Growth Agency", "avatar": "/images/testimonials/sales-3.jpg"}
+      ],
+      "caseStudies": [
+        {"title": "How CloudTech SaaS Increased Conversions by 150%", "summary": "Marketing automation and lead scoring transformed the sales funnel.", "link": "/case-studies/cloudtech-conversion-increase"},
+        {"title": "B2B Solutions: 40% Revenue Growth in 6 Months", "summary": "Unified sales and marketing platform drove alignment and results.", "link": "/case-studies/b2b-solutions-revenue-growth"}
+      ],
+      "pricing": {
+        "model": "Tiered pricing based on contacts and features",
+        "startingPrice": "$49/month",
+        "description": "Affordable plans that grow with your business",
+        "features": ["14-day free trial", "No credit card required", "Cancel anytime", "Free migration", "Unlimited users", "Email support"]
+      },
+      "relatedBlogs": ["/blog/improve-lead-conversion-rate", "/blog/marketing-automation-guide-2026", "/blog/social-media-strategy-businesses", "/blog/sales-crm-best-practices"],
+      "cta": {
+        "primary": {"text": "Start Free Trial", "link": "/signup?industry=sales-marketing"},
+        "secondary": {"text": "View Pricing", "link": "/pricing?industry=sales-marketing"}
+      }
+    },
+    {
+      "id": 8,
+      "slug": "project-management-collaboration",
+      "name": "Project Management & Collaboration",
+      "tagline": "Streamline Teamwork & Project Delivery",
+      "shortDescription": "Remote work driver with focus on team productivity and communication",
+      "longDescription": "The project management and collaboration sector enables distributed teams to work together effectively. Modern solutions provide task management, communication, document collaboration, and resource planning tools that keep projects on track and teams aligned, regardless of location.",
+      "seo": {
+        "metaTitle": "Project Management & Collaboration Software | Team Productivity | DesisHub",
+        "metaDescription": "Transform team collaboration with comprehensive solutions. Task management, communication, documents, and more. Trusted by 7,000+ teams.",
+        "keywords": ["project management software", "team collaboration tools", "task management", "project planning", "team communication", "document collaboration", "remote work tools", "workflow automation", "resource management", "project tracking"],
+        "ogTitle": "Complete Project Management Solutions for Modern Teams",
+        "ogDescription": "Keep projects on track and teams aligned with powerful collaboration tools.",
+        "ogImage": "/images/industries/project-management-og.jpg"
+      },
+      "hero": {
+        "headline": "Projects Delivered. Teams Aligned.",
+        "subheadline": "Manage projects, collaborate in real-time, and keep distributed teams productive with comprehensive collaboration tools",
+        "ctaText": "Explore Project Management Solutions",
+        "ctaLink": "/industries/project-management-collaboration/solutions",
+        "imageUrl": "/images/heroes/project-management.jpg"
+      },
+      "stats": [
+        {"value": "7K+", "label": "Teams"},
+        {"value": "95%", "label": "On-Time Project Delivery"},
+        {"value": "50%", "label": "Reduction in Meetings"},
+        {"value": "40%", "label": "Productivity Increase"}
+      ],
+      "problemStatement": {
+        "title": "Project Management Challenges",
+        "description": "Teams struggle with scattered communication and lack of project visibility.",
+        "problems": [
+          {"title": "Missed Deadlines", "description": "Poor planning and tracking lead to delayed projects", "icon": "clock"},
+          {"title": "Communication Chaos", "description": "Information scattered across email, chat, and meetings", "icon": "message-square"},
+          {"title": "No Visibility", "description": "Difficult to see project status and team workload", "icon": "eye-off"},
+          {"title": "Version Control", "description": "Confusion over latest document versions and changes", "icon": "file-text"}
+        ]
+      },
+      "solutions": {
+        "title": "Complete Collaboration Platform",
+        "description": "Everything teams need to work together effectively",
+        "totalApps": 6,
+        "appIds": [43, 44, 45, 46, 47, 48]
+      },
+      "benefits": [
+        {"title": "On-Time Delivery", "description": "Clear timelines, dependencies, and automated reminders keep projects on track.", "icon": "check-circle"},
+        {"title": "Centralized Communication", "description": "All project discussions, files, and updates in one place - no more email hunting.", "icon": "message-circle"},
+        {"title": "Real-Time Visibility", "description": "Dashboards show project status, team capacity, and potential bottlenecks instantly.", "icon": "eye"},
+        {"title": "Better Resource Planning", "description": "See team availability, allocate resources effectively, and prevent burnout.", "icon": "users"},
+        {"title": "Seamless Collaboration", "description": "Real-time document editing, comments, and version control keep everyone aligned.", "icon": "edit"},
+        {"title": "Remote-Friendly", "description": "Purpose-built for distributed teams with async communication and flexible workflows.", "icon": "globe"}
+      ],
+      "whoIsThisFor": [
+        {"title": "Remote Teams", "description": "Distributed teams needing centralized communication and collaboration tools.", "icon": "home"},
+        {"title": "Agencies", "description": "Creative and consulting agencies managing multiple client projects simultaneously.", "icon": "briefcase"},
+        {"title": "Software Teams", "description": "Development teams using agile methodologies and sprint planning.", "icon": "code"},
+        {"title": "Professional Services", "description": "Consulting firms tracking billable hours and client deliverables.", "icon": "users"},
+        {"title": "Enterprise Organizations", "description": "Large companies managing complex projects across departments and locations.", "icon": "building"}
+      ],
+      "features": [
+        {"category": "Task & Project Management", "items": ["Task Creation", "Kanban Boards", "Gantt Charts", "Dependencies", "Milestones", "Time Tracking"]},
+        {"category": "Team Communication", "items": ["Real-Time Chat", "Team Channels", "Direct Messages", "Video Calls", "File Sharing", "Integrations"]},
+        {"category": "Document Collaboration", "items": ["Real-Time Editing", "Version Control", "Comments", "Access Permissions", "Cloud Storage", "Templates"]},
+        {"category": "Resource & Planning", "items": ["Capacity Planning", "Resource Allocation", "Workload View", "Budget Tracking", "Reporting", "Automation"]}
+      ],
+      "faqs": [
+        {"question": "Can remote teams use this effectively?", "answer": "Absolutely. Our platform is designed for distributed teams with async communication, flexible workflows, and real-time collaboration features that work across time zones."},
+        {"question": "How does time tracking work?", "answer": "Track time directly on tasks with one-click timers or manual entry. Generate timesheets, track billable hours, and export for invoicing or payroll."},
+        {"question": "Do you support Gantt charts?", "answer": "Yes, visualize project timelines with interactive Gantt charts. See dependencies, critical path, resource allocation, and adjust schedules with drag-and-drop."},
+        {"question": "Can clients access the platform?", "answer": "Yes, client portals provide limited access to view project status, deliverables, and updates without seeing internal discussions or other client work."},
+        {"question": "What file types can I collaborate on?", "answer": "Collaborate on documents, spreadsheets, presentations, and more. Native editing for Google Workspace and Office 365 files, plus previews for 100+ file types."},
+        {"question": "How do notifications work?", "answer": "Customizable notifications via email, mobile push, and in-app alerts. Control what you're notified about and when to avoid notification overload."},
+        {"question": "Can I automate repetitive workflows?", "answer": "Yes, create custom automation rules to trigger actions based on events - like assigning tasks, sending notifications, or updating statuses automatically."},
+        {"question": "What integrations are available?", "answer": "Connect with 1,000+ apps including Slack, Microsoft Teams, Google Workspace, GitHub, Jira, Salesforce, and more via native integrations or Zapier."}
+      ],
+      "testimonials": [
+        {"quote": "Our project delivery went from 60% on-time to 95% on-time. The visibility into task status and team workload has been transformative.", "author": "David Park", "role": "Project Manager", "organization": "Design Studio Pro", "avatar": "/images/testimonials/pm-1.jpg"},
+        {"quote": "Managing 8 remote developers across 4 time zones used to be chaos. Now everyone knows what to do, progress is transparent, and we're shipping faster.", "author": "Jessica Lee", "role": "Engineering Manager", "organization": "TechStartup Inc", "avatar": "/images/testimonials/pm-2.jpg"},
+        {"quote": "We cut our weekly status meetings from 5 hours to 30 minutes. Everything is visible in real-time, so we only meet when we actually need to discuss something.", "author": "Michael Torres", "role": "Operations Director", "organization": "Consulting Group LLC", "avatar": "/images/testimonials/pm-3.jpg"}
+      ],
+      "caseStudies": [
+        {"title": "How Design Studio Achieved 95% On-Time Delivery", "summary": "Better planning and visibility transformed project outcomes.", "link": "/case-studies/design-studio-delivery"},
+        {"title": "TechStartup's Remote Team Success", "summary": "Effective collaboration tools enabled 8-person distributed team to ship faster.", "link": "/case-studies/techstartup-remote-success"}
+      ],
+      "pricing": {
+        "model": "Per-user pricing with unlimited projects",
+        "startingPrice": "$8/user/month",
+        "description": "Affordable collaboration for teams of all sizes",
+        "features": ["14-day free trial", "No credit card required", "Cancel anytime", "Unlimited projects", "Free guest access", "Email & chat support"]
+      },
+      "relatedBlogs": ["/blog/remote-team-management-2026", "/blog/project-management-best-practices", "/blog/improve-team-collaboration", "/blog/agile-project-management-guide"],
+      "cta": {
+        "primary": {"text": "Start Free Trial", "link": "/signup?industry=project-management"},
+        "secondary": {"text": "View Demo", "link": "/demo?industry=project-management"}
+      }
+    },
+    {
+      "id": 9,
+      "slug": "manufacturing-supply-chain",
+      "name": "Manufacturing & Supply Chain",
+      "tagline": "Optimize Production & Supply Chain Operations",
+      "shortDescription": "Industrial automation trend with focus on operational efficiency",
+      "longDescription": "The manufacturing and supply chain sector is undergoing digital transformation with smart factories and connected supply chains. Modern solutions provide production planning, quality control, inventory management, and supply chain visibility that reduce costs, improve quality, and ensure on-time delivery.",
+      "seo": {
+        "metaTitle": "Manufacturing & Supply Chain Software | Production Management | DesisHub",
+        "metaDescription": "Transform manufacturing operations with comprehensive solutions. Production planning, quality control, supply chain, and more. Trusted by 2,000+ manufacturers.",
+        "keywords": ["manufacturing software", "supply chain management", "production planning", "quality control software", "warehouse management", "inventory management", "vendor management", "MRP system", "manufacturing operations", "supply chain technology"],
+        "ogTitle": "Complete Manufacturing & Supply Chain Solutions",
+        "ogDescription": "Optimize production, quality, and supply chain with modern manufacturing technology.",
+        "ogImage": "/images/industries/manufacturing-og.jpg"
+      },
+      "hero": {
+        "headline": "Smart Manufacturing Solutions",
+        "subheadline": "Optimize production, ensure quality, and streamline supply chains with comprehensive manufacturing technology",
+        "ctaText": "Explore Manufacturing Solutions",
+        "ctaLink": "/industries/manufacturing-supply-chain/solutions",
+        "imageUrl": "/images/heroes/manufacturing.jpg"
+      },
+      "stats": [
+        {"value": "2K+", "label": "Manufacturers"},
+        {"value": "35%", "label": "Production Efficiency Gain"},
+        {"value": "50%", "label": "Reduced Inventory Costs"},
+        {"value": "90%", "label": "On-Time Delivery Rate"}
+      ],
+      "problemStatement": {
+        "title": "Manufacturing Challenges",
+        "description": "Manufacturers struggle with inefficient processes and supply chain disruptions.",
+        "problems": [
+          {"title": "Production Delays", "description": "Poor planning and resource allocation slow production", "icon": "clock"},
+          {"title": "Quality Issues", "description": "Defects and rework increase costs and hurt reputation", "icon": "alert-triangle"},
+          {"title": "Inventory Imbalance", "description": "Too much inventory ties up cash, too little causes stockouts", "icon": "package"},
+          {"title": "Supply Chain Opacity", "description": "Lack of visibility into suppliers and shipment status", "icon": "eye-off"}
+        ]
+      },
+      "solutions": {
+        "title": "Integrated Manufacturing Platform",
+        "description": "End-to-end solutions for modern manufacturing operations",
+        "totalApps": 6,
+        "appIds": [49, 50, 51, 52, 53, 54]
+      },
+      "benefits": [
+        {"title": "Optimized Production", "description": "Smart scheduling and resource allocation increase throughput by 35%.", "icon": "trending-up"},
+        {"title": "Improved Quality", "description": "Automated quality checks and traceability reduce defects by 60%.", "icon": "check-circle"},
+        {"title": "Lower Inventory Costs", "description": "Demand forecasting and just-in-time inventory reduce carrying costs by 50%.", "icon": "dollar-sign"},
+        {"title": "Supply Chain Visibility", "description": "Real-time tracking of materials, shipments, and supplier performance.", "icon": "eye"},
+        {"title": "Reduced Downtime", "description": "Predictive maintenance prevents equipment failures and costly downtime.", "icon": "zap"},
+        {"title": "Compliance & Traceability", "description": "Complete audit trails and quality documentation ensure regulatory compliance.", "icon": "shield-check"}
+      ],
+      "whoIsThisFor": [
+        {"title": "Discrete Manufacturers", "description": "Companies producing individual units like electronics, machinery, or automotive parts.", "icon": "cpu"},
+        {"title": "Process Manufacturers", "description": "Food & beverage, chemicals, pharmaceuticals with batch production.", "icon": "droplet"},
+        {"title": "Distribution Companies", "description": "Warehouses and distributors managing inventory and fulfillment.", "icon": "truck"},
+        {"title": "Contract Manufacturers", "description": "Make-to-order operations producing for multiple clients.", "icon": "briefcase"},
+        {"title": "Industrial Facilities", "description": "Factories requiring equipment maintenance and production tracking.", "icon": "factory"}
+      ],
+      "features": [
+        {"category": "Production Planning", "items": ["Production Scheduling", "MRP", "Capacity Planning", "Work Orders", "Bill of Materials", "Shop Floor Control"]},
+        {"category": "Quality Management", "items": ["Quality Inspections", "Defect Tracking", "Root Cause Analysis", "Corrective Actions", "Quality Reports", "Compliance Docs"]},
+        {"category": "Supply Chain", "items": ["Supplier Management", "Purchase Orders", "Demand Forecasting", "Shipment Tracking", "Inventory Optimization", "Logistics"]},
+        {"category": "Warehouse Operations", "items": ["Receiving", "Put-Away", "Picking", "Packing", "Shipping", "Barcode/RFID"]}
+      ],
+      "faqs": [
+        {"question": "Does it integrate with existing ERP systems?", "answer": "Yes, we integrate with major ERP platforms including SAP, Oracle, Microsoft Dynamics, and NetSuite. We also provide APIs for custom integrations."},
+        {"question": "Can I track lot/serial numbers?", "answer": "Absolutely. Full lot and serial number tracking throughout production and supply chain provides complete traceability for compliance and recalls."},
+        {"question": "How does demand forecasting work?", "answer": "AI-powered forecasting analyzes historical data, seasonality, trends, and external factors to predict demand and optimize inventory levels."},
+        {"question": "Do you support barcode and RFID?", "answer": "Yes, we support barcode scanning and RFID tags for receiving, production tracking, inventory management, and shipping. Mobile apps enable on-floor data capture."},
+        {"question": "Can I manage multiple warehouses?", "answer": "Yes, manage unlimited warehouses and distribution centers with location-specific inventory, transfer orders, and consolidated reporting."},
+        {"question": "What quality management features are included?", "answer": "Quality inspection checklists, defect tracking, corrective/preventive actions (CAPA), statistical process control (SPC), and compliance documentation."},
+        {"question": "How does predictive maintenance work?", "answer": "Track equipment runtime, maintenance history, and failure patterns to predict when maintenance is needed before breakdowns occur."},
+        {"question": "Is the system suitable for food manufacturers?", "answer": "Yes, we support food industry requirements including batch tracking, allergen management, HACCP compliance, and shelf-life/expiry management."}
+      ],
+      "testimonials": [
+        {"quote": "Production efficiency increased 40% and defects dropped 65%. The real-time visibility into our shop floor operations has been transformative.", "author": "Robert Anderson", "role": "Plant Manager", "organization": "Precision Manufacturing Co", "avatar": "/images/testimonials/mfg-1.jpg"},
+        {"quote": "We cut inventory carrying costs by half while improving on-time delivery to 95%. The demand forecasting alone has paid for the system many times over.", "author": "Linda Chen", "role": "Supply Chain Director", "organization": "Industrial Components Inc", "avatar": "/images/testimonials/mfg-2.jpg"},
+        {"quote": "Managing our supply chain across 15 suppliers in 6 countries used to be chaos. Now we have complete visibility and control. Stockouts are down 80%.", "author": "James Wilson", "role": "Operations VP", "organization": "Global Electronics", "avatar": "/images/testimonials/mfg-3.jpg"}
+      ],
+      "caseStudies": [
+        {"title": "Precision Manufacturing: 40% Efficiency Gain", "summary": "Smart scheduling and shop floor visibility transformed production.", "link": "/case-studies/precision-manufacturing-efficiency"},
+        {"title": "Industrial Components: 50% Lower Inventory Costs", "summary": "Demand forecasting and optimization reduced carrying costs dramatically.", "link": "/case-studies/industrial-components-inventory"}
+      ],
+      "pricing": {
+        "model": "Custom pricing based on facility size and modules",
+        "startingPrice": "Contact for quote",
+        "description": "Enterprise solutions tailored to your manufacturing needs",
+        "features": ["Free consultation", "Custom implementation", "Training included", "Dedicated support", "Scalable pricing", "ROI guarantee"]
+      },
+      "relatedBlogs": ["/blog/manufacturing-efficiency-tips", "/blog/supply-chain-visibility-guide", "/blog/predictive-maintenance-benefits", "/blog/quality-management-best-practices"],
+      "cta": {
+        "primary": {"text": "Request Demo", "link": "/demo?industry=manufacturing"},
+        "secondary": {"text": "Contact Sales", "link": "/contact?industry=manufacturing"}
+      }
+    },
+    {
+      "id": 10,
+      "slug": "hospitality-travel",
+      "name": "Hospitality & Travel",
+      "tagline": "Elevate Guest Experiences & Streamline Operations",
+      "shortDescription": "Recovery and digital transformation sector with focus on guest experience",
+      "longDescription": "The hospitality and travel sector is embracing digital transformation to enhance guest experiences and operational efficiency. Modern solutions provide booking management, property operations, guest services, and revenue optimization tools that help hotels, restaurants, and travel businesses thrive in a competitive market.",
+      "seo": {
+        "metaTitle": "Hospitality & Travel Software Solutions | Hotel & Restaurant Tech | DesisHub",
+        "metaDescription": "Transform hospitality operations with comprehensive solutions. Hotel management, restaurant POS, event planning, and more. Trusted by 3,500+ hospitality businesses.",
+        "keywords": ["hospitality software", "hotel management system", "restaurant POS", "booking system", "property management", "event management", "travel technology", "guest experience", "reservation system", "hospitality technology"],
+        "ogTitle": "Complete Hospitality & Travel Solutions",
+        "ogDescription": "Enhance guest experiences and streamline operations with modern hospitality technology.",
+        "ogImage": "/images/industries/hospitality-og.jpg"
+      },
+      "hero": {
+        "headline": "Hospitality Technology That Delights Guests",
+        "subheadline": "Manage bookings, operations, and guest experiences with comprehensive solutions for hotels, restaurants, and travel businesses",
+        "ctaText": "Explore Hospitality Solutions",
+        "ctaLink": "/industries/hospitality-travel/solutions",
+        "imageUrl": "/images/heroes/hospitality.jpg"
+      },
+      "stats": [
+        {"value": "3.5K+", "label": "Hospitality Businesses"},
+        {"value": "4.7/5", "label": "Guest Satisfaction"},
+        {"value": "30%", "label": "Revenue Increase"},
+        {"value": "45%", "label": "Operational Efficiency"}
+      ],
+      "problemStatement": {
+        "title": "Hospitality Challenges",
+        "description": "Hospitality businesses struggle with guest expectations and operational complexity.",
+        "problems": [
+          {"title": "Booking Management", "description": "Managing reservations across multiple channels is complex", "icon": "calendar"},
+          {"title": "Guest Experience", "description": "Inconsistent service and lack of personalization hurt satisfaction", "icon": "frown"},
+          {"title": "Revenue Optimization", "description": "Difficulty maximizing occupancy and average spend", "icon": "dollar-sign"},
+          {"title": "Staff Coordination", "description": "Poor communication between departments impacts service quality", "icon": "users"}
+        ]
+      },
+      "solutions": {
+        "title": "Complete Hospitality Platform",
+        "description": "End-to-end solutions for exceptional guest experiences",
+        "totalApps": 6,
+        "appIds": [55, 56, 57, 58, 59, 60]
+      },
+      "benefits": [
+        {"title": "Increased Revenue", "description": "Dynamic pricing and channel management boost occupancy and rates by 30%.", "icon": "trending-up"},
+        {"title": "Enhanced Guest Experience", "description": "Personalized service and seamless operations improve satisfaction scores.", "icon": "smile"},
+        {"title": "Operational Efficiency", "description": "Automated workflows and integrated systems reduce labor costs by 45%.", "icon": "zap"},
+        {"title": "Better Reviews", "description": "Consistent service quality and guest feedback management improve online ratings.", "icon": "star"},
+        {"title": "Channel Management", "description": "Sync inventory across OTAs, direct bookings, and GDS to maximize distribution.", "icon": "globe"},
+        {"title": "Staff Productivity", "description": "Mobile tools and real-time communication keep staff coordinated and efficient.", "icon": "users-check"}
+      ],
+      "whoIsThisFor": [
+        {"title": "Hotels & Resorts", "description": "Properties of all sizes from boutique hotels to large resort chains.", "icon": "building"},
+        {"title": "Restaurants", "description": "Full-service, quick-service, and cloud kitchens managing orders and delivery.", "icon": "utensils"},
+        {"title": "Event Venues", "description": "Hotels, conference centers, and venues managing events and catering.", "icon": "calendar"},
+        {"title": "Travel Agencies", "description": "Tour operators and travel agencies booking and managing itineraries.", "icon": "map"},
+        {"title": "Vacation Rentals", "description": "Property managers handling short-term rentals and guest services.", "icon": "home"}
+      ],
+      "features": [
+        {"category": "Hotel Operations", "items": ["Reservation System", "Front Desk", "Housekeeping", "Channel Manager", "Revenue Management", "Guest Profiles"]},
+        {"category": "Restaurant Management", "items": ["Table Reservations", "POS System", "Kitchen Display", "Menu Management", "Online Ordering", "Delivery Integration"]},
+        {"category": "Guest Services", "items": ["Mobile Check-In", "Digital Key", "Concierge", "Guest Messaging", "Feedback Collection", "Loyalty Programs"]},
+        {"category": "Business Intelligence", "items": ["Occupancy Reports", "Revenue Analytics", "Guest Analytics", "Staff Performance", "Review Management", "Forecasting"]}
+      ],
+      "faqs": [
+        {"question": "Does it integrate with OTAs like Booking.com and Expedia?", "answer": "Yes, our channel manager integrates with all major OTAs, GDS systems, and metasearch engines. Inventory and rates sync automatically in real-time."},
+        {"question": "Can guests check in online?", "answer": "Yes, mobile check-in allows guests to check in before arrival, select rooms, and receive digital keys on their smartphones for contactless arrival."},
+        {"question": "How does revenue management work?", "answer": "Dynamic pricing algorithms analyze demand, competition, events, and booking patterns to recommend optimal rates that maximize revenue."},
+        {"question": "Do you support restaurant delivery platforms?", "answer": "Yes, we integrate with UberEats, DoorDash, Grubhub, and other delivery platforms. Orders flow directly into your POS and kitchen display."},
+        {"question": "Can I manage multiple properties?", "answer": "Absolutely. Multi-property management with centralized reservations, reporting, and guest profiles across all locations."},
+        {"question": "What payment methods do you support?", "answer": "All major credit cards, digital wallets, bank transfers, and split payments. PCI-DSS compliant processing with fraud protection."},
+        {"question": "How does housekeeping management work?", "answer": "Assign rooms, track cleaning status in real-time, communicate with front desk, and optimize housekeeping schedules based on checkouts/check-ins."},
+        {"question": "Can I collect and manage guest reviews?", "answer": "Yes, automated review requests, centralized review monitoring from all platforms, sentiment analysis, and response management tools."}
+      ],
+      "testimonials": [
+        {"quote": "Revenue per available room increased 35% in 6 months. The channel management and dynamic pricing have been game-changing for our boutique hotel.", "author": "Maria Garcia", "role": "General Manager", "organization": "Coastal Resort & Spa", "avatar": "/images/testimonials/hosp-1.jpg"},
+        {"quote": "Our restaurant went from chaos to organized efficiency. Orders flow seamlessly from online, delivery, and in-house. Kitchen wait times dropped 40%.", "author": "Chef Antonio Romano", "role": "Owner", "organization": "Romano's Italian Kitchen", "avatar": "/images/testimonials/hosp-2.jpg"},
+        {"quote": "Guest satisfaction scores went from 4.1 to 4.8 stars. The mobile check-in and digital concierge services have truly elevated the guest experience.", "author": "Jennifer Lee", "role": "Director of Operations", "organization": "Metropolitan Hotel Group", "avatar": "/images/testimonials/hosp-3.jpg"}
+      ],
+      "caseStudies": [
+        {"title": "Coastal Resort: 35% Revenue Increase", "summary": "Channel management and revenue optimization transformed profitability.", "link": "/case-studies/coastal-resort-revenue"},
+        {"title": "Romano's Kitchen: From Chaos to Efficiency", "summary": "Integrated POS and kitchen display cut wait times by 40%.", "link": "/case-studies/romanos-kitchen-efficiency"}
+      ],
+      "pricing": {
+        "model": "Per-room or per-location pricing",
+        "startingPrice": "$3/room/month",
+        "description": "Affordable hospitality technology that scales with your business",
+        "features": ["30-day free trial", "No setup fees", "Free training", "24/7 support", "Cancel anytime", "Volume discounts"]
+      },
+      "relatedBlogs": ["/blog/hotel-revenue-management-2026", "/blog/improve-guest-satisfaction", "/blog/restaurant-pos-system-guide", "/blog/online-booking-optimization"],
+      "cta": {
+        "primary": {"text": "Start Free Trial", "link": "/signup?industry=hospitality"},
+        "secondary": {"text": "Schedule Demo", "link": "/demo?industry=hospitality"}
+      }
+    }
+  ]
+}

@@ -1,0 +1,2194 @@
+---
+title: 30-Day Next.js Full-Stack Mastery - Build 6 Production-Ready CRUD Applications
+description: Complete Next.js 15 course with React 19, TypeScript, Better Auth, Prisma, and PostgreSQL. Build authenticated CRUD apps from scratch including a CRM, task manager, and inventory system. Master Server Actions, multi-tenant architecture, email integration, and deploy to production. Perfect for developers ready to build modern SaaS applications.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwf2FWvzjVCYhOLHQTd4aXPKu5mZrRfBIzglonW
+category: tutorial
+createdAt: 2025-11-24
+updatedAt: 2025-11-24
+---
+
+# **30-Day Next.js Full-Stack Development Course**
+
+## **React \+ Next.js \+ TypeScript \+ Tailwind \+ Better Auth \+ PostgreSQL \+ Prisma**
+
+**Course Duration:** 30 Days (December 2, 2025 \- December 30, 2025\)  
+ **Study Days:** Tuesday, Thursday, Saturday (3 days per week)  
+ **Total Sessions:** 13 Sessions  
+ **Primary Goal:** Master Authenticated CRUD Applications  
+ **Tech Stack:** Next.js 15, React 19, TypeScript, Tailwind CSS, Better Auth, Prisma, PostgreSQL, Resend, React Email
+
+---
+
+## **Course Structure Overview**
+
+### **Foundation Phase (Sessions 1-3)**
+
+- Next.js fundamentals, React Server Components, TypeScript basics
+- **Project 1:** Static Business Directory
+
+### **Authentication Phase (Sessions 4-5)**
+
+- Better Auth setup, protected routes, session management
+- **Project 2:** User Authentication System with Email Verification
+
+### **Database & CRUD Phase (Sessions 6-8)**
+
+- PostgreSQL, Prisma ORM, API routes, Server Actions
+- **Project 3:** Personal Note-Taking App (Full CRUD)
+
+### **Advanced Integration Phase (Sessions 9-11)**
+
+- File uploads, email notifications, advanced patterns
+- **Project 4:** Team Task Manager (Multi-user CRUD)
+- **Project 5:** Inventory Management System
+
+### **Capstone Phase (Sessions 12-13)**
+
+- Complete production-ready application
+- **Project 6:** SaaS Starter \- Customer Management Platform
+
+---
+
+## **Detailed Session Breakdown**
+
+---
+
+## **FOUNDATION PHASE**
+
+### **Session 1 \- Tuesday, December 2, 2025**
+
+**Topic:** Next.js 15 Fundamentals & Modern React
+
+**Learning Objectives:**
+
+- Understanding the App Router architecture
+- File-based routing system
+- React Server Components (RSC) vs Client Components
+- Next.js project structure and conventions
+- TypeScript basics in React context
+- Environment variables and configuration
+
+**Key Concepts:**
+
+- `app/` directory structure
+- `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`
+- Server vs Client components (`'use client'`)
+- TypeScript interfaces and types
+- Props typing and component typing
+
+**Practical Exercises:**
+
+- Create a Next.js project with TypeScript
+- Build a multi-page application structure
+- Implement nested layouts
+- Create reusable typed components
+
+**Code Focus:**
+
+```tsx
+// Understanding Server Components (default)
+// app/page.tsx
+export default async function HomePage() {
+  // Can fetch data directly
+  const data = await fetch("...");
+  return <div>...</div>;
+}
+
+// Understanding Client Components
+// components/Counter.tsx
+("use client");
+import { useState } from "react";
+export default function Counter() {
+  const [count, setCount] = useState(0);
+  return <button onClick={() => setCount(count + 1)}>{count}</button>;
+}
+```
+
+**Homework:**
+
+- Set up Next.js project with TypeScript
+- Create 5 different pages with proper routing
+- Implement a shared layout with navigation
+
+---
+
+### **Session 2 \- Thursday, December 4, 2025**
+
+**Topic:** TypeScript Deep Dive & Tailwind CSS Integration
+
+**Learning Objectives:**
+
+- TypeScript essential patterns for React/Next.js
+- Interfaces vs Types
+- Generic types and utility types
+- Tailwind CSS setup and configuration
+- Component composition with Tailwind
+- Responsive design with Tailwind in Next.js
+
+**Key Concepts:**
+
+- Type definitions for props, state, and functions
+- `Partial<T>`, `Pick<T>`, `Omit<T>` utility types
+- Array and object typing
+- Tailwind config customization
+- Dark mode with Tailwind and Next.js
+
+**TypeScript Patterns:**
+
+```tsx
+// Component Props Interface
+interface ButtonProps {
+  label: string;
+  onClick: () => void;
+  variant?: "primary" | "secondary";
+  disabled?: boolean;
+}
+
+// Form Data Type
+type UserFormData = {
+  email: string;
+  password: string;
+  name: string;
+};
+
+// API Response Type
+interface ApiResponse<T> {
+  data: T;
+  error?: string;
+  success: boolean;
+}
+```
+
+**Practical Exercises:**
+
+- Type all components with proper interfaces
+- Create reusable UI component library with Tailwind
+- Build responsive navigation with TypeScript \+ Tailwind
+- Implement dark mode toggle
+
+**Homework:**
+
+- Create typed component library (Button, Card, Input, Modal)
+- Implement responsive layouts with Tailwind
+
+---
+
+### **Session 3 \- Saturday, December 6, 2025**
+
+**Topic:** PROJECT 1 \- Static Business Directory
+
+**Project Requirements:** Build a business directory listing application (read-only, no auth yet)
+
+**Features:**
+
+- Homepage with featured businesses
+- Business listing page with filters
+- Individual business detail pages
+- Search functionality (client-side)
+- Category filtering
+- Responsive design with Tailwind
+- TypeScript throughout
+- Proper component structure (Server \+ Client components)
+
+**Technical Requirements:**
+
+- Use Server Components for static content
+- Use Client Components for interactive filters
+- Create typed interfaces for all data models
+- Implement dynamic routes: `/businesses/[id]`
+- Use proper TypeScript for all props and state
+- Implement loading states
+- Error boundaries
+
+**File Structure:**
+
+```tsx
+app/
+├── page.tsx (home)
+├── layout.tsx
+├── businesses/
+│   ├── page.tsx (listing)
+│   └── [id]/
+│       └── page.tsx (detail)
+├── components/
+│   ├── BusinessCard.tsx
+│   ├── SearchBar.tsx (client)
+│   ├── FilterSidebar.tsx (client)
+└── types/
+    └── index.ts
+```
+
+**Skills Applied:**
+
+- Next.js App Router
+- Server and Client Components
+- TypeScript interfaces
+- Tailwind CSS
+- Dynamic routing
+- Component composition
+
+**Deliverable:** Fully typed, responsive business directory with working search and filters
+
+---
+
+## **AUTHENTICATION PHASE**
+
+### **Session 4 \- Tuesday, December 10, 2025**
+
+**Topic:** Better Auth Setup & Authentication Fundamentals
+
+**Learning Objectives:**
+
+- Understanding modern authentication patterns
+- Better Auth installation and configuration
+- Social auth providers (Google, GitHub)
+- Email/password authentication
+- Session management
+- Protected routes and middleware
+- Environment variables for auth
+
+**Key Concepts:**
+
+- Better Auth configuration file
+- Auth API routes setup
+- Session hooks (`useSession`)
+- Server-side session validation
+- Client-side auth state
+- Middleware for protected routes
+
+**Better Auth Setup:**
+
+```tsx
+// lib/auth.ts
+import { betterAuth } from "better-auth";
+import { prismaAdapter } from "better-auth/adapters/prisma";
+import { prisma } from "./prisma";
+
+export const auth = betterAuth({
+  database: prismaAdapter(prisma, {
+    provider: "postgresql",
+  }),
+  emailAndPassword: {
+    enabled: true,
+  },
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    },
+  },
+});
+
+// middleware.ts
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+export async function middleware(request: NextRequest) {
+  // Check authentication
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  });
+
+  if (!session && request.nextUrl.pathname.startsWith("/dashboard")) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+}
+```
+
+**Practical Exercises:**
+
+- Install and configure Better Auth
+- Create login page
+- Create signup page
+- Implement protected dashboard route
+- Add session checking middleware
+
+**Homework:**
+
+- Set up Better Auth with email/password
+- Create auth UI components (LoginForm, SignupForm)
+- Implement basic protected routes
+
+---
+
+### **Session 5 \- Thursday, December 12, 2025**
+
+**Topic:** PROJECT 2 \- User Authentication System with Email Verification
+
+**Project Requirements:** Complete authentication system with email verification using Resend and React Email
+
+**Features:**
+
+- User registration with email/password
+- Email verification flow
+- Login/logout functionality
+- Protected dashboard route
+- User profile page
+- Password reset flow
+- Social auth (Google)
+- Session management
+- Redirect after login
+- Proper error handling
+
+**Technical Requirements:**
+
+- Better Auth for authentication
+- Resend for email delivery
+- React Email for email templates
+- TypeScript for all auth logic
+- Tailwind for auth UI
+- Server Actions for form handling
+- Proper validation (Zod)
+
+**Email Templates with React Email:**
+
+```tsx
+// emails/VerifyEmail.tsx
+import {
+  Body,
+  Button,
+  Container,
+  Head,
+  Html,
+  Text,
+} from "@react-email/components";
+
+interface VerifyEmailProps {
+  verificationLink: string;
+  userName: string;
+}
+
+export default function VerifyEmail({
+  verificationLink,
+  userName,
+}: VerifyEmailProps) {
+  return (
+    <Html>
+      <Head />
+      <Body>
+        <Container>
+          <Text>Hi {userName},</Text>
+          <Text>Click the button below to verify your email:</Text>
+          <Button href={verificationLink}>Verify Email</Button>
+        </Container>
+      </Body>
+    </Html>
+  );
+}
+```
+
+**Resend Integration:**
+
+```tsx
+// lib/email.ts
+import { Resend } from "resend";
+import VerifyEmail from "@/emails/VerifyEmail";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+export async function sendVerificationEmail(
+  email: string,
+  name: string,
+  token: string
+) {
+  const verificationLink = `${process.env.APP_URL}/verify?token=${token}`;
+
+  await resend.emails.send({
+    from: "onboarding@yourdomain.com",
+    to: email,
+    subject: "Verify your email",
+    react: VerifyEmail({ verificationLink, userName: name }),
+  });
+}
+```
+
+**File Structure:**
+
+```tsx
+app/
+├── (auth)/
+│   ├── login/
+│   │   └── page.tsx
+│   ├── signup/
+│   │   └── page.tsx
+│   ├── verify/
+│   │   └── page.tsx
+│   └── reset-password/
+│       └── page.tsx
+├── (dashboard)/
+│   ├── layout.tsx (protected)
+│   ├── dashboard/
+│   │   └── page.tsx
+│   └── profile/
+│       └── page.tsx
+├── api/
+│   └── auth/
+│       └── [...all]/
+│           └── route.ts
+emails/
+├── VerifyEmail.tsx
+├── ResetPassword.tsx
+└── WelcomeEmail.tsx
+lib/
+├── auth.ts
+└── email.ts
+```
+
+**Skills Applied:**
+
+- Better Auth complete setup
+- Email verification flow
+- Resend email delivery
+- React Email templates
+- Protected routes
+- Session management
+- TypeScript auth types
+- Server Actions
+
+**Deliverable:** Production-ready authentication system with email verification
+
+---
+
+## **DATABASE & CRUD PHASE**
+
+### **Session 6 \- Saturday, December 14, 2025**
+
+**Topic:** PostgreSQL, Prisma ORM & Database Design
+
+**Learning Objectives:**
+
+- PostgreSQL setup (local or cloud \- Neon, Supabase)
+- Prisma installation and configuration
+- Schema design and migrations
+- Prisma Client usage
+- Relations and foreign keys
+- Database seeding
+- TypeScript types from Prisma
+
+**Key Concepts:**
+
+- Prisma schema file structure
+- Models and fields
+- Relations (one-to-many, many-to-many)
+- Migrations workflow
+- Prisma Client generation
+- Query optimization
+
+**Prisma Setup:**
+
+```tsx
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  notes     Note[]
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @db.Text
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// lib/prisma.ts
+import { PrismaClient } from '@prisma/client'
+
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined
+}
+
+export const prisma = globalForPrisma.prisma ?? new PrismaClient()
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+```
+
+**CRUD Operations:**
+
+```tsx
+// Create
+const note = await prisma.note.create({
+  data: {
+    title: "My Note",
+    content: "Note content",
+    userId: session.user.id,
+  },
+});
+
+// Read
+const notes = await prisma.note.findMany({
+  where: { userId: session.user.id },
+  orderBy: { createdAt: "desc" },
+  include: { user: true },
+});
+
+// Update
+await prisma.note.update({
+  where: { id: noteId },
+  data: { title: "Updated Title" },
+});
+
+// Delete
+await prisma.note.delete({
+  where: { id: noteId },
+});
+```
+
+**Practical Exercises:**
+
+- Set up PostgreSQL database
+- Install and configure Prisma
+- Design database schema for notes app
+- Run migrations
+- Create seed data
+- Test CRUD operations
+
+**Homework:**
+
+- Create database schema for note-taking app
+- Set up Prisma with PostgreSQL
+- Write seed script with sample data
+
+---
+
+### **Session 7 \- Tuesday, December 17, 2025**
+
+**Topic:** Next.js Server Actions & API Routes
+
+**Learning Objectives:**
+
+- Server Actions for mutations
+- API Routes for complex logic
+- Form handling with Server Actions
+- Error handling and validation
+- Optimistic updates
+- Revalidation strategies
+- TypeScript for actions and routes
+
+**Server Actions:**
+
+```tsx
+// app/actions/notes.ts
+"use server";
+
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+
+const noteSchema = z.object({
+  title: z.string().min(1).max(100),
+  content: z.string().min(1),
+});
+
+export async function createNote(formData: FormData) {
+  const session = await auth.api.getSession({ headers });
+
+  if (!session) {
+    throw new Error("Unauthorized");
+  }
+
+  const validatedFields = noteSchema.safeParse({
+    title: formData.get("title"),
+    content: formData.get("content"),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      error: "Invalid fields",
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  const note = await prisma.note.create({
+    data: {
+      ...validatedFields.data,
+      userId: session.user.id,
+    },
+  });
+
+  revalidatePath("/dashboard/notes");
+  return { success: true, note };
+}
+
+export async function updateNote(id: string, formData: FormData) {
+  const session = await auth.api.getSession({ headers });
+
+  if (!session) {
+    throw new Error("Unauthorized");
+  }
+
+  // Check ownership
+  const existingNote = await prisma.note.findUnique({
+    where: { id },
+  });
+
+  if (existingNote?.userId !== session.user.id) {
+    throw new Error("Forbidden");
+  }
+
+  const validatedFields = noteSchema.safeParse({
+    title: formData.get("title"),
+    content: formData.get("content"),
+  });
+
+  if (!validatedFields.success) {
+    return { error: "Invalid fields" };
+  }
+
+  await prisma.note.update({
+    where: { id },
+    data: validatedFields.data,
+  });
+
+  revalidatePath("/dashboard/notes");
+  return { success: true };
+}
+
+export async function deleteNote(id: string) {
+  const session = await auth.api.getSession({ headers });
+
+  if (!session) {
+    throw new Error("Unauthorized");
+  }
+
+  const existingNote = await prisma.note.findUnique({
+    where: { id },
+  });
+
+  if (existingNote?.userId !== session.user.id) {
+    throw new Error("Forbidden");
+  }
+
+  await prisma.note.delete({
+    where: { id },
+  });
+
+  revalidatePath("/dashboard/notes");
+  return { success: true };
+}
+```
+
+**API Routes:**
+
+```tsx
+// app/api/notes/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+
+export async function GET(request: NextRequest) {
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  });
+
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const notes = await prisma.note.findMany({
+    where: { userId: session.user.id },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return NextResponse.json({ notes });
+}
+
+// app/api/notes/[id]/route.ts
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  });
+
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await request.json();
+
+  const note = await prisma.note.update({
+    where: {
+      id: params.id,
+      userId: session.user.id, // Ensure ownership
+    },
+    data: body,
+  });
+
+  return NextResponse.json({ note });
+}
+```
+
+**Practical Exercises:**
+
+- Create Server Actions for all CRUD operations
+- Implement form validation with Zod
+- Add error handling
+- Create API routes for complex queries
+- Test all operations
+
+**Homework:**
+
+- Build all CRUD Server Actions with validation
+- Create API routes for data fetching
+- Add proper error handling
+
+---
+
+### **Session 8 \- Thursday, December 19, 2025**
+
+**Topic:** PROJECT 3 \- Personal Note-Taking App (Full CRUD)
+
+**Project Requirements:** Complete authenticated CRUD application for personal notes
+
+**Features:**
+
+- User authentication (from Project 2)
+- Create, read, update, delete notes
+- Rich text editor for notes
+- Search notes
+- Filter by date
+- Pin important notes
+- Archive notes
+- Trash/restore functionality
+- Real-time character count
+- Auto-save drafts
+- Responsive design
+
+**Technical Requirements:**
+
+- Next.js App Router
+- Better Auth for authentication
+- PostgreSQL \+ Prisma for database
+- Server Actions for mutations
+- TypeScript throughout
+- Tailwind CSS for styling
+- Form validation with Zod
+- Optimistic UI updates
+- Proper error handling
+- Loading states
+
+**Database Schema:**
+
+```tsx
+model Note {
+  id          String    @id @default(cuid())
+  title       String
+  content     String    @db.Text
+  isPinned    Boolean   @default(false)
+  isArchived  Boolean   @default(false)
+  isTrashed   Boolean   @default(false)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([userId, isTrashed])
+  @@index([userId, isArchived])
+}
+```
+
+**File Structure:**
+
+```tsx
+app/
+├── (dashboard)/
+│   ├── notes/
+│   │   ├── page.tsx (list)
+│   │   ├── new/
+│   │   │   └── page.tsx
+│   │   ├── [id]/
+│   │   │   └── page.tsx (view/edit)
+│   │   ├── archived/
+│   │   │   └── page.tsx
+│   │   └── trash/
+│   │       └── page.tsx
+├── actions/
+│   └── notes.ts
+├── api/
+│   └── notes/
+│       ├── route.ts
+│       └── [id]/
+│           └── route.ts
+components/
+├── notes/
+│   ├── NoteCard.tsx
+│   ├── NoteEditor.tsx
+│   ├── NoteList.tsx
+│   ├── NoteSearch.tsx
+│   └── NoteFilters.tsx
+lib/
+├── prisma.ts
+└── validations/
+    └── note.ts
+```
+
+**Key Features Implementation:**
+
+**Optimistic Updates:**
+
+```tsx
+"use client";
+
+import { useOptimistic } from "react";
+import { deleteNote } from "@/app/actions/notes";
+
+export function NoteList({ notes }: { notes: Note[] }) {
+  const [optimisticNotes, setOptimisticNotes] = useOptimistic(
+    notes,
+    (state, deletedId: string) => state.filter((note) => note.id !== deletedId)
+  );
+
+  async function handleDelete(id: string) {
+    setOptimisticNotes(id);
+    await deleteNote(id);
+  }
+
+  return (
+    <div>
+      {optimisticNotes.map((note) => (
+        <NoteCard key={note.id} note={note} onDelete={handleDelete} />
+      ))}
+    </div>
+  );
+}
+```
+
+**Skills Applied:**
+
+- Full CRUD operations
+- Authentication integration
+- Database relations
+- Server Actions
+- Form validation
+- Optimistic updates
+- Search and filtering
+- Soft deletes pattern
+- TypeScript throughout
+
+**Deliverable:** Production-ready note-taking app with full CRUD functionality
+
+---
+
+## **ADVANCED INTEGRATION PHASE**
+
+### **Session 9 \- Saturday, December 21, 2025**
+
+**Topic:** Advanced Patterns \- File Uploads, Multi-user, Permissions
+
+**Learning Objectives:**
+
+- File upload strategies (UploadThing, Vercel Blob)
+- Role-based access control (RBAC)
+- Team/organization models
+- Permissions system
+- File storage and retrieval
+- Image optimization
+- Sharing and collaboration features
+
+**File Upload with UploadThing:**
+
+```tsx
+// app/api/uploadthing/core.ts
+import { createUploadthing, type FileRouter } from "uploadthing/next";
+import { auth } from "@/lib/auth";
+
+const f = createUploadthing();
+
+export const ourFileRouter = {
+  imageUploader: f({ image: { maxFileSize: "4MB" } })
+    .middleware(async ({ req }) => {
+      const session = await auth.api.getSession({ headers: req.headers });
+
+      if (!session) throw new Error("Unauthorized");
+
+      return { userId: session.user.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Upload complete for userId:", metadata.userId);
+      console.log("file url", file.url);
+
+      return { uploadedBy: metadata.userId, url: file.url };
+    }),
+} satisfies FileRouter;
+
+export type OurFileRouter = typeof ourFileRouter;
+```
+
+**RBAC Pattern:**
+
+```tsx
+model User {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  role         Role           @default(USER)
+  memberships  Membership[]
+}
+
+model Organization {
+  id          String       @id @default(cuid())
+  name        String
+  members     Membership[]
+  tasks       Task[]
+}
+
+model Membership {
+  id             String       @id @default(cuid())
+  userId         String
+  organizationId String
+  role           OrgRole      @default(MEMBER)
+  user           User         @relation(fields: [userId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([userId, organizationId])
+}
+
+model Task {
+  id             String       @id @default(cuid())
+  title          String
+  organizationId String
+  assignedToId   String?
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  assignedTo     User?        @relation(fields: [assignedToId], references: [id])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum OrgRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+```
+
+**Permission Checking:**
+
+```tsx
+// lib/permissions.ts
+export async function canEditTask(userId: string, taskId: string) {
+  const task = await prisma.task.findUnique({
+    where: { id: taskId },
+    include: {
+      organization: {
+        include: {
+          members: {
+            where: { userId },
+          },
+        },
+      },
+    },
+  });
+
+  if (!task) return false;
+
+  const membership = task.organization.members[0];
+
+  return (
+    membership &&
+    (membership.role === "OWNER" ||
+      membership.role === "ADMIN" ||
+      task.assignedToId === userId)
+  );
+}
+```
+
+**Practical Exercises:**
+
+- Set up file upload with UploadThing
+- Implement organization/team model
+- Create permission checking utilities
+- Add role-based UI rendering
+
+**Homework:**
+
+- Implement file upload for avatars
+- Create organization invitation system
+- Build permission checking middleware
+
+---
+
+### **Session 10 \- Tuesday, December 23, 2025**
+
+**Topic:** PROJECT 4 \- Team Task Manager (Multi-user CRUD)
+
+**Project Requirements:** Collaborative task management application for teams
+
+**Features:**
+
+- Organization/team creation
+- Invite team members via email
+- Create, assign, and track tasks
+- Task statuses (To Do, In Progress, Done)
+- Priority levels (Low, Medium, High)
+- Due dates and reminders
+- Comments on tasks
+- File attachments
+- Activity feed
+- Dashboard with statistics
+- Role-based permissions (Owner, Admin, Member)
+- Email notifications for assignments
+
+**Technical Requirements:**
+
+- Multi-tenant architecture
+- Organization-based data isolation
+- Better Auth for authentication
+- PostgreSQL \+ Prisma with relations
+- Server Actions for CRUD
+- Resend \+ React Email for invitations
+- UploadThing for file attachments
+- TypeScript throughout
+- Real-time updates (optional: use polling or WebSockets)
+
+**Database Schema:**
+
+```tsx
+model Organization {
+  id          String       @id @default(cuid())
+  name        String
+  slug        String       @unique
+  createdAt   DateTime     @default(now())
+  members     Membership[]
+  tasks       Task[]
+  invitations Invitation[]
+}
+
+model Membership {
+  id             String       @id @default(cuid())
+  userId         String
+  organizationId String
+  role           OrgRole      @default(MEMBER)
+  joinedAt       DateTime     @default(now())
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+}
+
+model Task {
+  id             String       @id @default(cuid())
+  title          String
+  description    String?      @db.Text
+  status         TaskStatus   @default(TODO)
+  priority       Priority     @default(MEDIUM)
+  dueDate        DateTime?
+  organizationId String
+  createdById    String
+  assignedToId   String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy      User         @relation("TaskCreator", fields: [createdById], references: [id])
+  assignedTo     User?        @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  comments       Comment[]
+  attachments    Attachment[]
+
+  @@index([organizationId])
+  @@index([assignedToId])
+  @@index([status])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  taskId    String
+  userId    String
+  createdAt DateTime @default(now())
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([taskId])
+}
+
+model Attachment {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  type      String
+  size      Int
+  taskId    String
+  uploadedBy String
+  createdAt DateTime @default(now())
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [uploadedBy], references: [id])
+
+  @@index([taskId])
+}
+
+model Invitation {
+  id             String       @id @default(cuid())
+  email          String
+  organizationId String
+  role           OrgRole      @default(MEMBER)
+  token          String       @unique
+  expiresAt      DateTime
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([email, organizationId])
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum OrgRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+```
+
+**File Structure:**
+
+```tsx
+app/
+├── (dashboard)/
+│   ├── [orgSlug]/
+│   │   ├── layout.tsx (org context)
+│   │   ├── page.tsx (dashboard)
+│   │   ├── tasks/
+│   │   │   ├── page.tsx (list)
+│   │   │   ├── new/
+│   │   │   │   └── page.tsx
+│   │   │   └── [taskId]/
+│   │   │       └── page.tsx
+│   │   ├── members/
+│   │   │   └── page.tsx
+│   │   └── settings/
+│   │       └── page.tsx
+│   └── organizations/
+│       ├── page.tsx (list/create)
+│       └── new/
+│           └── page.tsx
+├── actions/
+│   ├── organizations.ts
+│   ├── tasks.ts
+│   ├── members.ts
+│   └── invitations.ts
+├── api/
+│   ├── organizations/
+│   ├── tasks/
+│   └── uploadthing/
+│       └── core.ts
+components/
+├── tasks/
+│   ├── TaskBoard.tsx
+│   ├── TaskCard.tsx
+│   ├── TaskModal.tsx
+│   ├── TaskForm.tsx
+│   └── CommentSection.tsx
+├── organizations/
+│   ├── OrgSwitcher.tsx
+│   ├── InviteModal.tsx
+│   └── MemberList.tsx
+lib/
+├── permissions.ts
+└── emails/
+    ├── InviteEmail.tsx
+    └── TaskAssignedEmail.tsx
+```
+
+**Skills Applied:**
+
+- Multi-tenant architecture
+- Organization/team management
+- Role-based access control
+- Email invitations
+- File uploads
+- Complex database relations
+- Activity tracking
+- Notifications system
+
+**Deliverable:** Production-ready team task management system
+
+---
+
+### **Session 11 \- Thursday, December 25, 2025**
+
+**Topic:** PROJECT 5 \- Inventory Management System
+
+**Project Requirements:** Inventory tracking system for small businesses (retail, warehouse, etc.)
+
+**Features:**
+
+- Product catalog management (CRUD)
+- Categories and subcategories
+- Stock tracking and alerts
+- Supplier management
+- Purchase orders
+- Sales/stock-out tracking
+- Low stock notifications via email
+- Barcode/SKU generation
+- Search and filtering
+- Stock history/audit log
+- Dashboard with analytics
+- CSV import/export
+- Multi-location support (optional)
+
+**Technical Requirements:**
+
+- Authenticated CRUD operations
+- PostgreSQL \+ Prisma
+- Server Actions
+- Complex filtering and search
+- Data export functionality
+- Email notifications (low stock)
+- TypeScript
+- Charts for analytics (Recharts)
+
+**Database Schema:**
+
+```tsx
+model Product {
+  id          String     @id @default(cuid())
+  name        String
+  description String?    @db.Text
+  sku         String     @unique
+  barcode     String?    @unique
+  categoryId  String?
+  supplierId  String?
+  costPrice   Decimal    @db.Decimal(10, 2)
+  sellingPrice Decimal   @db.Decimal(10, 2)
+  quantity    Int        @default(0)
+  minQuantity Int        @default(10) // Alert threshold
+  unit        String     @default("pcs")
+  imageUrl    String?
+  userId      String     // Owner
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  category    Category?  @relation(fields: [categoryId], references: [id])
+  supplier    Supplier?  @relation(fields: [supplierId], references: [id])
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions StockTransaction[]
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([supplierId])
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  parentId  String?
+  userId    String
+  createdAt DateTime  @default(now())
+  parent    Category? @relation("CategoryTree", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryTree")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products  Product[]
+
+  @@unique([name, userId])
+}
+
+model Supplier {
+  id          String    @id @default(cuid())
+  name        String
+  email       String?
+  phone       String?
+  address     String?
+  userId      String
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products    Product[]
+
+  @@index([userId])
+}
+
+model StockTransaction {
+  id          String      @id @default(cuid())
+  productId   String
+  type        TransactionType
+  quantity    Int
+  notes       String?
+  userId      String
+  createdAt   DateTime    @default(now())
+  product     Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id])
+
+  @@index([productId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+enum TransactionType {
+  PURCHASE
+  SALE
+  ADJUSTMENT
+  RETURN
+}
+```
+
+**Key Features Implementation:**
+
+**Low Stock Alert System:**
+
+```tsx
+// lib/inventory-alerts.ts
+import { prisma } from "./prisma";
+import { sendLowStockAlert } from "./email";
+
+export async function checkLowStock(userId: string) {
+  const lowStockProducts = await prisma.product.findMany({
+    where: {
+      userId,
+      quantity: {
+        lte: prisma.product.fields.minQuantity,
+      },
+    },
+    include: {
+      category: true,
+    },
+  });
+
+  if (lowStockProducts.length > 0) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (user) {
+      await sendLowStockAlert(user.email, lowStockProducts);
+    }
+  }
+
+  return lowStockProducts;
+}
+```
+
+**CSV Export:**
+
+```tsx
+// app/actions/inventory.ts
+'use server'
+
+export async function exportInventoryCSV(userId: string) {
+  const products = await prisma.product.findMany({
+    where: { userId },
+    include: {
+      category: true,
+      supplier: true,
+    },
+  })
+
+  const csv = [
+    ['SKU', 'Name', 'Category', 'Supplier', 'Quantity', 'Cost Price', 'Selling Price', 'Total Value'].join(','),
+    ...products.map(p => [
+      p.sku,
+      p.name,
+      p.category?.name || '',
+      p.supplier?.name || '',
+      p.quantity,
+      p.costPrice,
+      p.sellingPrice,
+      (Number(p.sellingPrice) * p.quantity).toFixed(2),
+    ].join(',')),
+  ].join('
+')
+
+  return csv
+}
+```
+
+**File Structure:**
+
+```tsx
+app/
+├── (dashboard)/
+│   ├── inventory/
+│   │   ├── page.tsx (dashboard)
+│   │   ├── products/
+│   │   │   ├── page.tsx (list)
+│   │   │   ├── new/
+│   │   │   │   └── page.tsx
+│   │   │   └── [id]/
+│   │   │       ├── page.tsx (view)
+│   │   │       └── edit/
+│   │   │           └── page.tsx
+│   │   ├── categories/
+│   │   │   └── page.tsx
+│   │   ├── suppliers/
+│   │   │   └── page.tsx
+│   │   └── reports/
+│   │       └── page.tsx
+├── actions/
+│   ├── products.ts
+│   ├── categories.ts
+│   ├── suppliers.ts
+│   └── inventory.ts
+components/
+├── inventory/
+│   ├── ProductCard.tsx
+│   ├── ProductForm.tsx
+│   ├── StockAdjustment.tsx
+│   ├── InventoryStats.tsx
+│   ├── LowStockAlert.tsx
+│   └── ExportButton.tsx
+lib/
+├── inventory-alerts.ts
+└── emails/
+    └── LowStockAlert.tsx
+```
+
+**Skills Applied:**
+
+- Complex data modeling
+- Stock tracking logic
+- Alert systems
+- Data export
+- Analytics and reporting
+- Relational data management
+- Audit logging
+
+**Deliverable:** Full-featured inventory management system
+
+---
+
+## **CAPSTONE PHASE**
+
+### **Session 12 \- Saturday, December 27, 2025**
+
+**Topic:** Production Best Practices & Advanced Features
+
+**Learning Objectives:**
+
+- Error handling patterns
+- Loading states and suspense
+- SEO optimization
+- Performance optimization
+- Security best practices
+- Testing strategies
+- Deployment preparation (Vercel)
+- Environment variables management
+- Database connection pooling
+- Monitoring and logging
+
+**Key Concepts:**
+
+**Error Handling:**
+
+```tsx
+// app/error.tsx
+"use client";
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  return (
+    <div>
+      <h2>Something went wrong!</h2>
+      <button onClick={reset}>Try again</button>
+    </div>
+  );
+}
+
+// components/ErrorBoundary.tsx
+import { AlertCircle } from "lucide-react";
+
+export function FormError({ message }: { message?: string }) {
+  if (!message) return null;
+
+  return (
+    <div className="flex items-center gap-2 rounded bg-red-50 p-3 text-red-900">
+      <AlertCircle className="h-4 w-4" />
+      <p>{message}</p>
+    </div>
+  );
+}
+```
+
+**Loading States:**
+
+```tsx
+// app/dashboard/loading.tsx
+export default function Loading() {
+  return <div>Loading...</div>;
+}
+
+// components/LoadingSpinner.tsx
+export function LoadingSpinner() {
+  return (
+    <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900" />
+  );
+}
+```
+
+**Security Best Practices:**
+
+```tsx
+// middleware.ts - Rate limiting concept
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(10, "10 s"),
+});
+
+export async function middleware(request: NextRequest) {
+  const ip = request.ip ?? "127.0.0.1";
+  const { success } = await ratelimit.limit(ip);
+
+  if (!success) {
+    return new Response("Too Many Requests", { status: 429 });
+  }
+
+  return NextResponse.next();
+}
+```
+
+**Practical Exercises:**
+
+- Add comprehensive error boundaries
+- Implement loading states
+- Add rate limiting
+- Set up monitoring
+- Optimize database queries
+- Add SEO meta tags
+
+**Homework:**
+
+- Prepare deployment checklist
+- Review all projects for production readiness
+
+---
+
+### **Session 13 \- Tuesday, December 30, 2025**
+
+**Topic:** PROJECT 6 \- SaaS Starter: Customer Management Platform (CRM)
+
+**Final Capstone Project Requirements:** Complete production-ready CRM system for small businesses
+
+**Features:**
+
+- Multi-tenant SaaS architecture
+- Customer/contact management (CRUD)
+- Companies and contacts relationship
+- Deal/opportunity pipeline
+- Activity tracking (calls, emails, meetings)
+- Task management
+- Notes and file attachments
+- Email integration (send emails from app)
+- Dashboard with analytics
+- Advanced search and filtering
+- Custom fields
+- Tags and segments
+- Export to CSV
+- Team collaboration
+- Role-based permissions
+- Subscription/billing ready structure
+
+**Technical Requirements:**
+
+- Next.js 15 App Router
+- TypeScript throughout
+- Better Auth with team management
+- PostgreSQL \+ Prisma
+- Server Actions for all mutations
+- API routes for complex queries
+- Resend \+ React Email for communications
+- UploadThing for attachments
+- Tailwind CSS
+- Recharts for analytics
+- Full CRUD on all entities
+- Advanced filtering
+- Optimistic updates
+- Comprehensive error handling
+
+**Database Schema:**
+
+```tsx
+model Organization {
+  id          String       @id @default(cuid())
+  name        String
+  slug        String       @unique
+  plan        Plan         @default(FREE)
+  createdAt   DateTime     @default(now())
+  members     Membership[]
+  customers   Customer[]
+  companies   Company[]
+  deals       Deal[]
+  activities  Activity[]
+  customFields CustomField[]
+}
+
+model Customer {
+  id             String     @id @default(cuid())
+  firstName      String
+  lastName       String
+  email          String
+  phone          String?
+  jobTitle       String?
+  companyId      String?
+  organizationId String
+  status         CustomerStatus @default(ACTIVE)
+  tags           String[]
+  customData     Json?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  company        Company?   @relation(fields: [companyId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  deals          Deal[]
+  activities     Activity[]
+  notes          Note[]
+  attachments    Attachment[]
+
+  @@unique([email, organizationId])
+  @@index([organizationId])
+  @@index([companyId])
+}
+
+model Company {
+  id             String     @id @default(cuid())
+  name           String
+  domain         String?
+  industry       String?
+  size           String?
+  address        String?
+  phone          String?
+  website        String?
+  organizationId String
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customers      Customer[]
+  deals          Deal[]
+
+  @@index([organizationId])
+}
+
+model Deal {
+  id             String     @id @default(cuid())
+  title          String
+  value          Decimal    @db.Decimal(10, 2)
+  stage          DealStage  @default(LEAD)
+  probability    Int        @default(0)
+  expectedCloseDate DateTime?
+  customerId     String?
+  companyId      String?
+  organizationId String
+  ownerId        String
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  customer       Customer?  @relation(fields: [customerId], references: [id])
+  company        Company?   @relation(fields: [companyId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  owner          User       @relation(fields: [ownerId], references: [id])
+  activities     Activity[]
+
+  @@index([organizationId])
+  @@index([stage])
+}
+
+model Activity {
+  id             String       @id @default(cuid())
+  type           ActivityType
+  title          String
+  description    String?      @db.Text
+  dueDate        DateTime?
+  completed      Boolean      @default(false)
+  customerId     String?
+  dealId         String?
+  organizationId String
+  userId         String
+  createdAt      DateTime     @default(now())
+  customer       Customer?    @relation(fields: [customerId], references: [id])
+  deal           Deal?        @relation(fields: [dealId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id])
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([customerId])
+}
+
+model Note {
+  id         String   @id @default(cuid())
+  content    String   @db.Text
+  customerId String
+  userId     String
+  createdAt  DateTime @default(now())
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@index([customerId])
+}
+
+model Attachment {
+  id         String   @id @default(cuid())
+  name       String
+  url        String
+  type       String
+  size       Int
+  customerId String
+  userId     String
+  createdAt  DateTime @default(now())
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@index([customerId])
+}
+
+model CustomField {
+  id             String   @id @default(cuid())
+  name           String
+  fieldType      String   // text, number, date, select
+  options        String[] // for select type
+  organizationId String
+  entity         String   // customer, company, deal
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([name, organizationId, entity])
+}
+
+enum Plan {
+  FREE
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+  LEAD
+}
+
+enum DealStage {
+  LEAD
+  QUALIFIED
+  PROPOSAL
+  NEGOTIATION
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+enum ActivityType {
+  CALL
+  EMAIL
+  MEETING
+  TASK
+  NOTE
+}
+```
+
+**File Structure:**
+
+```tsx
+app/
+├── (dashboard)/
+│   ├── [orgSlug]/
+│   │   ├── page.tsx (dashboard)
+│   │   ├── customers/
+│   │   │   ├── page.tsx
+│   │   │   ├── new/
+│   │   │   └── [id]/
+│   │   ├── companies/
+│   │   │   ├── page.tsx
+│   │   │   ├── new/
+│   │   │   └── [id]/
+│   │   ├── deals/
+│   │   │   ├── page.tsx (pipeline view)
+│   │   │   ├── new/
+│   │   │   └── [id]/
+│   │   ├── activities/
+│   │   │   └── page.tsx
+│   │   └── settings/
+│   │       ├── page.tsx
+│   │       └── custom-fields/
+├── actions/
+│   ├── customers.ts
+│   ├── companies.ts
+│   ├── deals.ts
+│   ├── activities.ts
+│   └── custom-fields.ts
+├── api/
+│   ├── customers/
+│   ├── deals/
+│   └── export/
+│       └── route.ts
+components/
+├── customers/
+│   ├── CustomerCard.tsx
+│   ├── CustomerForm.tsx
+│   ├── CustomerDetail.tsx
+│   └── CustomerSearch.tsx
+├── deals/
+│   ├── DealPipeline.tsx
+│   ├── DealCard.tsx
+│   └── DealForm.tsx
+├── activities/
+│   ├── ActivityFeed.tsx
+│   ├── ActivityForm.tsx
+│   └── ActivityTimeline.tsx
+└── shared/
+    ├── FileUpload.tsx
+    ├── NotesSection.tsx
+    └── TagInput.tsx
+lib/
+├── permissions.ts
+├── export.ts
+└── emails/
+    ├── CustomerWelcome.tsx
+    └── DealUpdate.tsx
+```
+
+**Advanced Features Implementation:**
+
+**Pipeline View (Drag & Drop):**
+
+```tsx
+"use client";
+
+import { DndContext, DragEndEvent } from "@dnd-kit/core";
+import { updateDealStage } from "@/app/actions/deals";
+
+export function DealPipeline({ deals }: { deals: Deal[] }) {
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+
+    if (over) {
+      await updateDealStage(active.id as string, over.id as DealStage);
+    }
+  }
+
+  return (
+    <DndContext onDragEnd={handleDragEnd}>
+      <div className="flex gap-4">
+        {stages.map((stage) => (
+          <DealColumn
+            key={stage}
+            stage={stage}
+            deals={deals.filter((d) => d.stage === stage)}
+          />
+        ))}
+      </div>
+    </DndContext>
+  );
+}
+```
+
+**Advanced Search:**
+
+```tsx
+// app/actions/customers.ts
+"use server";
+
+export async function searchCustomers(params: {
+  query?: string;
+  tags?: string[];
+  status?: CustomerStatus;
+  companyId?: string;
+  organizationId: string;
+}) {
+  const customers = await prisma.customer.findMany({
+    where: {
+      organizationId: params.organizationId,
+      AND: [
+        params.query
+          ? {
+              OR: [
+                { firstName: { contains: params.query, mode: "insensitive" } },
+                { lastName: { contains: params.query, mode: "insensitive" } },
+                { email: { contains: params.query, mode: "insensitive" } },
+              ],
+            }
+          : {},
+        params.tags
+          ? {
+              tags: { hasSome: params.tags },
+            }
+          : {},
+        params.status ? { status: params.status } : {},
+        params.companyId ? { companyId: params.companyId } : {},
+      ],
+    },
+    include: {
+      company: true,
+      deals: {
+        where: { stage: { not: "CLOSED_LOST" } },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return customers;
+}
+```
+
+**Dashboard Analytics:**
+
+```tsx
+// app/[orgSlug]/page.tsx
+export default async function DashboardPage({
+  params,
+}: {
+  params: { orgSlug: string };
+}) {
+  const [stats, recentActivities, dealsByStage] = await Promise.all([
+    getDashboardStats(params.orgSlug),
+    getRecentActivities(params.orgSlug),
+    getDealsByStage(params.orgSlug),
+  ]);
+
+  return (
+    <div>
+      <StatsGrid stats={stats} />
+      <DealPipelineChart data={dealsByStage} />
+      <ActivityTimeline activities={recentActivities} />
+    </div>
+  );
+}
+```
+
+**Skills Applied (Everything from the course):**
+
+- Next.js App Router mastery
+- TypeScript advanced patterns
+- Multi-tenant architecture
+- Complex database schema design
+- Full CRUD operations
+- Authentication & authorization
+- Role-based permissions
+- File uploads
+- Email integration
+- Advanced search & filtering
+- Data visualization
+- Export functionality
+- Optimistic updates
+- Error handling
+- Loading states
+- Performance optimization
+- Production best practices
+
+**Deliverable:** Production-ready CRM system that demonstrates full-stack mastery
+
+---
+
+## **Course Summary**
+
+### **What You've Built:**
+
+1. **Static Business Directory** \- Next.js fundamentals
+2. **Authentication System** \- Better Auth \+ Email verification
+3. **Note-Taking App** \- Full CRUD basics
+4. **Team Task Manager** \- Multi-user collaboration
+5. **Inventory Management** \- Complex business logic
+6. **CRM Platform** \- Production-ready SaaS application
+
+### **Technologies Mastered:**
+
+✅ Next.js 15 (App Router, Server Components)  
+ ✅ React 19 (Server Actions, useOptimistic)  
+ ✅ TypeScript (Advanced patterns)  
+ ✅ Tailwind CSS (Utility-first styling)  
+ ✅ Better Auth (Authentication & authorization)  
+ ✅ PostgreSQL (Relational database)  
+ ✅ Prisma ORM (Type-safe database access)  
+ ✅ Resend \+ React Email (Transactional emails)  
+ ✅ UploadThing (File uploads)  
+ ✅ API Routes & Server Actions  
+ ✅ Multi-tenant architecture  
+ ✅ RBAC (Role-based access control)
+
+### **Core Competencies Achieved:**
+
+- ✅ Build authenticated CRUD applications
+- ✅ Design complex database schemas
+- ✅ Implement multi-tenant SaaS architecture
+- ✅ Handle file uploads and email notifications
+- ✅ Create role-based permission systems
+- ✅ Build production-ready applications
+- ✅ Follow modern best practices
+- ✅ Deploy to production (Vercel)
+
+---
+
+## **Post-Course Learning Path**
+
+### **Immediate Next Steps:**
+
+1. **Deploy all projects to Vercel**
+2. **Add tests** (Jest, React Testing Library, Playwright)
+3. **Implement CI/CD** (GitHub Actions)
+4. **Add monitoring** (Sentry, Vercel Analytics)
+5. **Optimize performance** (Lighthouse, Web Vitals)
+
+### **Advanced Topics:**
+
+- Real-time features (WebSockets, Pusher, Ably)
+- Advanced caching strategies (Redis)
+- Background jobs (Trigger.dev, Inngest)
+- Payment integration (Stripe)
+- Multi-language support (i18n)
+- Mobile app (React Native, Expo)
+- AI integration (OpenAI, Vercel AI SDK)
+
+### **Career Opportunities:**
+
+- Full-Stack Developer
+- Next.js Specialist
+- SaaS Developer
+- Freelance Developer
+- Technical Founder
+
+---
+
+## **Additional Resources**
+
+### **Documentation:**
+
+- Next.js: https://nextjs.org/docs
+- React: https://react.dev
+- TypeScript: https://www.typescriptlang.org/docs
+- Prisma: https://www.prisma.io/docs
+- Better Auth: https://better-auth.com/docs
+- Tailwind CSS: https://tailwindcss.com/docs
+
+### **Communities:**
+
+- Next.js Discord
+- React Discord
+- r/nextjs
+- r/reactjs
+- Dev.to
+- Stack Overflow
+
+### **Tools & Services:**
+
+- Vercel (Hosting)
+- Neon/Supabase (PostgreSQL)
+- Resend (Email)
+- UploadThing (File storage)
+- GitHub (Version control)
+
+---
+
+## **Tips for Success**
+
+1. **Code every day** \- Even 30 minutes makes a difference
+2. **Build variations** \- Modify projects for different use cases
+3. **Read documentation** \- Official docs are the best resource
+4. **Join communities** \- Learn from others, share your work
+5. **Deploy often** \- Get comfortable with production
+6. **Ask questions** \- No question is too simple
+7. **Review code** \- Study well-written open source projects
+8. **Build in public** \- Share your progress on Twitter/LinkedIn
+
+---
+
+## **Final Project Showcase**
+
+By course end, your portfolio will include:
+
+1. ✅ **Business Directory** (Static site)
+2. ✅ **Auth System** (Email verification)
+3. ✅ **Note-Taking App** (Personal CRUD)
+4. ✅ **Task Manager** (Team collaboration)
+5. ✅ **Inventory System** (Business logic)
+6. ✅ **CRM Platform** (Production SaaS)
+
+**Total: 6 Production-Ready Applications**
+
+All projects demonstrate:
+
+- Modern architecture
+- Best practices
+- Type safety
+- Authentication
+- Database design
+- Production readiness
+
+---
+
+## **Course Evaluation Criteria**
+
+### **Code Quality (30%)**
+
+- TypeScript usage
+- Component structure
+- File organization
+- Naming conventions
+- Code documentation
+
+### **Functionality (40%)**
+
+- All features working
+- Proper error handling
+- Data validation
+- User experience
+- Performance
+
+### **Database Design (20%)**
+
+- Schema design
+- Relationships
+- Indexes
+- Migrations
+- Data integrity
+
+### **Best Practices (10%)**
+
+- Security measures
+- Accessibility
+- SEO optimization
+- Testing readiness
+- Deployment preparation
+
+---
+
+## **Getting Started Checklist**
+
+Before Session 1:
+
+- [ ] Install Node.js (v18+)
+- [ ] Install VS Code
+- [ ] Set up GitHub account
+- [ ] Install Git
+- [ ] Create Vercel account
+- [ ] Sign up for PostgreSQL (Neon/Supabase)
+- [ ] Get Resend API key
+- [ ] Optional: Install Vercel CLI
+
+**Welcome to the course! You're about to master modern full-stack development. Let's build something amazing! 🚀**
+
+---
+
+_Course Created: November 2025_  
+ _Start Date: December 2, 2025_  
+ _End Date: December 30, 2025_  
+ _Duration: 30 Days | 13 Sessions_

@@ -1,0 +1,2468 @@
+---
+title: Complete Guide to Image Upload in Next.js with UploadThing
+description: Master image uploads in Next.js with UploadThing. Learn to build reusable components for single image, multiple image, and file uploads with TypeScript.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwfPvlwnYWlYmyUHjID3pdtGos8zX12FNMTC9B6
+category: tutorial
+createdAt: 2025-08-20
+updatedAt: 2025-08-20
+---
+
+File uploads are a crucial feature in modern web applications. Whether you're building an e-commerce platform, a content management system, or a social media app, you'll need robust image and file upload functionality. In this comprehensive guide, we'll explore how to implement image uploads in Next.js using UploadThing, creating reusable components for different use cases.
+
+## What We'll Build
+
+By the end of this tutorial, you'll have a complete file upload system with:
+
+- **Single Image Upload**: Perfect for profile pictures, logos, and featured images
+- **Multiple Image Upload**: Ideal for product galleries and image collections
+- **File Upload System**: Supporting various file types including documents and archives
+- **Reusable Components**: TypeScript-powered components you can use across projects
+
+## Why UploadThing?
+
+UploadThing is a modern file upload service built specifically for Next.js applications. It offers:
+
+- **Developer Experience**: Simple setup with type-safe APIs
+- **Performance**: Fast uploads with automatic optimization
+- **Security**: Built-in file validation and secure uploads
+- **Cost-Effective**: Generous free tier and reasonable pricing
+- **Next.js Integration**: First-class support for App Router and Server Components
+
+## Getting Started
+
+### Step 1: Installation and Setup
+
+First, install the required packages:
+
+```bash
+npm install uploadthing @uploadthing/react
+```
+
+Add your UploadThing token to your environment variables:
+
+```env title=".env.local"
+UPLOADTHING_TOKEN=your_uploadthing_token_here
+```
+
+If you don't have an UploadThing account, [sign up here](https://uploadthing.com) and create a token from the dashboard.
+
+### Step 2: Configure the File Router
+
+Create a comprehensive file router that handles all your upload needs:
+
+```typescript title="app/api/uploadthing/core.ts" showLineNumbers
+import { createUploadthing, type FileRouter } from "uploadthing/next";
+import { UploadThingError } from "uploadthing/server";
+
+const f = createUploadthing();
+
+// Optional: Add authentication
+const auth = (req: Request) => ({ id: "user123" }); // Replace with real auth
+
+// FileRouter for your app, can contain multiple FileRoutes
+export const ourFileRouter = {
+  // Single image uploads
+  departmentImage: f({
+    image: { maxFileSize: "1MB" },
+  }).onUploadComplete(async ({ metadata, file }) => {
+    console.log("Department image uploaded:", file.url);
+    return { uploadedBy: "system" };
+  }),
+
+  brandLogo: f({
+    image: { maxFileSize: "1MB" },
+  }).onUploadComplete(async ({ metadata, file }) => {
+    console.log("Brand logo uploaded:", file.url);
+    return { uploadedBy: "system" };
+  }),
+
+  productImage: f({
+    image: { maxFileSize: "1MB" },
+  }).onUploadComplete(async ({ metadata, file }) => {
+    console.log("Product image uploaded:", file.url);
+    return { uploadedBy: "system" };
+  }),
+
+  bannerImage: f({
+    image: { maxFileSize: "1MB" },
+  }).onUploadComplete(async ({ metadata, file }) => {
+    console.log("Banner image uploaded:", file.url);
+    return { uploadedBy: "system" };
+  }),
+
+  categoryImage: f({
+    image: { maxFileSize: "1MB" },
+  }).onUploadComplete(async ({ metadata, file }) => {
+    console.log("Category image uploaded:", file.url);
+    return { uploadedBy: "system" };
+  }),
+
+  blogImage: f({
+    image: { maxFileSize: "1MB" },
+  }).onUploadComplete(async ({ metadata, file }) => {
+    console.log("Blog image uploaded:", file.url);
+    return { uploadedBy: "system" };
+  }),
+
+  // Multiple image uploads
+  productImages: f({
+    image: { maxFileSize: "4MB", maxFileCount: 4 },
+  }).onUploadComplete(async ({ metadata, file }) => {
+    console.log("Product images uploaded:", file.url);
+    return { uploadedBy: "system" };
+  }),
+
+  // File uploads (documents, archives, etc.)
+  fileUploads: f({
+    image: { maxFileSize: "1MB", maxFileCount: 4 },
+    pdf: { maxFileSize: "1MB", maxFileCount: 4 },
+    "application/msword": { maxFileSize: "1MB", maxFileCount: 4 }, // .doc
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+      maxFileSize: "1MB",
+      maxFileCount: 4,
+    }, // .docx
+    "application/vnd.ms-excel": { maxFileSize: "1MB", maxFileCount: 4 }, // .xls
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+      maxFileSize: "1MB",
+      maxFileCount: 4,
+    }, // .xlsx
+    "application/vnd.ms-powerpoint": { maxFileSize: "1MB", maxFileCount: 4 }, // .ppt
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+      {
+        maxFileSize: "1MB",
+        maxFileCount: 4,
+      }, // .pptx
+    "text/plain": { maxFileSize: "1MB", maxFileCount: 4 }, // .txt
+    "application/gzip": { maxFileSize: "1MB", maxFileCount: 4 },
+    "application/zip": { maxFileSize: "1MB", maxFileCount: 4 },
+  }).onUploadComplete(async ({ metadata, file }) => {
+    console.log("Files uploaded:", file.url);
+    return { uploadedBy: "system" };
+  }),
+
+  // Mail attachments
+  mailAttachments: f({
+    image: { maxFileSize: "1MB", maxFileCount: 4 },
+    pdf: { maxFileSize: "1MB", maxFileCount: 4 },
+    "application/msword": { maxFileSize: "1MB", maxFileCount: 4 },
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+      maxFileSize: "1MB",
+      maxFileCount: 4,
+    },
+    "application/vnd.ms-excel": { maxFileSize: "1MB", maxFileCount: 4 },
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+      maxFileSize: "1MB",
+      maxFileCount: 4,
+    },
+    "application/vnd.ms-powerpoint": { maxFileSize: "1MB", maxFileCount: 4 },
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+      {
+        maxFileSize: "1MB",
+        maxFileCount: 4,
+      },
+    "text/plain": { maxFileSize: "1MB", maxFileCount: 4 },
+    "application/gzip": { maxFileSize: "1MB", maxFileCount: 4 },
+    "application/zip": { maxFileSize: "1MB", maxFileCount: 4 },
+  }).onUploadComplete(async ({ metadata, file }) => {
+    console.log("Mail attachment uploaded:", file.url);
+    return { uploadedBy: "system" };
+  }),
+} satisfies FileRouter;
+
+export type OurFileRouter = typeof ourFileRouter;
+```
+
+### Step 3: Create API Route Handler
+
+```typescript title="app/api/uploadthing/route.ts" showLineNumbers
+import { createRouteHandler } from "uploadthing/next";
+import { ourFileRouter } from "./core";
+
+// Export routes for Next App Router
+export const { GET, POST } = createRouteHandler({
+  router: ourFileRouter,
+});
+```
+
+### Step 4: Generate UploadThing Components
+
+```typescript title="lib/uploadthing.ts" showLineNumbers
+import {
+  generateUploadButton,
+  generateUploadDropzone,
+} from "@uploadthing/react";
+import type { OurFileRouter } from "@/app/api/uploadthing/core";
+
+export const UploadButton = generateUploadButton<OurFileRouter>();
+export const UploadDropzone = generateUploadDropzone<OurFileRouter>();
+```
+
+### Step 5: Configure Tailwind CSS
+
+```typescript title="tailwind.config.ts" showLineNumbers
+import { withUt } from "uploadthing/tw";
+
+export default withUt({
+  content: [
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+});
+```
+
+### Step 6: Optional SSR Optimization
+
+Add this to your root layout for better SSR performance:
+
+```typescript title="app/layout.tsx" showLineNumbers
+import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
+import { extractRouterConfig } from "uploadthing/server";
+import { ourFileRouter } from "./api/uploadthing/core";
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <NextSSRPlugin
+          routerConfig={extractRouterConfig(ourFileRouter)}
+        />
+        {children}
+      </body>
+    </html>
+  );
+}
+```
+
+## Building Reusable Upload Components
+
+Now let's create three reusable components for different upload scenarios.
+
+### 1. Single Image Upload Component
+
+Perfect for profile pictures, logos, and featured images:
+
+```typescript title="components/ImageUploadButton.tsx" showLineNumbers
+"use client";
+
+import { UploadButton } from "@/lib/uploadthing";
+import { cn } from "@/lib/utils";
+import Image from "next/image";
+import React from "react";
+
+type ImageUploadButtonProps = {
+  title: string;
+  imageUrl: string;
+  setImageUrl: (url: string) => void;
+  display?: "horizontal" | "vertical";
+  size?: "sm" | "lg";
+  endpoint: keyof typeof import("@/app/api/uploadthing/core").ourFileRouter;
+};
+
+export default function ImageUploadButton({
+  title,
+  imageUrl,
+  setImageUrl,
+  endpoint,
+  display = "vertical",
+  size = "sm",
+}: ImageUploadButtonProps) {
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-2",
+        display === "horizontal" ? "flex-row" : "flex-col"
+      )}
+    >
+      <div
+        className={cn(
+          "relative overflow-hidden rounded-md border border-gray-200",
+          size === "sm" ? "h-10 w-10" : "h-20 w-20"
+        )}
+      >
+        <Image
+          alt={title}
+          className="object-cover"
+          src={imageUrl}
+          fill
+          sizes="96px"
+        />
+      </div>
+
+      <UploadButton
+        className="w-full text-sm ut-button:bg-primary ut-button:text-primary-foreground hover:ut-button:bg-primary/90"
+        endpoint={endpoint}
+        onClientUploadComplete={(res) => {
+          console.log("Upload completed:", res);
+          if (res && res[0]) {
+            setImageUrl(res[0].url);
+          }
+        }}
+        onUploadError={(error: Error) => {
+          console.error("Upload error:", error);
+          alert(`Upload failed: ${error.message}`);
+        }}
+      />
+    </div>
+  );
+}
+```
+
+### 2. Multiple Image Upload Component
+
+Ideal for product galleries and image collections:
+
+```typescript title="components/MultipleImageInput.tsx" showLineNumbers
+"use client";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UploadButton } from "@/lib/uploadthing";
+import Image from "next/image";
+import React from "react";
+
+type MultipleImageInputProps = {
+  title: string;
+  imageUrls: string[];
+  setImageUrls: (urls: string[]) => void;
+  endpoint: keyof typeof import("@/app/api/uploadthing/core").ourFileRouter;
+};
+
+export default function MultipleImageInput({
+  title,
+  imageUrls,
+  setImageUrls,
+  endpoint,
+}: MultipleImageInputProps) {
+  const hasImages = imageUrls.length > 0 && imageUrls[0] !== "/default-image.png";
+
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-2">
+          {hasImages && (
+            <>
+              {/* Main featured image */}
+              <div className="relative aspect-video w-full overflow-hidden rounded-md">
+                <Image
+                  alt={`${title} - Main`}
+                  className="object-cover"
+                  src={imageUrls[0]}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
+              </div>
+
+              {/* Thumbnail grid */}
+              {imageUrls.length > 1 && (
+                <div className="grid grid-cols-3 gap-2">
+                  {imageUrls.slice(1).map((imageUrl: string, i: number) => (
+                    <div key={i} className="relative aspect-square overflow-hidden rounded-md">
+                      <Image
+                        alt={`${title} - ${i + 2}`}
+                        className="object-cover"
+                        src={imageUrl}
+                        fill
+                        sizes="(max-width: 768px) 33vw, (max-width: 1200px) 20vw, 15vw"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          <UploadButton
+            className="col-span-full ut-button:bg-primary ut-button:text-primary-foreground hover:ut-button:bg-primary/90"
+            endpoint={endpoint}
+            onClientUploadComplete={(res) => {
+              console.log("Multiple images uploaded:", res);
+              if (res && res.length > 0) {
+                const newUrls = res.map((item) => item.url);
+                setImageUrls(newUrls);
+              }
+            }}
+            onUploadError={(error: Error) => {
+              console.error("Upload error:", error);
+              alert(`Upload failed: ${error.message}`);
+            }}
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### 3. File Upload Component
+
+Supporting various file types including documents and archives:
+
+```typescript title="components/MultipleFileUploader.tsx" showLineNumbers
+"use client";
+
+import { UploadDropzone } from "@/lib/uploadthing";
+import { Pencil, XCircle } from "lucide-react";
+import React from "react";
+import {
+  FaFilePdf,
+  FaImage,
+  FaFileWord,
+  FaFileExcel,
+  FaFileArchive,
+  FaFilePowerpoint,
+  FaFileAlt,
+} from "react-icons/fa";
+import { MdTextSnippet } from "react-icons/md";
+
+export type FileProps = {
+  title: string;
+  type: string;
+  size: number;
+  url: string;
+};
+
+type MultipleFileUploadProps = {
+  label: string;
+  files: FileProps[];
+  setFiles: (files: FileProps[]) => void;
+  className?: string;
+  endpoint: keyof typeof import("@/app/api/uploadthing/core").ourFileRouter;
+};
+
+export function getFileIcon(extension: string | undefined) {
+  switch (extension?.toLowerCase()) {
+    case "pdf":
+      return <FaFilePdf className="w-6 h-6 flex-shrink-0 mr-2 text-red-500" />;
+    case "jpg":
+    case "jpeg":
+    case "png":
+    case "gif":
+    case "webp":
+      return <FaImage className="w-6 h-6 flex-shrink-0 mr-2 text-blue-500" />;
+    case "doc":
+    case "docx":
+      return <FaFileWord className="w-6 h-6 flex-shrink-0 mr-2 text-blue-600" />;
+    case "xls":
+    case "xlsx":
+      return <FaFileExcel className="w-6 h-6 flex-shrink-0 mr-2 text-green-500" />;
+    case "ppt":
+    case "pptx":
+      return <FaFilePowerpoint className="w-6 h-6 flex-shrink-0 mr-2 text-orange-500" />;
+    case "zip":
+    case "gzip":
+    case "tar":
+    case "rar":
+      return <FaFileArchive className="w-6 h-6 flex-shrink-0 mr-2 text-yellow-600" />;
+    case "txt":
+      return <MdTextSnippet className="w-6 h-6 flex-shrink-0 mr-2 text-gray-500" />;
+    default:
+      return <FaFileAlt className="w-6 h-6 flex-shrink-0 mr-2 text-gray-500" />;
+  }
+}
+
+export default function MultipleFileUpload({
+  label,
+  files,
+  setFiles,
+  className = "col-span-full",
+  endpoint,
+}: MultipleFileUploadProps) {
+  function handleFileRemove(fileIndex: number) {
+    const updatedFiles = files.filter((_, index) => index !== fileIndex);
+    setFiles(updatedFiles);
+  }
+
+  function formatFileSize(bytes: number): string {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  }
+
+  return (
+    <div className={className}>
+      <div className="flex justify-between items-center mb-4">
+        <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-50 mb-2">
+          {label}
+        </label>
+        {files.length > 0 && (
+          <button
+            onClick={() => setFiles([])}
+            type="button"
+            className="flex items-center space-x-2 bg-slate-900 hover:bg-slate-800 rounded-md shadow text-slate-50 py-2 px-4 transition-colors"
+          >
+            <Pencil className="w-4 h-4" />
+            <span>Change Files</span>
+          </button>
+        )}
+      </div>
+
+      {files.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {files.map((file, i) => {
+            const extension = file.title.split(".").pop();
+            return (
+              <div key={i} className="relative">
+                <button
+                  type="button"
+                  onClick={() => handleFileRemove(i)}
+                  className="absolute -top-2 -right-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-full p-1 transition-colors z-10"
+                  aria-label="Remove file"
+                >
+                  <XCircle className="w-4 h-4" />
+                </button>
+
+                <div className="py-3 rounded-lg px-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center space-x-3 hover:shadow-md transition-shadow">
+                  {getFileIcon(extension)}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
+                      {file.title}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {formatFileSize(file.size)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <UploadDropzone
+          className="ut-button:bg-primary ut-button:text-primary-foreground hover:ut-button:bg-primary/90 ut-allowed-content:text-slate-600"
+          endpoint={endpoint}
+          onClientUploadComplete={(res) => {
+            console.log("Files uploaded:", res);
+            if (res && res.length > 0) {
+              const newFiles: FileProps[] = res.map((item) => ({
+                url: item.url,
+                title: item.name,
+                size: item.size,
+                type: item.type || "application/octet-stream",
+              }));
+              setFiles(newFiles);
+            }
+          }}
+          onUploadError={(error) => {
+            console.error("Upload error:", error);
+            alert(`Upload failed: ${error.message}`);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+```
+
+## Using the Components in Your Application
+
+Now let's see how to use these components in a real application:
+
+### Single Image Upload Example
+
+```typescript title="app/products/create/page.tsx" showLineNumbers
+"use client";
+
+import { useState } from "react";
+import { Label } from "@/components/ui/label";
+import ImageUploadButton from "@/components/ImageUploadButton";
+
+export default function CreateProductPage() {
+  const [desktopImageUrl, setDesktopImageUrl] = useState("/default-image.png");
+  const [desktopImageChanged, setDesktopImageChanged] = useState(false);
+
+  // Track changes
+  const handleDesktopImageChange = (url: string) => {
+    setDesktopImageUrl(url);
+    setDesktopImageChanged(true);
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-6">Create New Product</h1>
+
+      <div className="space-y-6">
+        {/* Desktop Banner Image */}
+        <div>
+          <Label className="text-gray-700 font-semibold flex items-center gap-1">
+            Desktop Banner Image *
+            {desktopImageChanged && (
+              <span className="text-xs text-amber-600 ml-1">●</span>
+            )}
+          </Label>
+          <div className="mt-2">
+            <ImageUploadButton
+              display="horizontal"
+              size="lg"
+              title="Desktop Banner Image"
+              imageUrl={desktopImageUrl}
+              setImageUrl={handleDesktopImageChange}
+              endpoint="bannerImage"
+            />
+          </div>
+        </div>
+
+        {/* Other form fields */}
+        <div>
+          <Label htmlFor="productName">Product Name *</Label>
+          <input
+            id="productName"
+            type="text"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+            placeholder="Enter product name"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+### Multiple Image Upload Example
+
+```typescript title="components/ProductImageGallery.tsx" showLineNumbers
+"use client";
+
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
+import MultipleImageInput from "@/components/MultipleImageInput";
+
+interface Product {
+  productImages?: string[];
+}
+
+interface ProductImageGalleryProps {
+  product?: Product;
+}
+
+export default function ProductImageGallery({ product }: ProductImageGalleryProps) {
+  const defaultImages =
+    product?.productImages && product.productImages.length > 0
+      ? product.productImages
+      : ["/default-image.png", "/default-image.png", "/default-image.png", "/default-image.png"];
+
+  const [productImages, setProductImages] = useState<string[]>(defaultImages);
+
+  const removeImage = (index: number) => {
+    const updatedImages = productImages.filter((_, i) => i !== index);
+    setProductImages([...updatedImages, "/default-image.png"].slice(0, 4));
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Product Images Gallery</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-6">
+        <div className="grid gap-3">
+          <div className="max-w-2xl mx-auto">
+            <MultipleImageInput
+              title="Product Images"
+              imageUrls={productImages}
+              setImageUrls={setProductImages}
+              endpoint="productImages"
+            />
+          </div>
+        </div>
+
+        {productImages.length > 0 &&
+         productImages.some(img => img !== "/default-image.png") && (
+          <div className="grid gap-3">
+            <Label>Current Images ({productImages.filter(img => img !== "/default-image.png").length})</Label>
+            <div className="flex flex-wrap gap-2">
+              {productImages
+                .filter(image => image !== "/default-image.png")
+                .map((image, index) => (
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="flex items-center gap-1 max-w-[250px]"
+                  >
+                    <span className="truncate">{image.split('/').pop()}</span>
+                    <X
+                      className="h-3 w-3 cursor-pointer hover:text-destructive transition-colors"
+                      onClick={() => removeImage(index)}
+                    />
+                  </Badge>
+                ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### File Upload Example
+
+```typescript title="components/DocumentUploader.tsx" showLineNumbers
+"use client";
+
+import { useState } from "react";
+import MultipleFileUpload, { FileProps } from "@/components/MultipleFileUploader";
+
+export default function DocumentUploader() {
+  const [attachments, setAttachments] = useState<FileProps[]>([]);
+
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <h2 className="text-xl font-semibold mb-4">Upload Documents</h2>
+
+      <MultipleFileUpload
+        label="Project Attachments"
+        files={attachments}
+        setFiles={setAttachments}
+        endpoint="fileUploads"
+        className="w-full"
+      />
+
+      {/* Display uploaded files info */}
+      {attachments.length > 0 && (
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+          <h3 className="font-medium mb-2">Uploaded Files Summary:</h3>
+          <ul className="text-sm text-gray-600 space-y-1">
+            {attachments.map((file, index) => (
+              <li key={index}>
+                {file.title} - {(file.size / 1024).toFixed(2)} KB
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Advanced Features and Customization
+
+### Adding Progress Indicators
+
+Enhance user experience with upload progress:
+
+```typescript title="components/ImageUploadWithProgress.tsx" showLineNumbers
+"use client";
+
+import { useState } from "react";
+import { UploadButton } from "@/lib/uploadthing";
+import { Progress } from "@/components/ui/progress";
+import Image from "next/image";
+
+interface ImageUploadWithProgressProps {
+  title: string;
+  imageUrl: string;
+  setImageUrl: (url: string) => void;
+  endpoint: keyof typeof import("@/app/api/uploadthing/core").ourFileRouter;
+}
+
+export default function ImageUploadWithProgress({
+  title,
+  imageUrl,
+  setImageUrl,
+  endpoint,
+}: ImageUploadWithProgressProps) {
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  return (
+    <div className="space-y-4">
+      <div className="relative aspect-video w-full overflow-hidden rounded-lg border">
+        <Image
+          alt={title}
+          className="object-cover"
+          src={imageUrl}
+          fill
+          sizes="(max-width: 768px) 100vw, 50vw"
+        />
+      </div>
+
+      {isUploading && (
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span>Uploading...</span>
+            <span>{uploadProgress}%</span>
+          </div>
+          <Progress value={uploadProgress} className="w-full" />
+        </div>
+      )}
+
+      <UploadButton
+        endpoint={endpoint}
+        onUploadBegin={() => {
+          setIsUploading(true);
+          setUploadProgress(0);
+        }}
+        onUploadProgress={(progress) => {
+          setUploadProgress(progress);
+        }}
+        onClientUploadComplete={(res) => {
+          setIsUploading(false);
+          setUploadProgress(0);
+          if (res && res[0]) {
+            setImageUrl(res[0].url);
+          }
+        }}
+        onUploadError={(error) => {
+          setIsUploading(false);
+          setUploadProgress(0);
+          console.error("Upload error:", error);
+        }}
+      />
+    </div>
+  );
+}
+```
+
+### Image Validation and Optimization
+
+Add client-side validation before upload:
+
+```typescript title="components/ValidatedImageUpload.tsx" showLineNumbers
+"use client";
+
+import { useState } from "react";
+import { UploadDropzone } from "@/lib/uploadthing";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle, CheckCircle } from "lucide-react";
+import Image from "next/image";
+
+interface ValidatedImageUploadProps {
+  title: string;
+  imageUrl: string;
+  setImageUrl: (url: string) => void;
+  endpoint: keyof typeof import("@/app/api/uploadthing/core").ourFileRouter;
+  maxSizeMB?: number;
+  allowedTypes?: string[];
+}
+
+export default function ValidatedImageUpload({
+  title,
+  imageUrl,
+  setImageUrl,
+  endpoint,
+  maxSizeMB = 1,
+  allowedTypes = ["image/jpeg", "image/png", "image/webp"],
+}: ValidatedImageUploadProps) {
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [isValidating, setIsValidating] = useState(false);
+
+  const validateFile = (file: File): boolean => {
+    setValidationError(null);
+    setIsValidating(true);
+
+    // Check file type
+    if (!allowedTypes.includes(file.type)) {
+      setValidationError(`File type not allowed. Please upload: ${allowedTypes.join(", ")}`);
+      setIsValidating(false);
+      return false;
+    }
+
+    // Check file size
+    const fileSizeMB = file.size / (1024 * 1024);
+    if (fileSizeMB > maxSizeMB) {
+      setValidationError(`File size too large. Maximum size: ${maxSizeMB}MB`);
+      setIsValidating(false);
+      return false;
+    }
+
+    // Check image dimensions (optional)
+    const img = new window.Image();
+    img.onload = () => {
+      if (img.width < 100 || img.height < 100) {
+        setValidationError("Image dimensions too small. Minimum: 100x100px");
+        setIsValidating(false);
+        return false;
+      }
+      setIsValidating(false);
+    };
+    img.src = URL.createObjectURL(file);
+
+    return true;
+  };
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-medium">{title}</h3>
+
+      {imageUrl !== "/default-image.png" && (
+        <div className="relative aspect-video w-full max-w-md overflow-hidden rounded-lg border">
+          <Image
+            alt={title}
+            className="object-cover"
+            src={imageUrl}
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+          />
+          <div className="absolute top-2 right-2">
+            <CheckCircle className="h-6 w-6 text-green-500 bg-white rounded-full" />
+          </div>
+        </div>
+      )}
+
+      {validationError && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>{validationError}</AlertDescription>
+        </Alert>
+      )}
+
+      <UploadDropzone
+        endpoint={endpoint}
+        onClientUploadComplete={(res) => {
+          setValidationError(null);
+          if (res && res[0]) {
+            setImageUrl(res[0].url);
+          }
+        }}
+        onUploadError={(error) => {
+          setValidationError(`Upload failed: ${error.message}`);
+        }}
+        onDrop={(acceptedFiles) => {
+          if (acceptedFiles.length > 0) {
+            validateFile(acceptedFiles[0]);
+          }
+        }}
+      />
+
+      <div className="text-sm text-gray-500">
+        <p>• Maximum file size: {maxSizeMB}MB</p>
+        <p>• Allowed formats: {allowedTypes.map(type => type.split('/')[1]).join(", ")}</p>
+        <p>• Minimum dimensions: 100x100px</p>
+      </div>
+    </div>
+  );
+}
+```
+
+### Drag and Drop Enhancement
+
+Create a more intuitive drag-and-drop experience:
+
+```typescript title="components/DragDropImageUpload.tsx" showLineNumbers
+"use client";
+
+import { useState, useCallback } from "react";
+import { useDropzone } from "react-dropzone";
+import { Upload, X, Image as ImageIcon } from "lucide-react";
+import Image from "next/image";
+import { cn } from "@/lib/utils";
+
+interface DragDropImageUploadProps {
+  title: string;
+  imageUrl: string;
+  setImageUrl: (url: string) => void;
+  onUpload: (file: File) => Promise<string>;
+  maxSize?: number;
+  accept?: Record<string, string[]>;
+}
+
+export default function DragDropImageUpload({
+  title,
+  imageUrl,
+  setImageUrl,
+  onUpload,
+  maxSize = 1024 * 1024, // 1MB
+  accept = {
+    "image/*": [".jpeg", ".jpg", ".png", ".webp"],
+  },
+}: DragDropImageUploadProps) {
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      if (acceptedFiles.length === 0) return;
+
+      const file = acceptedFiles[0];
+      setError(null);
+      setIsUploading(true);
+
+      try {
+        const url = await onUpload(file);
+        setImageUrl(url);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Upload failed");
+      } finally {
+        setIsUploading(false);
+      }
+    },
+    [onUpload, setImageUrl]
+  );
+
+  const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
+    onDrop,
+    accept,
+    maxSize,
+    multiple: false,
+  });
+
+  const removeImage = () => {
+    setImageUrl("/default-image.png");
+    setError(null);
+  };
+
+  return (
+    <div className="space-y-4">
+      <label className="block text-sm font-medium text-gray-700">{title}</label>
+
+      {imageUrl !== "/default-image.png" ? (
+        <div className="relative">
+          <div className="relative aspect-video w-full overflow-hidden rounded-lg border">
+            <Image
+              alt={title}
+              className="object-cover"
+              src={imageUrl}
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+            />
+          </div>
+          <button
+            onClick={removeImage}
+            className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      ) : (
+        <div
+          {...getRootProps()}
+          className={cn(
+            "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
+            isDragActive && !isDragReject && "border-blue-500 bg-blue-50",
+            isDragReject && "border-red-500 bg-red-50",
+            !isDragActive && "border-gray-300 hover:border-gray-400"
+          )}
+        >
+          <input {...getInputProps()} />
+
+          <div className="space-y-4">
+            {isUploading ? (
+              <div className="animate-spin mx-auto h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full" />
+            ) : (
+              <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+            )}
+
+            {isDragActive ? (
+              <p className="text-blue-600">Drop the image here...</p>
+            ) : (
+              <div>
+                <p className="text-gray-600">
+                  Drag and drop an image here, or{" "}
+                  <span className="text-blue-600 underline">browse</span>
+                </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  PNG, JPG, WEBP up to {(maxSize / (1024 * 1024)).toFixed(1)}MB
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Error Handling and User Feedback
+
+### Comprehensive Error Handling
+
+```typescript title="hooks/useUploadError.ts" showLineNumbers
+"use client";
+
+import { useState } from "react";
+import { toast } from "sonner";
+
+export interface UploadError {
+  code: string;
+  message: string;
+  details?: any;
+}
+
+export function useUploadError() {
+  const [error, setError] = useState<UploadError | null>(null);
+
+  const handleError = (error: Error | UploadError) => {
+    let uploadError: UploadError;
+
+    if ("code" in error) {
+      uploadError = error as UploadError;
+    } else {
+      uploadError = {
+        code: "UPLOAD_FAILED",
+        message: error.message || "Upload failed",
+      };
+    }
+
+    setError(uploadError);
+
+    // Show user-friendly error messages
+    switch (uploadError.code) {
+      case "FILE_TOO_LARGE":
+        toast.error("File is too large. Please choose a smaller file.");
+        break;
+      case "INVALID_FILE_TYPE":
+        toast.error("Invalid file type. Please upload a supported format.");
+        break;
+      case "UPLOAD_FAILED":
+        toast.error("Upload failed. Please try again.");
+        break;
+      case "NETWORK_ERROR":
+        toast.error(
+          "Network error. Please check your connection and try again."
+        );
+        break;
+      default:
+        toast.error(uploadError.message);
+    }
+  };
+
+  const clearError = () => setError(null);
+
+  return { error, handleError, clearError };
+}
+```
+
+### Loading States and Feedback
+
+```typescript title="components/ImageUploadWithFeedback.tsx" showLineNumbers
+"use client";
+
+import { useState } from "react";
+import { UploadButton } from "@/lib/uploadthing";
+import { Button } from "@/components/ui/button";
+import { Loader2, Upload, Check, AlertTriangle } from "lucide-react";
+import Image from "next/image";
+import { useUploadError } from "@/hooks/useUploadError";
+
+interface ImageUploadWithFeedbackProps {
+  title: string;
+  imageUrl: string;
+  setImageUrl: (url: string) => void;
+  endpoint: keyof typeof import("@/app/api/uploadthing/core").ourFileRouter;
+}
+
+export default function ImageUploadWithFeedback({
+  title,
+  imageUrl,
+  setImageUrl,
+  endpoint,
+}: ImageUploadWithFeedbackProps) {
+  const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
+  const { error, handleError, clearError } = useUploadError();
+
+  const handleUploadBegin = () => {
+    setUploadState('uploading');
+    clearError();
+  };
+
+  const handleUploadComplete = (res: any) => {
+    setUploadState('success');
+    if (res && res[0]) {
+      setImageUrl(res[0].url);
+      setTimeout(() => setUploadState('idle'), 2000);
+    }
+  };
+
+  const handleUploadError = (uploadError: Error) => {
+    setUploadState('error');
+    handleError(uploadError);
+    setTimeout(() => setUploadState('idle'), 3000);
+  };
+
+  const getButtonContent = () => {
+    switch (uploadState) {
+      case 'uploading':
+        return (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Uploading...
+          </>
+        );
+      case 'success':
+        return (
+          <>
+            <Check className="mr-2 h-4 w-4" />
+            Upload Successful!
+          </>
+        );
+      case 'error':
+        return (
+          <>
+            <AlertTriangle className="mr-2 h-4 w-4" />
+            Upload Failed
+          </>
+        );
+      default:
+        return (
+          <>
+            <Upload className="mr-2 h-4 w-4" />
+            Upload Image
+          </>
+        );
+    }
+  };
+
+  const getButtonVariant = () => {
+    switch (uploadState) {
+      case 'success':
+        return 'default';
+      case 'error':
+        return 'destructive';
+      default:
+        return 'outline';
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-medium">{title}</h3>
+        {uploadState === 'success' && (
+          <span className="text-sm text-green-600 flex items-center">
+            <Check className="mr-1 h-4 w-4" />
+            Uploaded successfully
+          </span>
+        )}
+      </div>
+
+      {imageUrl !== "/default-image.png" && (
+        <div className="relative aspect-video w-full max-w-md overflow-hidden rounded-lg border">
+          <Image
+            alt={title}
+            className="object-cover"
+            src={imageUrl}
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+          />
+        </div>
+      )}
+
+      <UploadButton
+        endpoint={endpoint}
+        onUploadBegin={handleUploadBegin}
+        onClientUploadComplete={handleUploadComplete}
+        onUploadError={handleUploadError}
+        className={`ut-button:transition-all ut-button:duration-200 ${
+          uploadState === 'success' ? 'ut-button:bg-green-600' :
+          uploadState === 'error' ? 'ut-button:bg-red-600' : ''
+        }`}
+        content={{
+          button: getButtonContent,
+        }}
+      />
+
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-sm text-red-600">{error.message}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Performance Optimization
+
+### Image Optimization Utilities
+
+```typescript title="lib/imageOptimization.ts" showLineNumbers
+export interface ImageOptimizationOptions {
+  maxWidth?: number;
+  maxHeight?: number;
+  quality?: number;
+  format?: "jpeg" | "png" | "webp";
+}
+
+export function optimizeImageForUpload(
+  file: File,
+  options: ImageOptimizationOptions = {}
+): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const {
+      maxWidth = 1920,
+      maxHeight = 1080,
+      quality = 0.8,
+      format = "jpeg",
+    } = options;
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+
+    img.onload = () => {
+      // Calculate new dimensions
+      let { width, height } = img;
+
+      if (width > maxWidth || height > maxHeight) {
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        width *= ratio;
+        height *= ratio;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      // Draw and compress
+      ctx?.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            const optimizedFile = new File([blob], file.name, {
+              type: `image/${format}`,
+            });
+            resolve(optimizedFile);
+          } else {
+            reject(new Error("Failed to optimize image"));
+          }
+        },
+        `image/${format}`,
+        quality
+      );
+    };
+
+    img.onerror = () => reject(new Error("Failed to load image"));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+export function generateImageThumbnail(
+  file: File,
+  size: number = 150
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+
+    img.onload = () => {
+      canvas.width = size;
+      canvas.height = size;
+
+      // Draw image centered and cropped
+      const minDimension = Math.min(img.width, img.height);
+      const sx = (img.width - minDimension) / 2;
+      const sy = (img.height - minDimension) / 2;
+
+      ctx?.drawImage(img, sx, sy, minDimension, minDimension, 0, 0, size, size);
+
+      resolve(canvas.toDataURL("image/jpeg", 0.7));
+    };
+
+    img.onerror = () => reject(new Error("Failed to generate thumbnail"));
+    img.src = URL.createObjectURL(file);
+  });
+}
+```
+
+### Lazy Loading for Image Galleries
+
+```typescript title="components/LazyImageGallery.tsx" showLineNumbers
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
+import { cn } from "@/lib/utils";
+
+interface LazyImageGalleryProps {
+  images: string[];
+  title: string;
+  className?: string;
+}
+
+export default function LazyImageGallery({
+  images,
+  title,
+  className,
+}: LazyImageGalleryProps) {
+  const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set([0])); // Load first image immediately
+  const observerRef = useRef<IntersectionObserver>();
+
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = parseInt(entry.target.getAttribute('data-index') || '0');
+            setLoadedImages(prev => new Set(prev).add(index));
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    return () => observerRef.current?.disconnect();
+  }, []);
+
+  const imageRef = useCallback((node: HTMLDivElement | null, index: number) => {
+    if (node && observerRef.current && !loadedImages.has(index)) {
+      node.setAttribute('data-index', index.toString());
+      observerRef.current.observe(node);
+    }
+  }, [loadedImages]);
+
+  return (
+    <div className={cn("grid gap-4", className)}>
+      <h3 className="text-lg font-semibold">{title}</h3>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {images.map((image, index) => (
+          <div
+            key={index}
+            ref={(node) => imageRef(node, index)}
+            className="relative aspect-square overflow-hidden rounded-lg bg-gray-100"
+          >
+            {loadedImages.has(index) ? (
+              <Image
+                src={image}
+                alt={`${title} - Image ${index + 1}`}
+                fill
+                className="object-cover transition-opacity duration-300"
+                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                onLoad={() => {
+                  // Optional: Add fade-in effect
+                }}
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-200 animate-pulse flex items-center justify-center">
+                <span className="text-gray-400 text-sm">Loading...</span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+## Testing and Best Practices
+
+### Unit Testing Upload Components
+
+```typescript title="__tests__/ImageUploadButton.test.tsx" showLineNumbers
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import ImageUploadButton from '@/components/ImageUploadButton';
+
+// Mock UploadButton component
+jest.mock('@/lib/uploadthing', () => ({
+  UploadButton: ({ onClientUploadComplete, onUploadError, endpoint }: any) => (
+    <button
+      data-testid="upload-button"
+      onClick={() => {
+        // Simulate successful upload
+        onClientUploadComplete([{ url: 'https://example.com/test-image.jpg' }]);
+      }}
+    >
+      Upload
+    </button>
+  ),
+}));
+
+describe('ImageUploadButton', () => {
+  const mockSetImageUrl = jest.fn();
+
+  const defaultProps = {
+    title: 'Test Image',
+    imageUrl: '/default-image.png',
+    setImageUrl: mockSetImageUrl,
+    endpoint: 'productImage' as const,
+  };
+
+  beforeEach(() => {
+    mockSetImageUrl.mockClear();
+  });
+
+  it('renders with default image', () => {
+    render(<ImageUploadButton {...defaultProps} />);
+
+    const image = screen.getByAltText('Test Image');
+    expect(image).toBeInTheDocument();
+    expect(image).toHaveAttribute('src', expect.stringContaining('default-image.png'));
+  });
+
+  it('calls setImageUrl when upload completes', async () => {
+    render(<ImageUploadButton {...defaultProps} />);
+
+    const uploadButton = screen.getByTestId('upload-button');
+    fireEvent.click(uploadButton);
+
+    await waitFor(() => {
+      expect(mockSetImageUrl).toHaveBeenCalledWith('https://example.com/test-image.jpg');
+    });
+  });
+
+  it('renders horizontal layout when specified', () => {
+    render(<ImageUploadButton {...defaultProps} display="horizontal" />);
+
+    const container = screen.getByAltText('Test Image').closest('div');
+    expect(container).toHaveClass('flex-row');
+  });
+
+  it('renders large size when specified', () => {
+    render(<ImageUploadButton {...defaultProps} size="lg" />);
+
+    const imageContainer = screen.getByAltText('Test Image').closest('div');
+    expect(imageContainer).toHaveClass('h-20', 'w-20');
+  });
+});
+```
+
+### Integration Testing
+
+```typescript title="__tests__/upload-integration.test.tsx" showLineNumbers
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { rest } from 'msw';
+import { setupServer } from 'msw/node';
+import ProductForm from '@/components/ProductForm';
+
+// Mock server for UploadThing API
+const server = setupServer(
+  rest.post('/api/uploadthing', (req, res, ctx) => {
+    return res(
+      ctx.json([
+        {
+          url: 'https://uploadthing.com/f/test-image.jpg',
+          name: 'test-image.jpg',
+          size: 1024000,
+        },
+      ])
+    );
+  })
+);
+
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+
+describe('Upload Integration', () => {
+  it('uploads image and updates form state', async () => {
+    render(<ProductForm />);
+
+    const file = new File(['test'], 'test-image.jpg', { type: 'image/jpeg' });
+    const input = screen.getByLabelText(/upload/i);
+
+    await userEvent.upload(input, file);
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('https://uploadthing.com/f/test-image.jpg')).toBeInTheDocument();
+    });
+  });
+});
+```
+
+## Security Best Practices
+
+### File Validation and Sanitization
+
+```typescript title="lib/fileValidation.ts" showLineNumbers
+export interface FileValidationResult {
+  isValid: boolean;
+  error?: string;
+  warnings?: string[];
+}
+
+export interface FileValidationRules {
+  maxSizeBytes: number;
+  allowedTypes: string[];
+  allowedExtensions: string[];
+  maxDimensions?: {
+    width: number;
+    height: number;
+  };
+  minDimensions?: {
+    width: number;
+    height: number;
+  };
+}
+
+export async function validateFile(
+  file: File,
+  rules: FileValidationRules
+): Promise<FileValidationResult> {
+  const warnings: string[] = [];
+
+  // Check file size
+  if (file.size > rules.maxSizeBytes) {
+    return {
+      isValid: false,
+      error: `File size exceeds limit (${(rules.maxSizeBytes / 1024 / 1024).toFixed(1)}MB)`,
+    };
+  }
+
+  // Check file type
+  if (!rules.allowedTypes.includes(file.type)) {
+    return {
+      isValid: false,
+      error: `File type not allowed. Allowed types: ${rules.allowedTypes.join(", ")}`,
+    };
+  }
+
+  // Check file extension
+  const extension = file.name.split(".").pop()?.toLowerCase();
+  if (!extension || !rules.allowedExtensions.includes(extension)) {
+    return {
+      isValid: false,
+      error: `File extension not allowed. Allowed extensions: ${rules.allowedExtensions.join(", ")}`,
+    };
+  }
+
+  // Check image dimensions (if applicable)
+  if (
+    file.type.startsWith("image/") &&
+    (rules.maxDimensions || rules.minDimensions)
+  ) {
+    try {
+      const dimensions = await getImageDimensions(file);
+
+      if (rules.maxDimensions) {
+        if (
+          dimensions.width > rules.maxDimensions.width ||
+          dimensions.height > rules.maxDimensions.height
+        ) {
+          return {
+            isValid: false,
+            error: `Image dimensions exceed maximum (${rules.maxDimensions.width}x${rules.maxDimensions.height}px)`,
+          };
+        }
+      }
+
+      if (rules.minDimensions) {
+        if (
+          dimensions.width < rules.minDimensions.width ||
+          dimensions.height < rules.minDimensions.height
+        ) {
+          return {
+            isValid: false,
+            error: `Image dimensions below minimum (${rules.minDimensions.width}x${rules.minDimensions.height}px)`,
+          };
+        }
+      }
+
+      // Add warnings for non-optimal dimensions
+      if (
+        dimensions.width !== dimensions.height &&
+        rules.allowedTypes.includes("image/jpeg")
+      ) {
+        warnings.push("Square images work best for profile pictures");
+      }
+    } catch (error) {
+      return {
+        isValid: false,
+        error: "Could not validate image dimensions",
+      };
+    }
+  }
+
+  return {
+    isValid: true,
+    warnings: warnings.length > 0 ? warnings : undefined,
+  };
+}
+
+function getImageDimensions(
+  file: File
+): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve({ width: img.width, height: img.height });
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+// Sanitize filename
+export function sanitizeFilename(filename: string): string {
+  return filename
+    .toLowerCase()
+    .replace(/[^a-z0-9.-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+```
+
+## Deployment and Production Considerations
+
+### Environment Configuration
+
+```env title=".env.example"
+# UploadThing Configuration
+UPLOADTHING_TOKEN=your_uploadthing_token_here
+
+# Optional: Custom domain for file URLs
+UPLOADTHING_CUSTOM_DOMAIN=files.yourdomain.com
+
+# Production settings
+NODE_ENV=production
+NEXT_PUBLIC_APP_URL=https://yourdomain.com
+```
+
+### Monitoring and Analytics
+
+```typescript title="lib/uploadAnalytics.ts" showLineNumbers
+interface UploadMetrics {
+  fileSize: number;
+  fileType: string;
+  uploadDuration: number;
+  endpoint: string;
+  success: boolean;
+  errorCode?: string;
+}
+
+export class UploadAnalytics {
+  private static instance: UploadAnalytics;
+  private metrics: UploadMetrics[] = [];
+
+  static getInstance(): UploadAnalytics {
+    if (!UploadAnalytics.instance) {
+      UploadAnalytics.instance = new UploadAnalytics();
+    }
+    return UploadAnalytics.instance;
+  }
+
+  trackUpload(metrics: UploadMetrics) {
+    this.metrics.push({
+      ...metrics,
+      timestamp: Date.now(),
+    });
+
+    // Send to analytics service
+    if (typeof window !== "undefined" && window.gtag) {
+      window.gtag("event", "file_upload", {
+        event_category: "uploads",
+        event_label: metrics.endpoint,
+        value: metrics.fileSize,
+        custom_map: {
+          file_type: metrics.fileType,
+          success: metrics.success,
+        },
+      });
+    }
+
+    // Log errors for debugging
+    if (!metrics.success && process.env.NODE_ENV === "development") {
+      console.error("Upload failed:", metrics);
+    }
+  }
+
+  getMetrics(): UploadMetrics[] {
+    return [...this.metrics];
+  }
+
+  getSuccessRate(): number {
+    if (this.metrics.length === 0) return 0;
+    const successCount = this.metrics.filter((m) => m.success).length;
+    return successCount / this.metrics.length;
+  }
+
+  getAverageUploadTime(): number {
+    const successfulUploads = this.metrics.filter((m) => m.success);
+    if (successfulUploads.length === 0) return 0;
+
+    const totalTime = successfulUploads.reduce(
+      (sum, m) => sum + m.uploadDuration,
+      0
+    );
+    return totalTime / successfulUploads.length;
+  }
+
+  clearMetrics() {
+    this.metrics = [];
+  }
+}
+
+// Usage in upload components
+export function useUploadAnalytics() {
+  const analytics = UploadAnalytics.getInstance();
+
+  const trackUpload = (
+    startTime: number,
+    file: File,
+    endpoint: string,
+    success: boolean,
+    errorCode?: string
+  ) => {
+    analytics.trackUpload({
+      fileSize: file.size,
+      fileType: file.type,
+      uploadDuration: Date.now() - startTime,
+      endpoint,
+      success,
+      errorCode,
+    });
+  };
+
+  return { trackUpload, analytics };
+}
+```
+
+### CDN and Caching Strategy
+
+```typescript title="lib/imageOptimization.ts" showLineNumbers
+export interface ImageTransformOptions {
+  width?: number;
+  height?: number;
+  quality?: number;
+  format?: "auto" | "webp" | "avif" | "jpg" | "png";
+  fit?: "cover" | "contain" | "fill" | "inside" | "outside";
+}
+
+export function getOptimizedImageUrl(
+  originalUrl: string,
+  options: ImageTransformOptions = {}
+): string {
+  if (!originalUrl || originalUrl.startsWith("/default-")) {
+    return originalUrl;
+  }
+
+  const url = new URL(originalUrl);
+  const params = new URLSearchParams();
+
+  // Add transformation parameters
+  if (options.width) params.set("w", options.width.toString());
+  if (options.height) params.set("h", options.height.toString());
+  if (options.quality) params.set("q", options.quality.toString());
+  if (options.format) params.set("f", options.format);
+  if (options.fit) params.set("fit", options.fit);
+
+  // Add cache-busting for development
+  if (process.env.NODE_ENV === "development") {
+    params.set("t", Date.now().toString());
+  }
+
+  url.search = params.toString();
+  return url.toString();
+}
+
+// Preload critical images
+export function preloadImage(src: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve();
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+// Generate responsive image srcSet
+export function generateSrcSet(
+  baseUrl: string,
+  widths: number[] = [320, 640, 768, 1024, 1280, 1920]
+): string {
+  return widths
+    .map((width) => `${getOptimizedImageUrl(baseUrl, { width })} ${width}w`)
+    .join(", ");
+}
+```
+
+## Real-World Usage Examples
+
+### E-commerce Product Form
+
+```typescript title="components/ProductForm.tsx" showLineNumbers
+"use client";
+
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
+import ImageUploadButton from "@/components/ImageUploadButton";
+import MultipleImageInput from "@/components/MultipleImageInput";
+import { useUploadAnalytics } from "@/lib/uploadAnalytics";
+
+const productSchema = z.object({
+  name: z.string().min(1, "Product name is required"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  price: z.number().positive("Price must be positive"),
+  category: z.string().min(1, "Category is required"),
+});
+
+type ProductFormData = z.infer<typeof productSchema>;
+
+interface ProductFormProps {
+  initialData?: Partial<ProductFormData & {
+    featuredImage?: string;
+    productImages?: string[];
+  }>;
+  onSubmit: (data: ProductFormData & {
+    featuredImage: string;
+    productImages: string[];
+  }) => Promise<void>;
+}
+
+export default function ProductForm({ initialData, onSubmit }: ProductFormProps) {
+  const { trackUpload } = useUploadAnalytics();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Image states
+  const [featuredImage, setFeaturedImage] = useState(
+    initialData?.featuredImage || "/default-image.png"
+  );
+  const [productImages, setProductImages] = useState<string[]>(
+    initialData?.productImages || ["/default-image.png", "/default-image.png", "/default-image.png", "/default-image.png"]
+  );
+
+  // Form setup
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+  } = useForm<ProductFormData>({
+    resolver: zodResolver(productSchema),
+    defaultValues: initialData,
+  });
+
+  const removeProductImage = (index: number) => {
+    const updatedImages = [...productImages];
+    updatedImages[index] = "/default-image.png";
+    setProductImages(updatedImages);
+  };
+
+  const handleFormSubmit = async (data: ProductFormData) => {
+    setIsSubmitting(true);
+    try {
+      await onSubmit({
+        ...data,
+        featuredImage,
+        productImages: productImages.filter(img => img !== "/default-image.png"),
+      });
+    } catch (error) {
+      console.error("Form submission error:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Product Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Product Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="name">Product Name *</Label>
+              <Input
+                id="name"
+                {...register("name")}
+                placeholder="Enter product name"
+              />
+              {errors.name && (
+                <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="description">Description *</Label>
+              <Textarea
+                id="description"
+                {...register("description")}
+                placeholder="Describe your product"
+                rows={4}
+              />
+              {errors.description && (
+                <p className="text-sm text-red-500 mt-1">{errors.description.message}</p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="price">Price *</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  step="0.01"
+                  {...register("price", { valueAsNumber: true })}
+                  placeholder="0.00"
+                />
+                {errors.price && (
+                  <p className="text-sm text-red-500 mt-1">{errors.price.message}</p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="category">Category *</Label>
+                <Input
+                  id="category"
+                  {...register("category")}
+                  placeholder="Product category"
+                />
+                {errors.category && (
+                  <p className="text-sm text-red-500 mt-1">{errors.category.message}</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Featured Image */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Featured Image</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ImageUploadButton
+              title="Featured Product Image"
+              imageUrl={featuredImage}
+              setImageUrl={setFeaturedImage}
+              endpoint="productImage"
+              display="vertical"
+              size="lg"
+            />
+            <p className="text-sm text-gray-500 mt-2">
+              This image will be displayed as the main product image.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Product Image Gallery */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Product Images Gallery</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <MultipleImageInput
+            title="Product Images"
+            imageUrls={productImages}
+            setImageUrls={setProductImages}
+            endpoint="productImages"
+          />
+
+          {productImages.some(img => img !== "/default-image.png") && (
+            <div>
+              <Label>Current Images</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {productImages
+                  .map((image, index) => ({image, originalIndex: index}))
+                  .filter(({image}) => image !== "/default-image.png")
+                  .map(({image, originalIndex}) => (
+                    <Badge
+                      key={originalIndex}
+                      variant="secondary"
+                      className="flex items-center gap-1 max-w-[200px]"
+                    >
+                      <span className="truncate">
+                        {image.split('/').pop()?.substring(0, 20)}...
+                      </span>
+                      <X
+                        className="h-3 w-3 cursor-pointer hover:text-destructive transition-colors"
+                        onClick={() => removeProductImage(originalIndex)}
+                      />
+                    </Badge>
+                  ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Submit Button */}
+      <div className="flex justify-end space-x-4">
+        <Button type="button" variant="outline">
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Saving..." : "Save Product"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+```
+
+### Blog Post Editor with Image Upload
+
+```typescript title="components/BlogEditor.tsx" showLineNumbers
+"use client";
+
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import ImageUploadButton from "@/components/ImageUploadButton";
+import MultipleFileUpload, { FileProps } from "@/components/MultipleFileUploader";
+import dynamic from "next/dynamic";
+
+// Dynamically import rich text editor to avoid SSR issues
+const RichTextEditor = dynamic(() => import("@/components/RichTextEditor"), {
+  ssr: false,
+  loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-md" />,
+});
+
+interface BlogEditorProps {
+  initialData?: {
+    title?: string;
+    content?: string;
+    featuredImage?: string;
+    attachments?: FileProps[];
+  };
+  onSave: (data: {
+    title: string;
+    content: string;
+    featuredImage: string;
+    attachments: FileProps[];
+  }) => Promise<void>;
+}
+
+export default function BlogEditor({ initialData, onSave }: BlogEditorProps) {
+  const [title, setTitle] = useState(initialData?.title || "");
+  const [content, setContent] = useState(initialData?.content || "");
+  const [featuredImage, setFeaturedImage] = useState(
+    initialData?.featuredImage || "/default-image.png"
+  );
+  const [attachments, setAttachments] = useState<FileProps[]>(
+    initialData?.attachments || []
+  );
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!title.trim()) {
+      alert("Please enter a title");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await onSave({
+        title: title.trim(),
+        content,
+        featuredImage,
+        attachments,
+      });
+    } catch (error) {
+      console.error("Save error:", error);
+      alert("Failed to save blog post");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Blog Editor</h1>
+        <Button onClick={handleSave} disabled={isSaving}>
+          {isSaving ? "Saving..." : "Save Post"}
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Post Content</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="title">Title *</Label>
+                <Input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Enter blog post title"
+                  className="text-lg"
+                />
+              </div>
+
+              <div>
+                <Label>Content</Label>
+                <RichTextEditor
+                  content={content}
+                  onChange={setContent}
+                  placeholder="Write your blog post content here..."
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Attachments */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Attachments</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MultipleFileUpload
+                label="Blog Attachments"
+                files={attachments}
+                setFiles={setAttachments}
+                endpoint="fileUploads"
+              />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Featured Image</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ImageUploadButton
+                title="Featured Image"
+                imageUrl={featuredImage}
+                setImageUrl={setFeaturedImage}
+                endpoint="blogImage"
+                display="vertical"
+                size="lg"
+              />
+              <p className="text-sm text-gray-500 mt-2">
+                Recommended size: 1200x630px
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Post Stats</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Title length:</span>
+                <span className={title.length > 60 ? "text-red-500" : "text-green-500"}>
+                  {title.length}/60
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Content words:</span>
+                <span>{content.split(" ").filter(word => word.length > 0).length}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Attachments:</span>
+                <span>{attachments.length}</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+## Troubleshooting Common Issues
+
+### Debug Upload Problems
+
+```typescript title="components/UploadDebugger.tsx" showLineNumbers
+"use client";
+
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Info, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
+
+interface UploadDebugInfo {
+  timestamp: string;
+  event: string;
+  data: any;
+  status: 'info' | 'warning' | 'success' | 'error';
+}
+
+export default function UploadDebugger() {
+  const [debugLogs, setDebugLogs] = useState<UploadDebugInfo[]>([]);
+  const [isDebugging, setIsDebugging] = useState(false);
+
+  const addLog = (event: string, data: any, status: UploadDebugInfo['status'] = 'info') => {
+    if (!isDebugging) return;
+
+    setDebugLogs(prev => [...prev, {
+      timestamp: new Date().toISOString(),
+      event,
+      data,
+      status,
+    }]);
+  };
+
+  const clearLogs = () => setDebugLogs([]);
+
+  const getStatusIcon = (status: UploadDebugInfo['status']) => {
+    switch (status) {
+      case 'success': return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'error': return <XCircle className="h-4 w-4 text-red-500" />;
+      case 'warning': return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+      default: return <Info className="h-4 w-4 text-blue-500" />;
+    }
+  };
+
+  const getStatusColor = (status: UploadDebugInfo['status']) => {
+    switch (status) {
+      case 'success': return 'bg-green-50 border-green-200';
+      case 'error': return 'bg-red-50 border-red-200';
+      case 'warning': return 'bg-yellow-50 border-yellow-200';
+      default: return 'bg-blue-50 border-blue-200';
+    }
+  };
+
+  // Make addLog available globally for debugging
+  if (typeof window !== 'undefined') {
+    (window as any).uploadDebug = addLog;
+  }
+
+  return (
+    <Card className="w-full max-w-4xl">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>Upload Debugger</CardTitle>
+          <div className="flex gap-2">
+            <Button
+              variant={isDebugging ? "destructive" : "default"}
+              size="sm"
+              onClick={() => setIsDebugging(!isDebugging)}
+            >
+              {isDebugging ? "Stop Debugging" : "Start Debugging"}
+            </Button>
+            <Button variant="outline" size="sm" onClick={clearLogs}>
+              Clear Logs
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {!isDebugging && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Enable debugging to monitor upload events. Use `window.uploadDebug(event, data, status)`
+              in your components to log custom events.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {isDebugging && debugLogs.length === 0 && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Debugging enabled. Upload events will appear here.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {debugLogs.length > 0 && (
+          <div className="space-y-2 max-h-96 overflow-y-auto">
+            {debugLogs.map((log, index) => (
+              <div
+                key={index}
+                className={`p-3 rounded-md border ${getStatusColor(log.status)}`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  {getStatusIcon(log.status)}
+                  <Badge variant="outline" className="text-xs">
+                    {log.event}
+                  </Badge>
+                  <span className="text-xs text-gray-500">
+                    {new Date(log.timestamp).toLocaleTimeString()}
+                  </span>
+                </div>
+                <pre className="text-xs bg-gray-100 p-2 rounded overflow-x-auto">
+                  {JSON.stringify(log.data, null, 2)}
+                </pre>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+## Conclusion
+
+This comprehensive guide has covered everything you need to implement robust image and file upload functionality in your Next.js applications using UploadThing. Here's a summary of what we've achieved:
+
+### Key Features Implemented:
+
+- **Single Image Upload**: Perfect for profile pictures, logos, and featured images
+- **Multiple Image Upload**: Ideal for product galleries and image collections
+- **File Upload System**: Supporting documents, archives, and various file types
+- **Reusable Components**: TypeScript-powered components for consistency across projects
+
+### Advanced Features:
+
+- **Progress Indicators**: Real-time upload progress and user feedback
+- **Validation & Security**: Client-side file validation and sanitization
+- **Error Handling**: Comprehensive error states and user-friendly messages
+- **Performance Optimization**: Image optimization, lazy loading, and caching strategies
+- **Testing**: Unit and integration tests for reliable functionality
+- **Analytics**: Upload monitoring and performance tracking
+
+### Best Practices Covered:
+
+- **Type Safety**: Full TypeScript support with proper interfaces
+- **Security**: File validation, sanitization, and secure upload practices
+- **Performance**: Optimized image loading and responsive design
+- **User Experience**: Intuitive drag-and-drop interfaces and clear feedback
+- **Maintainability**: Reusable components and clean architecture
+
+### Production Ready:
+
+- **Environment Configuration**: Proper setup for development and production
+- **Monitoring**: Analytics and error tracking
+- **Debugging**: Built-in debugging tools for troubleshooting
+- **Testing**: Comprehensive test coverage for reliability
+
+### Quick Start Checklist:
+
+1. ✅ Install UploadThing packages
+2. ✅ Configure environment variables
+3. ✅ Set up file router with endpoints
+4. ✅ Create API route handler
+5. ✅ Generate UploadThing components
+6. ✅ Configure Tailwind CSS
+7. ✅ Implement reusable upload components
+8. ✅ Add validation and error handling
+9. ✅ Test your upload functionality
+10. ✅ Deploy to production
+
+### Next Steps:
+
+- Customize the components to match your design system
+- Add more file types and validation rules as needed
+- Implement advanced features like image cropping or filters
+- Set up monitoring and analytics for production usage
+- Consider implementing progressive web app features for offline support
+
+With these components and patterns, you're well-equipped to handle any file upload scenario in your Next.js applications. The reusable nature of these components means you can quickly implement upload functionality across different parts of your application while maintaining consistency and reliability.
+
+Remember to always validate files on both client and server sides, implement proper error handling, and monitor your upload performance in production. Happy coding!

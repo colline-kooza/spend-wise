@@ -1,0 +1,570 @@
+
+> jb.desishub.com@0.1.0 build D:\Desishub\desishub-v4
+> next build --turbopack
+
+   ▲ Next.js 15.4.8 (Turbopack)
+
+   Creating an optimized production build ...
+ ✓ Finished writing to disk in 555ms
+ ✓ Compiled successfully in 21.9s
+   Linting and checking validity of types ...
+
+./src/app/(app)/(auth)/login/page.tsx
+30:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/(app)/(auth)/signup/page.tsx
+27:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/(app)/(root)/blog/page.tsx
+410:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/(app)/(root)/brand/page.tsx
+1:10  Warning: 'Copy' is defined but never used.  @typescript-eslint/no-unused-vars
+205:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/(app)/(root)/contact/page.tsx
+5:8  Warning: 'BentoGrid' is defined but never used.  @typescript-eslint/no-unused-vars
+6:8  Warning: 'CTABanner' is defined but never used.  @typescript-eslint/no-unused-vars
+7:8  Warning: 'Hero' is defined but never used.  @typescript-eslint/no-unused-vars
+9:10  Warning: 'About' is defined but never used.  @typescript-eslint/no-unused-vars
+10:10  Warning: 'Awards' is defined but never used.  @typescript-eslint/no-unused-vars
+11:10  Warning: 'Blog' is defined but never used.  @typescript-eslint/no-unused-vars
+12:10  Warning: 'Brand' is defined but never used.  @typescript-eslint/no-unused-vars
+13:10  Warning: 'Certifications' is defined but never used.  @typescript-eslint/no-unused-vars
+14:10  Warning: 'Experiences' is defined but never used.  @typescript-eslint/no-unused-vars
+15:10  Warning: 'Overview' is defined but never used.  @typescript-eslint/no-unused-vars
+16:10  Warning: 'ProfileCover' is defined but never used.  @typescript-eslint/no-unused-vars
+17:10  Warning: 'ProfileHeader' is defined but never used.  @typescript-eslint/no-unused-vars
+18:10  Warning: 'Projects' is defined but never used.  @typescript-eslint/no-unused-vars
+19:10  Warning: 'SocialLinks' is defined but never used.  @typescript-eslint/no-unused-vars
+20:10  Warning: 'TeckStack' is defined but never used.  @typescript-eslint/no-unused-vars
+56:10  Warning: 'Separator' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/courses/[slug]/page.tsx
+19:10  Warning: 'cn' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/layout.tsx
+6:10  Warning: 'SiteFooter' is defined but never used.  @typescript-eslint/no-unused-vars
+7:10  Warning: 'SiteHeader' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/page.tsx
+4:8  Warning: 'Footer' is defined but never used.  @typescript-eslint/no-unused-vars
+5:8  Warning: 'FeaturesSection' is defined but never used.  @typescript-eslint/no-unused-vars
+8:8  Warning: 'CTABanner' is defined but never used.  @typescript-eslint/no-unused-vars
+95:10  Warning: 'Separator' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/products/dschools/page.tsx
+7:3  Warning: 'GraduationCap' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/products/inventory-pro/components/animated-tooltip.tsx
+42:25  Warning: 'idx' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/products/inventory-pro/components/project-comparison.tsx
+5:3  Warning: 'Clock' is defined but never used.  @typescript-eslint/no-unused-vars
+29:32  Warning: 'theme' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/products/inventory-pro/components/reusable-hero.tsx
+58:3  Warning: 'buttons' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/products/inventory-pro/components/single-tier-pricing.tsx
+17:10  Warning: 'Badge' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/products/inventory-pro/components/Techstack.tsx
+5:3  Warning: 'LucideIcon' is defined but never used.  @typescript-eslint/no-unused-vars
+12:3  Warning: 'BarChart2' is defined but never used.  @typescript-eslint/no-unused-vars
+14:3  Warning: 'Building2' is defined but never used.  @typescript-eslint/no-unused-vars
+16:3  Warning: 'CreditCard' is defined but never used.  @typescript-eslint/no-unused-vars
+19:3  Warning: 'Globe' is defined but never used.  @typescript-eslint/no-unused-vars
+24:3  Warning: 'Settings' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/products/inventory-pro/page.tsx
+3:3  Warning: 'BarChart' is defined but never used.  @typescript-eslint/no-unused-vars
+5:3  Warning: 'Bell' is defined but never used.  @typescript-eslint/no-unused-vars
+6:3  Warning: 'Boxes' is defined but never used.  @typescript-eslint/no-unused-vars
+9:3  Warning: 'Package' is defined but never used.  @typescript-eslint/no-unused-vars
+10:3  Warning: 'Search' is defined but never used.  @typescript-eslint/no-unused-vars
+12:3  Warning: 'Truck' is defined but never used.  @typescript-eslint/no-unused-vars
+17:10  Warning: 'Button' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/products/kartify/page.tsx
+2:3  Warning: 'ArrowRight' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/products/pos/page.tsx
+5:3  Warning: 'Menu' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/products/project-pro/page.tsx
+13:3  Warning: 'Plus' is defined but never used.  @typescript-eslint/no-unused-vars
+18:10  Warning: 'useEffect' is defined but never used.  @typescript-eslint/no-unused-vars
+147:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+170:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+190:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/(app)/(root)/solutions/ai-automation/components/AICaseStudiesSection.tsx
+4:48  Warning: 'Users' is defined but never used.  @typescript-eslint/no-unused-vars
+139:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/(app)/(root)/solutions/ai-automation/components/AIHero.tsx
+31:6  Warning: React Hook useEffect has a missing dependency: 'solutions'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/(root)/solutions/ai-automation/components/AIImplementationsPortfolio.tsx
+4:16  Warning: 'ExternalLink' is defined but never used.  @typescript-eslint/no-unused-vars
+132:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/(app)/(root)/solutions/ai-automation/components/AIPartnersClients.tsx
+160:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/(app)/(root)/solutions/ai-automation/components/AITestimonials.tsx
+58:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/(app)/(root)/solutions/custom-software/components/CaseStudiesSection.tsx
+112:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/(app)/(root)/solutions/custom-software/components/ClientsSection.tsx
+119:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/(app)/(root)/solutions/custom-software/components/DevelopmentHero.tsx
+31:6  Warning: React Hook useEffect has a missing dependency: 'services'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/(app)/(root)/solutions/custom-software/components/DevelopmentTestimonials.tsx
+3:10  Warning: 'motion' is defined but never used.  @typescript-eslint/no-unused-vars
+60:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/(app)/(root)/solutions/custom-software/components/ProjectsPortfolio.tsx
+4:24  Warning: 'Github' is defined but never used.  @typescript-eslint/no-unused-vars
+132:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/(app)/(root)/solutions/custom-software/components/ServicesBentoGrid.tsx
+9:3  Warning: 'GraduationCap' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/solutions/training/components/course-card.tsx
+8:3  Warning: 'ExternalLink' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/solutions/training/components/offline-course-components/course-hero.tsx
+6:3  Warning: 'Database' is defined but never used.  @typescript-eslint/no-unused-vars
+8:3  Warning: 'Layout' is defined but never used.  @typescript-eslint/no-unused-vars
+9:3  Warning: 'Server' is defined but never used.  @typescript-eslint/no-unused-vars
+10:3  Warning: 'Smartphone' is defined but never used.  @typescript-eslint/no-unused-vars
+18:10  Warning: 'Button' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/solutions/training/components/offline-course-components/course-pricing.tsx
+7:10  Warning: 'Button' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/solutions/training/components/redesign/HeroSection.tsx
+4:22  Warning: 'ChevronRight' is defined but never used.  @typescript-eslint/no-unused-vars
+4:36  Warning: 'Terminal' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/solutions/training/components/redesign/OfflineBootcamp.tsx
+5:3  Warning: 'ArrowRight' is defined but never used.  @typescript-eslint/no-unused-vars
+7:3  Warning: 'Code' is defined but never used.  @typescript-eslint/no-unused-vars
+17:8  Warning: 'Image' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/solutions/training/components/redesign/ProjectVisuals.tsx
+6:3  Warning: 'CreditCard' is defined but never used.  @typescript-eslint/no-unused-vars
+13:3  Warning: 'Smartphone' is defined but never used.  @typescript-eslint/no-unused-vars
+26:40  Warning: 'color' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/solutions/training/components/redesign/TechStackMarquee.tsx
+3:10  Warning: 'motion' is defined but never used.  @typescript-eslint/no-unused-vars
+4:8  Warning: 'Image' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/solutions/training/components/redesign/TestimonialsSection.tsx
+3:10  Warning: 'motion' is defined but never used.  @typescript-eslint/no-unused-vars
+4:8  Warning: 'Image' is defined but never used.  @typescript-eslint/no-unused-vars
+61:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/(app)/(root)/solutions/training/components/training-components/TrainingSection.tsx
+4:10  Warning: 'cn' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(app)/(root)/solutions/training/page.tsx
+5:10  Warning: 'cn' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/command-menu.tsx
+7:3  Warning: 'CircleUserIcon' is defined but never used.  @typescript-eslint/no-unused-vars
+10:3  Warning: 'DownloadIcon' is defined but never used.  @typescript-eslint/no-unused-vars
+16:3  Warning: 'TriangleDashedIcon' is defined but never used.  @typescript-eslint/no-unused-vars
+17:3  Warning: 'TypeIcon' is defined but never used.  @typescript-eslint/no-unused-vars
+39:24  Warning: 'getMarkSVG' is defined but never used.  @typescript-eslint/no-unused-vars
+40:10  Warning: 'getWordmarkSVG' is defined but never used.  @typescript-eslint/no-unused-vars
+121:21  Warning: 'resolvedTheme' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+165:9  Warning: 'handleCopyText' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/global/footer/footer.tsx
+11:3  Warning: 'Twitter' is defined but never used.  @typescript-eslint/no-unused-vars
+14:8  Warning: 'Image' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/global/header/CaseStudies.tsx
+4:3  Warning: 'ChevronDown' is defined but never used.  @typescript-eslint/no-unused-vars
+5:3  Warning: 'Copy' is defined but never used.  @typescript-eslint/no-unused-vars
+7:3  Warning: 'Filter' is defined but never used.  @typescript-eslint/no-unused-vars
+8:3  Warning: 'Gift' is defined but never used.  @typescript-eslint/no-unused-vars
+9:3  Warning: 'Globe' is defined but never used.  @typescript-eslint/no-unused-vars
+10:3  Warning: 'LayoutGrid' is defined but never used.  @typescript-eslint/no-unused-vars
+11:3  Warning: 'Megaphone' is defined but never used.  @typescript-eslint/no-unused-vars
+14:3  Warning: 'QrCode' is defined but never used.  @typescript-eslint/no-unused-vars
+15:3  Warning: 'Settings' is defined but never used.  @typescript-eslint/no-unused-vars
+16:3  Warning: 'Shield' is defined but never used.  @typescript-eslint/no-unused-vars
+17:3  Warning: 'Users' is defined but never used.  @typescript-eslint/no-unused-vars
+18:3  Warning: 'Zap' is defined but never used.  @typescript-eslint/no-unused-vars
+31:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+68:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+102:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+312:9  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+322:9  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+332:9  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+342:9  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+352:9  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+362:9  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+372:9  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+382:9  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+392:9  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+402:9  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+533:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/global/header/Features copy.tsx
+327:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/global/header/Features.tsx
+3:3  Warning: 'Award' is defined but never used.  @typescript-eslint/no-unused-vars
+17:3  Warning: 'LineChart' is defined but never used.  @typescript-eslint/no-unused-vars
+21:3  Warning: 'QrCode' is defined but never used.  @typescript-eslint/no-unused-vars
+26:3  Warning: 'Sliders' is defined but never used.  @typescript-eslint/no-unused-vars
+30:3  Warning: 'Users' is defined but never used.  @typescript-eslint/no-unused-vars
+1051:7  Warning: 'styles' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/global/header/MobileMenu.tsx
+20:3  Warning: 'onClose' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/global/header/old/MobileMenu.tsx
+9:3  Warning: 'Users' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/global/header/old/ProductMenu.tsx
+1:10  Warning: 'motion' is defined but never used.  @typescript-eslint/no-unused-vars
+3:3  Warning: 'ArrowRight' is defined but never used.  @typescript-eslint/no-unused-vars
+5:3  Warning: 'Box' is defined but never used.  @typescript-eslint/no-unused-vars
+7:3  Warning: 'Terminal' is defined but never used.  @typescript-eslint/no-unused-vars
+147:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/global/header/old/SolutionsMenu.tsx
+1:10  Warning: 'ArrowUpRight' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/global/header/ProductMenu.tsx
+186:3  Warning: 'ArrowRight' is defined but never used.  @typescript-eslint/no-unused-vars
+192:3  Warning: 'Sparkles' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/nav-item-github.tsx
+7:10  Warning: 'Icons' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/pages/about/AboutLife.tsx
+38:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+55:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/pages/about/AboutPartners.tsx
+116:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/pages/about/AboutTeam.tsx
+126:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/pages/about/old/AboutInvestors.tsx
+47:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/pages/about/old/AboutLife.tsx
+31:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+45:14  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/pages/about/old/AboutLogos.tsx
+29:24  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/pages/about/old/AboutStory.tsx
+23:14  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/pages/about/old/AboutTeam.tsx
+43:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/pages/careers/CareerHero.tsx
+2:22  Warning: 'Users' is defined but never used.  @typescript-eslint/no-unused-vars
+15:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+24:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+31:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+40:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+47:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+79:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+84:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+89:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/pages/customers/CustomersHero.tsx
+1:10  Warning: 'motion' is defined but never used.  @typescript-eslint/no-unused-vars
+2:22  Warning: 'Play' is defined but never used.  @typescript-eslint/no-unused-vars
+30:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+58:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+79:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+103:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+114:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+119:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+124:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/pages/customers/CustomerTestimonials.tsx
+282:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/pages/home/bento copy.tsx
+6:3  Warning: 'Check' is defined but never used.  @typescript-eslint/no-unused-vars
+7:3  Warning: 'ChevronRight' is defined but never used.  @typescript-eslint/no-unused-vars
+12:3  Warning: 'Shield' is defined but never used.  @typescript-eslint/no-unused-vars
+14:3  Warning: 'Zap' is defined but never used.  @typescript-eslint/no-unused-vars
+60:7  Warning: 'Navbar' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+197:7  Warning: 'Hero' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/pages/home/bento.tsx
+5:3  Warning: 'BarChart3' is defined but never used.  @typescript-eslint/no-unused-vars
+10:3  Warning: 'Cloud' is defined but never used.  @typescript-eslint/no-unused-vars
+13:3  Warning: 'GitBranch' is defined but never used.  @typescript-eslint/no-unused-vars
+14:3  Warning: 'Globe' is defined but never used.  @typescript-eslint/no-unused-vars
+16:3  Warning: 'Layers' is defined but never used.  @typescript-eslint/no-unused-vars
+20:3  Warning: 'Rocket' is defined but never used.  @typescript-eslint/no-unused-vars
+22:3  Warning: 'Shield' is defined but never used.  @typescript-eslint/no-unused-vars
+30:3  Warning: 'Zap' is defined but never used.  @typescript-eslint/no-unused-vars
+76:7  Warning: 'Navbar' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+398:7  Warning: 'Hero' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/pages/home/hero.tsx
+2:10  Warning: 'AnimatePresence' is defined but never used.  @typescript-eslint/no-unused-vars
+2:27  Warning: 'motion' is defined but never used.  @typescript-eslint/no-unused-vars
+10:3  Warning: 'ChevronDown' is defined but never used.  @typescript-eslint/no-unused-vars
+14:3  Warning: 'Filter' is defined but never used.  @typescript-eslint/no-unused-vars
+15:3  Warning: 'Gift' is defined but never used.  @typescript-eslint/no-unused-vars
+20:11  Warning: 'LinkIcon' is defined but never used.  @typescript-eslint/no-unused-vars
+21:3  Warning: 'Megaphone' is defined but never used.  @typescript-eslint/no-unused-vars
+22:3  Warning: 'MoreHorizontal' is defined but never used.  @typescript-eslint/no-unused-vars
+24:3  Warning: 'Search' is defined but never used.  @typescript-eslint/no-unused-vars
+26:3  Warning: 'Settings' is defined but never used.  @typescript-eslint/no-unused-vars
+27:3  Warning: 'Shield' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/pages/pricing/old/ComparePlans.tsx
+2:10  Warning: 'AlertTriangle' is defined but never used.  @typescript-eslint/no-unused-vars
+2:32  Warning: 'HelpCircle' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/pages/pricing/old/PricingHero.tsx
+3:17  Warning: 'Info' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/site-footer.tsx
+1:28  Warning: 'RssIcon' is defined but never used.  @typescript-eslint/no-unused-vars
+3:10  Warning: 'SITE_INFO' is defined but never used.  @typescript-eslint/no-unused-vars
+3:21  Warning: 'SOURCE_CODE_GITHUB_URL' is defined but never used.  @typescript-eslint/no-unused-vars
+4:10  Warning: 'cn' is defined but never used.  @typescript-eslint/no-unused-vars
+6:10  Warning: 'Icons' is defined but never used.  @typescript-eslint/no-unused-vars
+178:10  Warning: 'Separator' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/site-header-mark.tsx
+13:9  Warning: 'pathname' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+28:10  Warning: 'ChanhDaiMarkMotion' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/features/profile/components/profile-cover.tsx
+2:24  Warning: 'JBMark' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/lib/fonts.ts
+3:20  Warning: 'FontSans' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/registry/cart/zustand-cart.tsx
+147:33  Warning: 'showCategory' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+267:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/149) ...
+   Generating static pages (37/149) 
+TypeError: Cannot read properties of undefined (reading 'files')
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\[root-of-the-server]__0453d281._.js:29:216272)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1779)
+    at node ([33mmdxJsxFlowElement<ComponentSource>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1288)
+    at node ([33mmdxJsxFlowElement<Steps>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mmdxJsxFlowElement<TabsContent>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mmdxJsxFlowElement<CodeTabs>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mroot[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at g (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1590)
+    at h (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1699)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\[root-of-the-server]__0453d281._.js:29:215976)
+TypeError: Cannot read properties of undefined (reading 'files')
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\[root-of-the-server]__0453d281._.js:29:216272)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1779)
+    at node ([33mmdxJsxFlowElement<ComponentSource>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1288)
+    at node ([33mmdxJsxFlowElement<Steps>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mmdxJsxFlowElement<TabsContent>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mmdxJsxFlowElement<CodeTabs>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mroot[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at g (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1590)
+    at h (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1699)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\[root-of-the-server]__0453d281._.js:29:215976)
+TypeError: Cannot read properties of undefined (reading 'files')
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\[root-of-the-server]__0453d281._.js:29:216272)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1779)
+    at node ([33mmdxJsxFlowElement<ComponentSource>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1288)
+    at node ([33mmdxJsxFlowElement<Steps>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mmdxJsxFlowElement<TabsContent>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mmdxJsxFlowElement<CodeTabs>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mroot[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at g (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1590)
+    at h (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1699)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\[root-of-the-server]__0453d281._.js:29:215976)
+TypeError: Cannot read properties of undefined (reading 'files')
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\[root-of-the-server]__0453d281._.js:29:216272)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1779)
+    at node ([33mmdxJsxFlowElement<ComponentSource>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1288)
+    at node ([33mmdxJsxFlowElement<Steps>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mmdxJsxFlowElement<TabsContent>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mmdxJsxFlowElement<CodeTabs>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mroot[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at g (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1590)
+    at h (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1699)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\[root-of-the-server]__0453d281._.js:29:215976)
+TypeError: Cannot read properties of undefined (reading 'files')
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\[root-of-the-server]__0453d281._.js:29:216860)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1779)
+    at node ([33mmdxJsxFlowElement<ComponentPreview>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1288)
+    at node ([33mroot[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at g (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1590)
+    at h (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1699)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\[root-of-the-server]__0453d281._.js:29:215976)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:92055)
+    at e (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:92260)
+    at d (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:92218)
+[TypeError: Cannot read properties of undefined (reading 'files')]
+[TypeError: Cannot read properties of undefined (reading 'files')]
+[TypeError: Cannot read properties of undefined (reading 'files')]
+[TypeError: Cannot read properties of undefined (reading 'files')]
+[TypeError: Cannot read properties of undefined (reading 'files')]
+   Generating static pages (74/149) 
+TypeError: Cannot read properties of undefined (reading 'files')
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\[root-of-the-server]__0453d281._.js:29:216272)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1779)
+    at node ([33mmdxJsxFlowElement<ComponentSource>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1288)
+    at node ([33mmdxJsxFlowElement<Steps>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mmdxJsxFlowElement<TabsContent>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mmdxJsxFlowElement<CodeTabs>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mroot[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at g (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1590)
+    at h (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1699)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\[root-of-the-server]__0453d281._.js:29:215976)
+TypeError: Cannot read properties of undefined (reading 'files')
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\[root-of-the-server]__0453d281._.js:29:216272)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1779)
+    at node ([33mmdxJsxFlowElement<ComponentSource>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1288)
+    at node ([33mmdxJsxFlowElement<Steps>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mmdxJsxFlowElement<TabsContent>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mmdxJsxFlowElement<CodeTabs>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mroot[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at g (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1590)
+    at h (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1699)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\[root-of-the-server]__0453d281._.js:29:215976)
+TypeError: Cannot read properties of undefined (reading 'files')
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\[root-of-the-server]__0453d281._.js:29:216272)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1779)
+    at node ([33mmdxJsxFlowElement<ComponentSource>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1288)
+    at node ([33mmdxJsxFlowElement<Steps>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mmdxJsxFlowElement<TabsContent>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mmdxJsxFlowElement<CodeTabs>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mroot[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at g (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1590)
+    at h (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1699)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\[root-of-the-server]__0453d281._.js:29:215976)
+TypeError: Cannot read properties of undefined (reading 'files')
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\[root-of-the-server]__0453d281._.js:29:216272)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1779)
+    at node ([33mmdxJsxFlowElement<ComponentSource>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1288)
+    at node ([33mmdxJsxFlowElement<Steps>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mmdxJsxFlowElement<TabsContent>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mmdxJsxFlowElement<CodeTabs>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at node ([33mroot[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at g (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1590)
+    at h (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1699)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\[root-of-the-server]__0453d281._.js:29:215976)
+TypeError: Cannot read properties of undefined (reading 'files')
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\[root-of-the-server]__0453d281._.js:29:216860)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1779)
+    at node ([33mmdxJsxFlowElement<ComponentPreview>[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1288)
+    at node ([33mroot[39m) (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1513)
+    at g (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1590)
+    at h (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:1699)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\[root-of-the-server]__0453d281._.js:29:215976)
+    at <unknown> (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:92055)
+    at e (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:92260)
+    at d (D:\Desishub\desishub-v4\.next\server\chunks\ssr\_7bbc7ce3._.js:1:92218)
+   Generating static pages (111/149) 
+ ✓ Generating static pages (149/149)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                            Size  First Load JS
+┌ ○ /                                               10.1 kB         251 kB
+├ ○ /_not-found                                         0 B         171 kB
+├ ○ /about                                          14.5 kB         255 kB
+├ ○ /about.md                                           0 B            0 B
+├ ○ /awards.md                                          0 B            0 B
+├ ○ /blog                                           3.99 kB         245 kB
+├ ● /blog.mdx/[slug]                                    0 B            0 B
+├   ├ /blog.mdx/ai-shop-assistant
+├   ├ /blog.mdx/framer-motion
+├   ├ /blog.mdx/ai-integration-guide
+├   └ [+50 more paths]
+├ ○ /blogs                                          5.48 kB         177 kB
+├ ● /blogs/[slug]                                       0 B         272 kB
+├   ├ /blogs/ai-shop-assistant
+├   ├ /blogs/framer-motion
+├   ├ /blogs/ai-integration-guide
+├   └ [+50 more paths]
+├ ○ /brand                                              0 B         241 kB
+├ ○ /careers                                        1.44 kB         242 kB
+├ ○ /certifications.md                                  0 B            0 B
+├ ○ /components                                         0 B         171 kB
+├ ● /components/[slug]                                  0 B         272 kB
+├   ├ /components/multi-step-form-component
+├   ├ /components/zustand-cart-component
+├   ├ /components/work-experience-component
+├   └ /components/writing-effect-inspired-by-apple
+├ ○ /contact                                            0 B         241 kB
+├ ƒ /courses/[slug]                                 12.1 kB         253 kB
+├ ○ /customers                                      1.77 kB         243 kB
+├ ○ /experience.md                                      0 B            0 B
+├ ○ /get-quote                                      6.44 kB         247 kB
+├ ○ /llms.txt                                           0 B            0 B
+├ ○ /login                                          2.22 kB         174 kB
+├ ○ /manifest.webmanifest                               0 B            0 B
+├ ○ /og                                             28.6 kB         213 kB
+├ ƒ /og/domain                                          0 B            0 B
+├ ƒ /og/simple                                          0 B            0 B
+├ ○ /pricing                                        4.88 kB         246 kB
+├ ○ /products/dschools                                  0 B         241 kB
+├ ○ /products/inventory-pro                         15.1 kB         256 kB
+├ ○ /products/kartify                                   0 B         241 kB
+├ ○ /products/lendbox                                   0 B         241 kB
+├ ○ /products/pos                                       0 B         241 kB
+├ ○ /products/project-pro                           12.1 kB         253 kB
+├ ○ /projects.md                                        0 B            0 B
+├ ○ /robots.txt                                         0 B            0 B
+├ ○ /rss                                                0 B            0 B
+├ ○ /signup                                         2.19 kB         174 kB
+├ ○ /sitemap.xml                                        0 B            0 B
+├ ○ /solutions/ai-automation                          13 kB         261 kB
+├ ○ /solutions/custom-software                        12 kB         260 kB
+├ ○ /solutions/training                             13.5 kB         261 kB
+└ ○ /vcard                                              0 B            0 B
++ First Load JS shared by all                        223 kB
+  ├ chunks/0c11b474349c3d33.js                      13.1 kB
+  ├ chunks/867b3aa1f5c690e6.js                      16.4 kB
+  ├ chunks/93646c0cf14e07e4.js                      31.3 kB
+  ├ chunks/d0e1048a699fb012.js                      58.7 kB
+  ├ chunks/e1f044826063b8c1.js                      11.3 kB
+  ├ chunks/f5adacb307417f82.css                     50.5 kB
+  └ other shared chunks (total)                     41.8 kB
+
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses generateStaticParams)
+ƒ  (Dynamic)  server-rendered on demand
+
+ ⚠ Support for Turbopack builds is experimental. We don't recommend deploying mission-critical applications to production.
+
+- Turbopack currently always builds production source maps for the browser. This will include project source code if deployed to production.
+- It is expected that your bundle size might be different from `next build` with webpack. This will be improved as we work towards stability.
+- This build is without disk caching; subsequent builds will become faster when disk caching becomes available.
+- When comparing output to webpack builds, make sure to first clear the Next.js cache by deleting the `.next` directory.
+
+Provide feedback for Turbopack builds at https://github.com/vercel/next.js/discussions/77721

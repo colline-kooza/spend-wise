@@ -1,0 +1,1421 @@
+---
+title: Building a Full-Stack CRUD App with TanStack Start, Better Auth, and Prisma
+description: Learn how to build a production-ready authenticated task management app using TanStack Start with Google OAuth, Prisma ORM, and PostgreSQL. Complete guide with TypeScript, end-to-end type safety, server functions, and protected routes.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwfuIbJtCWpl6TJ4dtOW2b0gSmZ8k9iv1VqPKwM
+category: tutorial
+createdAt: 2025-11-17
+updatedAt: 2025-11-17
+---
+
+# Building a Full-Stack CRUD App with TanStack Start, Better Auth (Google OAuth), Hono, and Prisma
+
+A comprehensive, step-by-step guide to building an authenticated CRUD application using TanStack Start, Better Auth (with Google OAuth), Hono API routes, Prisma ORM, and PostgreSQL.
+
+## Table of Contents
+
+1. [Project Overview](#project-overview)
+2. [Initial Setup](#initial-setup)
+3. [Database Configuration with Prisma](#database-configuration-with-prisma)
+4. [Better Auth Setup with Google OAuth](#better-auth-setup-with-google-oauth)
+5. [Building the Application](#building-the-application)
+6. [Testing & Running](#testing--running)
+
+---
+
+## Project Overview
+
+### Tech Stack
+
+- **Framework**: TanStack Start (with TanStack Router)
+- **Authentication**: Better Auth (Google OAuth)
+- **API Layer**: Hono (optional, for REST endpoints)
+- **Database**: PostgreSQL with Prisma Postgres
+- **ORM**: Prisma Client
+- **Query Management**: TanStack Query (comes with tRPC integration)
+- **UI**: Shadcn/ui components
+- **Type Safety**: End-to-end TypeScript
+
+### What We'll Build
+
+A task management application featuring:
+
+- Google OAuth authentication
+- Protected routes and middleware
+- CRUD operations for tasks
+- Server functions for type-safe data fetching
+- Optional Hono API routes
+- Optional tRPC integration
+
+---
+
+## Initial Setup
+
+### Step 1: Create TanStack Start Project
+
+```bash
+# Create new project with addons
+pnpm create @tanstack/start@latest my-crud-app
+
+# create a new TanStack Start project with shadcn/ui:
+pnpm create @tanstack/start@latest --tailwind --add-ons shadcn
+
+cd my-crud-app
+```
+
+### Step 2: Install Dependencies
+
+```bash
+# Better Auth
+npm install better-auth
+
+# Prisma
+npm install @prisma/client
+npm install -D prisma
+
+# Additional utilities
+npm install zod
+npm install superjson
+```
+
+### Step 3: Project Structure
+
+Your project should have this structure:
+
+```
+my-crud-app/
+├── app/
+│   ├── routes/
+│   │   ├── __root.tsx
+│   │   ├── index.tsx
+│   │   ├── dashboard.tsx
+│   │   ├── tasks/
+│   │   │   ├── index.tsx
+│   │   │   └── $taskId.tsx
+│   │   └── api/
+│   │       ├── auth.$.ts
+│   │       ├── name.ts (example)
+│   │       └── trpc.$.tsx (if using tRPC)
+│   ├── lib/
+│   │   ├── auth.ts
+│   │   ├── auth-client.ts
+│   │   ├── auth-middleware.ts
+│   │   └── auth-server-func.ts
+│   ├── components/
+│   │   └── ui/
+│   ├── integrations/
+│   │   ├── trpc/ (if using tRPC)
+│   │   └── tanstack-query/
+├── prisma/
+│   └── schema.prisma
+└── .env
+```
+
+---
+
+## Database Configuration with Prisma
+
+### Step 1: Initialize Prisma with Prisma Postgres
+
+```bash
+# Initialize Prisma and create a Prisma Postgres database
+npx prisma init --db
+
+# Select:
+# - Region: Choose closest to you (e.g., US East 1)
+# - Project name: my-crud-app
+```
+
+This command will:
+
+- Create a `prisma/` directory with `schema.prisma`
+- Generate a `.env` file with `DATABASE_URL` pointing to Prisma Postgres
+- Set up your database automatically
+
+### Step 2: Configure Environment Variables
+
+Your `.env` file should look like this:
+
+```env
+# Prisma Postgres (auto-generated)
+DATABASE_URL="prisma+postgres://..."
+
+# Better Auth
+BETTER_AUTH_SECRET="your-secret-min-32-characters-long"
+BETTER_AUTH_URL="http://localhost:3000"
+
+# Google OAuth (we'll set these up next)
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+```
+
+Generate a secure secret:
+
+```bash
+# On Unix/Mac
+openssl rand -base64 32
+
+# Or use any random string generator
+```
+
+### Step 3: Update Prisma Schema
+
+Edit `prisma/schema.prisma`:
+
+```prisma
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Better Auth required models
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  name          String?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions      Session[]
+  accounts      Account[]
+  tasks         Task[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id           String    @id @default(cuid())
+  userId       String
+  accountId    String
+  providerId   String
+  accessToken  String?
+  refreshToken String?
+  idToken      String?
+  expiresAt    DateTime?
+  password     String?
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+// Your application models
+model Task {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  completed   Boolean  @default(false)
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+```
+
+### Step 4: Run Migration
+
+```bash
+# Create and apply migration
+npx prisma migrate dev --name init
+
+# This will:
+# - Create migration files
+# - Apply them to your database
+# - Generate Prisma Client
+```
+
+### Step 5: View Database (Optional)
+
+```bash
+# Open Prisma Studio to view/edit data
+npx prisma studio
+
+# Or visit console.prisma.io for the Prisma Postgres console
+```
+
+---
+
+## Better Auth Setup with Google OAuth
+
+### Step 1: Set Up Google OAuth Credentials
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project (or select existing one)
+3. Enable Google+ API:
+   - Go to "APIs & Services" > "Library"
+   - Search for "Google+ API"
+   - Click "Enable"
+4. Create OAuth credentials:
+   - Go to "APIs & Services" > "Credentials"
+   - Click "Create Credentials" > "OAuth client ID"
+   - If prompted, configure the OAuth consent screen first:
+     - **User Type**: External (for testing) or Internal (for workspace)
+     - **App name**: My CRUD App
+     - **User support email**: Your email
+     - **Developer contact**: Your email
+     - **Scopes**: Add `email`, `profile`, `openid`
+     - **Test users**: Add your email (if External)
+     - Save and continue
+5. Create OAuth Client ID:
+   - **Application type**: Web application
+   - **Name**: My CRUD App Dev (create separate for production)
+   - **Authorized JavaScript origins**:
+     - `http://localhost:3000`
+   - **Authorized redirect URIs**:
+     - `http://localhost:3000/api/auth/callback/google`
+   - Click "Create"
+6. Copy the credentials:
+   - Copy **Client ID** to your `.env`:
+     ```env
+     GOOGLE_CLIENT_ID="your_client_id_here.apps.googleusercontent.com"
+     ```
+   - Copy **Client Secret** to your `.env`:
+     ```env
+     GOOGLE_CLIENT_SECRET="your_client_secret_here"
+     ```
+
+**Important Notes**:
+
+- For production, create a separate OAuth client with your production URL
+- The redirect URI must be exact: `http://localhost:3000/api/auth/callback/google`
+- Keep your Client Secret secure and never commit it to version control
+
+### Step 2: Create Better Auth Instance
+
+Create `app/lib/auth.ts`:
+
+```typescript
+import { betterAuth } from "better-auth";
+
+export const auth = betterAuth({
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    },
+  },
+});
+```
+
+**Note**: Better Auth can work without a database adapter for social-only auth. If you want email/password authentication later, you'll need to add the Prisma adapter:
+
+```typescript
+import { betterAuth } from "better-auth";
+import { prismaAdapter } from "better-auth/adapters/prisma";
+import { PrismaClient } from "@/generated/prisma";
+
+const prisma = new PrismaClient();
+
+export const auth = betterAuth({
+  database: prismaAdapter(prisma, {
+    provider: "postgresql",
+  }),
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    },
+  },
+  emailAndPassword: {
+    enabled: true,
+    requireEmailVerification: false, // Set true in production
+  },
+});
+```
+
+### Step 3: Create Auth API Route
+
+Create `app/routes/api.auth.$.ts`:
+
+```typescript
+import { createAPIFileRoute } from "@tanstack/react-start/api";
+import { auth } from "@/lib/auth";
+
+export const APIRoute = createAPIFileRoute("/api/auth/$")({
+  GET: ({ request }) => {
+    return auth.handler(request);
+  },
+  POST: ({ request }) => {
+    return auth.handler(request);
+  },
+});
+```
+
+This handles all Better Auth routes including:
+
+- `/api/auth/signin/google`
+- `/api/auth/callback/google`
+- `/api/auth/signout`
+- `/api/auth/session`
+
+### Step 4: Create Auth Client
+
+Create `app/lib/auth-client.ts`:
+
+```typescript
+import { createAuthClient } from "better-auth/react";
+
+export const { useSession, signIn, signOut, signUp, getSession } =
+  createAuthClient({
+    baseURL: "http://localhost:3000", // Change for production
+  });
+```
+
+### Step 5: Create Auth Middleware
+
+Create `app/lib/auth-middleware.ts`:
+
+```typescript
+import { createMiddleware } from "@tanstack/react-start";
+import { getHeaders } from "@tanstack/react-start/server";
+import { getSession } from "@/lib/auth-client";
+
+export const authMiddleware = createMiddleware().server(async ({ next }) => {
+  const { data: session } = await getSession({
+    fetchOptions: {
+      headers: getHeaders() as HeadersInit,
+    },
+  });
+
+  return await next({
+    context: {
+      user: {
+        id: session?.user?.id,
+        name: session?.user?.name,
+        email: session?.user?.email,
+        image: session?.user?.image,
+      },
+    },
+  });
+});
+```
+
+### Step 6: Create Auth Server Functions
+
+Create `app/lib/auth-server-func.ts`:
+
+```typescript
+import { createServerFn } from "@tanstack/react-start";
+import { authMiddleware } from "@/lib/auth-middleware";
+
+export const getUserID = createServerFn({ method: "GET" })
+  .middleware([authMiddleware])
+  .handler(async ({ context }) => {
+    return context?.user?.id;
+  });
+
+export const getUserInfo = createServerFn({ method: "GET" })
+  .middleware([authMiddleware])
+  .handler(async ({ context }) => {
+    return {
+      id: context?.user?.id,
+      name: context?.user?.name,
+      email: context?.user?.email,
+      image: context?.user?.image,
+    };
+  });
+
+export const getAvatar = createServerFn({ method: "GET" })
+  .middleware([authMiddleware])
+  .handler(async ({ context }) => {
+    return context?.user?.image;
+  });
+```
+
+---
+
+## Building the Application
+
+### Step 1: Create Home Page with Auth
+
+Update `app/routes/index.tsx`:
+
+```typescript
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
+import { useSession, signIn } from "@/lib/auth-client";
+
+export const Route = createFileRoute("/")({
+  component: App,
+});
+
+function App() {
+  const { data: session } = useSession();
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+      <div className="container mx-auto px-4 py-16">
+        <div className="max-w-2xl mx-auto text-center">
+          <h1 className="text-5xl font-bold mb-6 text-gray-900 dark:text-white">
+            Task Manager
+          </h1>
+          <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
+            Organize your tasks efficiently with our simple and powerful task management app
+          </p>
+
+          {!session ? (
+            <div className="space-y-4">
+              <Button
+                onClick={() => signIn.social({ provider: "google" })}
+                className="bg-white hover:bg-gray-50 text-gray-900 font-semibold py-3 px-8 rounded-lg shadow-md border border-gray-300 flex items-center gap-3 mx-auto"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="currentColor"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="currentColor"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  />
+                  <path
+                    fill="currentColor"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  />
+                </svg>
+                Sign in with Google
+              </Button>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Sign in to get started with your tasks
+              </p>
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+              <div className="flex items-center justify-center gap-4 mb-6">
+                {session.user.image && (
+                  <img
+                    src={session.user.image}
+                    alt="Profile"
+                    className="w-16 h-16 rounded-full border-2 border-blue-500"
+                  />
+                )}
+                <div className="text-left">
+                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Welcome back, {session.user.name}!
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {session.user.email}
+                  </p>
+                </div>
+              </div>
+
+              <Link to="/tasks">
+                <Button className="w-full py-3 text-lg">
+                  View My Tasks
+                </Button>
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+### Step 2: Create Protected Dashboard Route
+
+Create `app/routes/dashboard.tsx`:
+
+```typescript
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { getUserInfo } from "@/lib/auth-server-func";
+import { signOut } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
+
+export const Route = createFileRoute("/dashboard")({
+  component: RouteComponent,
+  beforeLoad: async () => {
+    const userInfo = await getUserInfo();
+    return { userInfo };
+  },
+  loader: async ({ context }) => {
+    if (!context.userInfo?.id) {
+      throw redirect({ to: "/" });
+    }
+    return { userInfo: context.userInfo };
+  },
+});
+
+function RouteComponent() {
+  const { userInfo } = Route.useLoaderData();
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+
+          <div className="space-y-4">
+            {userInfo.image && (
+              <img
+                src={userInfo.image}
+                alt="Profile"
+                className="w-24 h-24 rounded-full border-2 border-blue-500"
+              />
+            )}
+
+            <div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Name</p>
+              <p className="text-lg font-semibold">{userInfo.name}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Email</p>
+              <p className="text-lg font-semibold">{userInfo.email}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">User ID</p>
+              <p className="text-sm font-mono bg-gray-100 dark:bg-gray-700 p-2 rounded">
+                {userInfo.id}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 flex gap-4">
+            <Button
+              onClick={() =>
+                signOut({}, { onSuccess: () => navigate({ to: "/" }) })
+              }
+              variant="destructive"
+            >
+              Sign out
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+### Step 3: Create Prisma Client Instance
+
+Create `app/lib/prisma.ts`:
+
+```typescript
+import { PrismaClient } from "@/generated/prisma";
+
+// Prevent multiple instances in development
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+export const prisma = globalForPrisma.prisma ?? new PrismaClient();
+
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = prisma;
+}
+```
+
+### Step 4: Create Task Server Functions
+
+Create `app/lib/task-server-funcs.ts`:
+
+```typescript
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import { authMiddleware } from "@/lib/auth-middleware";
+
+// Get all tasks for current user
+export const getTasks = createServerFn({ method: "GET" })
+  .middleware([authMiddleware])
+  .handler(async ({ context }) => {
+    if (!context?.user?.id) {
+      throw new Error("Unauthorized");
+    }
+
+    const tasks = await prisma.task.findMany({
+      where: { userId: context.user.id },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return tasks;
+  });
+
+// Get single task
+export const getTask = createServerFn({ method: "GET" })
+  .middleware([authMiddleware])
+  .validator(z.object({ taskId: z.string() }))
+  .handler(async ({ context, data }) => {
+    if (!context?.user?.id) {
+      throw new Error("Unauthorized");
+    }
+
+    const task = await prisma.task.findFirst({
+      where: {
+        id: data.taskId,
+        userId: context.user.id,
+      },
+    });
+
+    if (!task) {
+      throw new Error("Task not found");
+    }
+
+    return task;
+  });
+
+// Create task
+export const createTask = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(
+    z.object({
+      title: z.string().min(1).max(200),
+      description: z.string().optional(),
+    })
+  )
+  .handler(async ({ context, data }) => {
+    if (!context?.user?.id) {
+      throw new Error("Unauthorized");
+    }
+
+    const task = await prisma.task.create({
+      data: {
+        title: data.title,
+        description: data.description,
+        userId: context.user.id,
+      },
+    });
+
+    return task;
+  });
+
+// Update task
+export const updateTask = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(
+    z.object({
+      taskId: z.string(),
+      title: z.string().min(1).max(200).optional(),
+      description: z.string().optional(),
+      completed: z.boolean().optional(),
+    })
+  )
+  .handler(async ({ context, data }) => {
+    if (!context?.user?.id) {
+      throw new Error("Unauthorized");
+    }
+
+    const { taskId, ...updateData } = data;
+
+    const task = await prisma.task.updateMany({
+      where: {
+        id: taskId,
+        userId: context.user.id,
+      },
+      data: updateData,
+    });
+
+    if (task.count === 0) {
+      throw new Error("Task not found or unauthorized");
+    }
+
+    return await prisma.task.findUnique({
+      where: { id: taskId },
+    });
+  });
+
+// Delete task
+export const deleteTask = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(z.object({ taskId: z.string() }))
+  .handler(async ({ context, data }) => {
+    if (!context?.user?.id) {
+      throw new Error("Unauthorized");
+    }
+
+    const result = await prisma.task.deleteMany({
+      where: {
+        id: data.taskId,
+        userId: context.user.id,
+      },
+    });
+
+    if (result.count === 0) {
+      throw new Error("Task not found or unauthorized");
+    }
+
+    return { success: true };
+  });
+```
+
+### Step 5: Create Tasks List Page
+
+Create `app/routes/tasks/index.tsx`:
+
+```typescript
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { useState } from "react";
+import { getTasks, createTask, deleteTask } from "@/lib/task-server-funcs";
+import { getUserID } from "@/lib/auth-server-func";
+import { Button } from "@/components/ui/button";
+
+export const Route = createFileRoute("/tasks/")({
+  beforeLoad: async () => {
+    const userID = await getUserID();
+    if (!userID) {
+      throw redirect({ to: "/" });
+    }
+    return { userID };
+  },
+  loader: async () => {
+    const tasks = await getTasks();
+    return { tasks };
+  },
+  component: TasksPage,
+});
+
+function TasksPage() {
+  const { tasks } = Route.useLoaderData();
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDescription, setNewTaskDescription] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+
+  const handleCreateTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsCreating(true);
+
+    try {
+      await createTask({
+        data: {
+          title: newTaskTitle,
+          description: newTaskDescription || undefined,
+        },
+      });
+      setNewTaskTitle("");
+      setNewTaskDescription("");
+      window.location.reload();
+    } catch (error) {
+      alert("Failed to create task");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!confirm("Delete this task?")) return;
+
+    try {
+      await deleteTask({ data: { taskId } });
+      window.location.reload();
+    } catch (error) {
+      alert("Failed to delete task");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-8">
+      <div className="max-w-4xl mx-auto px-4">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+            My Tasks
+          </h1>
+          <Link to="/">
+            <Button variant="outline">Home</Button>
+          </Link>
+        </div>
+
+        {/* Create Task Form */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-xl font-semibold mb-4">Create New Task</h2>
+          <form onSubmit={handleCreateTask} className="space-y-4">
+            <div>
+              <input
+                type="text"
+                value={newTaskTitle}
+                onChange={(e) => setNewTaskTitle(e.target.value)}
+                placeholder="Task title..."
+                className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                required
+              />
+            </div>
+            <div>
+              <textarea
+                value={newTaskDescription}
+                onChange={(e) => setNewTaskDescription(e.target.value)}
+                placeholder="Task description (optional)..."
+                className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                rows={3}
+              />
+            </div>
+            <Button type="submit" disabled={isCreating} className="w-full">
+              {isCreating ? "Creating..." : "Create Task"}
+            </Button>
+          </form>
+        </div>
+
+        {/* Tasks List */}
+        <div className="space-y-4">
+          {tasks.length === 0 ? (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
+              <p className="text-gray-500 dark:text-gray-400 text-lg">
+                No tasks yet. Create your first task above!
+              </p>
+            </div>
+          ) : (
+            tasks.map((task) => (
+              <div
+                key={task.id}
+                className={`bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition-all hover:shadow-lg ${
+                  task.completed ? "opacity-60" : ""
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <Link
+                      to="/tasks/$taskId"
+                      params={{ taskId: task.id }}
+                      className="text-xl font-semibold hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    >
+                      {task.title}
+                    </Link>
+                    {task.description && (
+                      <p className="text-gray-600 dark:text-gray-400 mt-2">
+                        {task.description}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-4 mt-3">
+                      <p className="text-sm text-gray-400">
+                        {new Date(task.createdAt).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </p>
+                      {task.completed && (
+                        <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs font-semibold px-2.5 py-0.5 rounded">
+                          Completed
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 ml-4">
+                    <Link to="/tasks/$taskId" params={{ taskId: task.id }}>
+                      <Button variant="outline" size="sm">
+                        Edit
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDeleteTask(task.id)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+### Step 6: Create Task Edit Page
+
+Create `app/routes/tasks/$taskId.tsx`:
+
+```typescript
+import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
+import { useState } from "react";
+import { getTask, updateTask } from "@/lib/task-server-funcs";
+import { getUserID } from "@/lib/auth-server-func";
+import { Button } from "@/components/ui/button";
+
+export const Route = createFileRoute("/tasks/$taskId")({
+  beforeLoad: async () => {
+    const userID = await getUserID();
+    if (!userID) {
+      throw redirect({ to: "/" });
+    }
+  },
+  loader: async ({ params }) => {
+    const task = await getTask({ data: { taskId: params.taskId } });
+    return { task };
+  },
+  component: TaskDetailPage,
+});
+
+function TaskDetailPage() {
+  const { task } = Route.useLoaderData();
+  const navigate = useNavigate();
+
+  const [title, setTitle] = useState(task.title);
+  const [description, setDescription] = useState(task.description || "");
+  const [completed, setCompleted] = useState(task.completed);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+
+    try {
+      await updateTask({
+        data: {
+          taskId: task.id,
+          title,
+          description,
+          completed,
+        },
+      });
+
+      navigate({ to: "/tasks" });
+    } catch (error) {
+      alert("Failed to update task");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-8">
+      <div className="max-w-2xl mx-auto px-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+          <h1 className="text-3xl font-bold mb-6">Edit Task</h1>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-bold mb-2 text-gray-700 dark:text-gray-300">
+                Title
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold mb-2 text-gray-700 dark:text-gray-300">
+                Description
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                rows={5}
+              />
+            </div>
+
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="completed"
+                checked={completed}
+                onChange={(e) => setCompleted(e.target.checked)}
+                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <label
+                htmlFor="completed"
+                className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Mark as completed
+              </label>
+            </div>
+
+            <div className="flex gap-4 pt-4">
+              <Button type="submit" disabled={isSaving} className="flex-1">
+                {isSaving ? "Saving..." : "Save Changes"}
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate({ to: "/tasks" })}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+## Testing & Running
+
+### Development
+
+```bash
+# Start development server
+npm run dev
+
+# Visit http://localhost:3000
+```
+
+### Testing Authentication Flow
+
+1. Visit `http://localhost:3000`
+2. Click "Sign in with Google"
+3. Select your Google account
+4. Grant permissions
+5. You should be redirected back and see your profile
+6. Navigate to `/tasks` to see the tasks page
+7. Create, edit, and delete tasks
+8. Sign out using the dashboard
+
+### First-Time Setup Checklist
+
+✅ **Environment Variables**:
+
+- [ ] `DATABASE_URL` is set (auto-generated by Prisma)
+- [ ] `BETTER_AUTH_SECRET` is at least 32 characters
+- [ ] `BETTER_AUTH_URL` is set to `http://localhost:3000`
+- [ ] `GOOGLE_CLIENT_ID` is from Google Cloud Console
+- [ ] `GOOGLE_CLIENT_SECRET` is from Google Cloud Console
+
+✅ **Google OAuth**:
+
+- [ ] OAuth consent screen is configured
+- [ ] Test users are added (if using External)
+- [ ] Redirect URI is exactly `http://localhost:3000/api/auth/callback/google`
+- [ ] JavaScript origins includes `http://localhost:3000`
+
+✅ **Database**:
+
+- [ ] Prisma migration has been run
+- [ ] Prisma Client has been generated
+- [ ] Can connect to database (test with `npx prisma studio`)
+
+### Database Management
+
+```bash
+# View/edit data in Prisma Studio
+npx prisma studio
+
+# Create a new migration after schema changes
+npx prisma migrate dev --name description_of_change
+
+# Reset database (careful in production!)
+npx prisma migrate reset
+
+# Generate Prisma Client after schema changes
+npx prisma generate
+```
+
+### Common Commands
+
+```bash
+# Type check
+npm run typecheck
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run start
+```
+
+---
+
+## Optional: Adding Hono API Routes
+
+If you want traditional REST API endpoints alongside server functions:
+
+### Create Hono Instance
+
+Create `app/lib/hono-api.ts`:
+
+```typescript
+import { Hono } from "hono";
+import { auth } from "./auth";
+
+export const api = new Hono();
+
+// Global middleware to attach user to context
+api.use("*", async (c, next) => {
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers,
+  });
+
+  if (session) {
+    c.set("user", session.user);
+    c.set("session", session.session);
+  }
+
+  await next();
+});
+```
+
+### Create API Route Handler
+
+Create `app/routes/api.tasks.$.ts`:
+
+```typescript
+import { createAPIFileRoute } from "@tanstack/react-start/api";
+import { Hono } from "hono";
+import { prisma } from "@/lib/prisma";
+import { api } from "@/lib/hono-api";
+
+const tasksRouter = new Hono();
+
+tasksRouter.get("/", async (c) => {
+  const user = c.get("user");
+  if (!user) return c.json({ error: "Unauthorized" }, 401);
+
+  const tasks = await prisma.task.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return c.json(tasks);
+});
+
+tasksRouter.post("/", async (c) => {
+  const user = c.get("user");
+  if (!user) return c.json({ error: "Unauthorized" }, 401);
+
+  const body = await c.req.json();
+
+  const task = await prisma.task.create({
+    data: {
+      title: body.title,
+      description: body.description,
+      userId: user.id,
+    },
+  });
+
+  return c.json(task, 201);
+});
+
+api.route("/tasks", tasksRouter);
+
+export const APIRoute = createAPIFileRoute("/api/tasks/$")({
+  GET: ({ request }) => api.fetch(request),
+  POST: ({ request }) => api.fetch(request),
+  PATCH: ({ request }) => api.fetch(request),
+  DELETE: ({ request }) => api.fetch(request),
+});
+```
+
+---
+
+## Optional: Adding tRPC Integration
+
+If you selected tRPC during setup, you can add protected procedures:
+
+Update `app/integrations/trpc/init.ts`:
+
+```typescript
+import { initTRPC, TRPCError } from "@trpc/server";
+import superjson from "superjson";
+import { auth } from "@/lib/auth";
+
+export const createContext = async (opts: { req: Request }) => {
+  const session = await auth.api.getSession({
+    headers: opts.req.headers,
+  });
+
+  return { session };
+};
+
+const t = initTRPC.context<typeof createContext>().create({
+  transformer: superjson,
+});
+
+export const createTRPCRouter = t.router;
+export const publicProcedure = t.procedure;
+
+export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
+  if (!ctx.session) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  return next({ ctx: { ...ctx, session: ctx.session } });
+});
+```
+
+Add task procedures to `app/integrations/trpc/router.ts`:
+
+```typescript
+import { z } from "zod";
+import { createTRPCRouter, publicProcedure, protectedProcedure } from "./init";
+import { prisma } from "@/lib/prisma";
+
+const tasksRouter = {
+  list: protectedProcedure.query(async ({ ctx }) => {
+    return await prisma.task.findMany({
+      where: { userId: ctx.session.user.id },
+      orderBy: { createdAt: "desc" },
+    });
+  }),
+
+  create: protectedProcedure
+    .input(
+      z.object({
+        title: z.string().min(1).max(200),
+        description: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return await prisma.task.create({
+        data: {
+          ...input,
+          userId: ctx.session.user.id,
+        },
+      });
+    }),
+};
+
+export const trpcRouter = createTRPCRouter({
+  tasks: tasksRouter,
+});
+
+export type TRPCRouter = typeof trpcRouter;
+```
+
+---
+
+## Troubleshooting
+
+### Issue: "Unauthorized" errors
+
+**Solution**: Check that:
+
+1. You're signed in (check `useSession()`)
+2. Your middleware is attached to server functions
+3. Headers are being forwarded correctly
+4. Google OAuth session is valid
+
+### Issue: Google OAuth redirect fails
+
+**Solution**:
+
+1. Check your callback URL matches exactly: `http://localhost:3000/api/auth/callback/google`
+2. Verify Google OAuth credentials in `.env`
+3. Make sure authorized redirect URIs in Google Console are correct
+4. Check that you're using the correct OAuth client (dev vs prod)
+5. Verify authorized JavaScript origins includes your domain
+
+### Issue: "Access blocked" from Google
+
+**Solution**:
+
+1. Make sure OAuth consent screen is configured
+2. Add your email to test users (if using External user type)
+3. Verify required scopes are enabled (email, profile, openid)
+
+### Issue: Prisma Client not found
+
+**Solution**: Run `npx prisma generate` to regenerate the client
+
+### Issue: Database connection errors
+
+**Solution**: Verify your `DATABASE_URL` in `.env` is correct
+
+### Issue: Session not persisting
+
+**Solution**:
+
+1. Check `BETTER_AUTH_SECRET` is set and long enough
+2. Verify cookies are being set (check browser dev tools)
+3. Make sure `BETTER_AUTH_URL` matches your current URL
+
+---
+
+## Production Deployment
+
+### Step 1: Create Production OAuth Credentials
+
+1. In Google Cloud Console, create a new OAuth Client ID
+2. Set production URLs:
+   - **Authorized JavaScript origins**: `https://yourdomain.com`
+   - **Authorized redirect URIs**: `https://yourdomain.com/api/auth/callback/google`
+3. Update environment variables in production
+
+### Step 2: Update Environment Variables
+
+In your production environment:
+
+```env
+DATABASE_URL="your-production-database-url"
+BETTER_AUTH_SECRET="different-secret-for-production-min-32-chars"
+BETTER_AUTH_URL="https://yourdomain.com"
+GOOGLE_CLIENT_ID="your-production-client-id"
+GOOGLE_CLIENT_SECRET="your-production-client-secret"
+```
+
+### Step 3: Update Auth Client
+
+Update `app/lib/auth-client.ts` to handle environment switching:
+
+```typescript
+import { createAuthClient } from "better-auth/react";
+
+const baseURL =
+  typeof window !== "undefined"
+    ? window.location.origin
+    : process.env.BETTER_AUTH_URL || "http://localhost:3000";
+
+export const { useSession, signIn, signOut, signUp, getSession } =
+  createAuthClient({
+    baseURL,
+  });
+```
+
+---
+
+## Next Steps
+
+1. **Add email/password auth**: Enable in Better Auth config with Prisma adapter
+2. **Add email verification**: Set `requireEmailVerification: true` in production
+3. **Add pagination**: Implement cursor-based pagination for tasks
+4. **Add task categories/tags**: Extend Prisma schema
+5. **Add real-time updates**: Consider WebSockets or polling
+6. **Add tests**: Use Vitest for unit tests, Playwright for E2E
+7. **Add error boundaries**: Handle errors gracefully in the UI
+8. **Add loading states**: Improve UX with skeleton loaders
+
+---
+
+## Resources
+
+- [TanStack Start Docs](https://tanstack.com/start)
+- [TanStack Router Docs](https://tanstack.com/router)
+- [Better Auth Docs](https://better-auth.com)
+- [Prisma Docs](https://prisma.io/docs)
+- [Google OAuth Setup](https://developers.google.com/identity/protocols/oauth2)
+- [Hono Docs](https://hono.dev)
+
+---
+
+**Congratulations!** You now have a fully functional, authenticated CRUD application using TanStack Start with Google OAuth authentication and Prisma for data management.

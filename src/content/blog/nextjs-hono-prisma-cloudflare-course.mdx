@@ -1,0 +1,3510 @@
+---
+title: 30-Day NHPC Stack Development Course - Master Next.js, Hono, Prisma & Cloudflare
+description: Build modern full-stack applications with the NHPC stack - the powerful alternative to MERN. Learn Next.js 15, Hono API framework, Prisma ORM, PostgreSQL, and TypeScript through 6 production-ready projects including a recipe platform, job board, social media dashboard, and multi-vendor marketplace. Complete with authentication, real-time features, and edge deployment.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwfKePuveMqtMYEbJOpeUSCcaQNrA3Lh9kd7s64
+category: tutorial
+createdAt: 2025-11-24
+updatedAt: 2025-11-24
+---
+
+# **30-Day NHPC Stack Development Course**
+
+## **Next.js \+ Hono \+ Prisma \+ Cloudflare/Vercel**
+
+### **The Modern Alternative to MERN Stack**
+
+**Course Duration:** 30 Days `(December 2, 2025 \- December 30, 2025\)`  
+ **Study Days:** Tuesday, Thursday, Saturday `(3 days per week)`  
+ **Total Sessions:** 13 Sessions  
+ **Stack Name:** NHPC `(Next.js \+ Hono \+ Prisma \+ Cloudflare)`
+
+---
+
+## **What is NHPC Stack?**
+
+### **The Modern Evolution Beyond MERN**
+
+**Traditional MERN:**
+
+- MongoDB `(Database)`
+- Express.js `(Backend Framework)`
+- React `(Frontend Library)`
+- Node.js `(Runtime)`
+
+**Modern NHPC:**
+
+- **Next.js** (Frontend Framework \- React on steroids)
+- **Hono** (Ultra-fast backend framework \- Express alternative)
+- **Prisma** (Type-safe ORM \- MongoDB alternative with SQL)
+- **Cloudflare/Vercel** (Edge runtime \+ deployment)
+- **PostgreSQL** (Robust relational database)
+- **TypeScript** (Type safety throughout)
+
+### **Why NHPC Over MERN?**
+
+✅ **Type Safety** \- End-to-end TypeScript  
+ ✅ **Performance** \- Edge runtime, faster responses  
+ ✅ **Modern DX** \- Better developer experience  
+ ✅ **Scalability** \- Built for production from day 1  
+ ✅ **SQL Power** \- Relational data with Prisma  
+ ✅ **API-First** \- Clean separation of concerns  
+ ✅ **Edge Deployment** \- Global distribution
+
+---
+
+## **Course Structure Overview**
+
+### **Phase 1: Frontend Foundation (Sessions 1-3)**
+
+- Next.js fundamentals, React patterns, TypeScript
+- **Project 1:** Recipe Sharing Platform (Frontend Only)
+
+### **Phase 2: Backend Foundation (Sessions 4-6)**
+
+- Hono API development, Prisma ORM, PostgreSQL
+- **Project 2:** RESTful Blog API
+- **Project 3:** E-commerce Product API
+
+### **Phase 3: Full-Stack Integration (Sessions 7-9)**
+
+- Connecting Next.js frontend with Hono backend
+- **Project 4:** Full-Stack Job Board
+
+### **Phase 4: Advanced Features (Sessions 10-11)**
+
+- Authentication, file uploads, real-time features
+- **Project 5:** Social Media Dashboard
+
+### **Phase 5: Production Application (Sessions 12-13)**
+
+- Complete production-ready system
+- **Project 6:** Multi-Vendor Marketplace Platform
+
+---
+
+## **Detailed Session Breakdown**
+
+---
+
+## **PHASE 1: FRONTEND FOUNDATION**
+
+### **Session 1 \- Tuesday, December 2, 2025**
+
+**Topic:** Next.js Fundamentals & Modern React Patterns
+
+**Learning Objectives:**
+
+- Next.js 15 App Router architecture
+- React Server Components vs Client Components
+- TypeScript in React/Next.js
+- Routing and navigation
+- Data fetching patterns
+- Layouts and templates
+
+**Key Concepts:**
+
+- File-based routing system
+- Server-first approach
+- TypeScript interfaces for props
+- Component composition
+- Error boundaries
+- Loading states
+
+**Next.js Project Setup:**
+
+```tsx
+// app/layout.tsx - Root Layout
+import type { Metadata } from 'next'
+import './globals.css'
+
+export const metadata: Metadata \= {
+  title: 'NHPC App',
+  description: 'Built with Next.js, Hono, Prisma, Cloudflare',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    \<html lang="en"\>
+      \<body\>{children}\</body\>
+    \</html\>
+  )
+}
+
+```
+
+```tsx
+// app/page.tsx \- Server Component (default)
+export default async function HomePage() {
+ // Can fetch data directly on server
+ const data \= await fetch('https://api.example.com/data')
+ const json \= await data.json()
+
+return \<div\>{/\* Render data \*/}\</div\>
+}
+
+// components/Counter.tsx \- Client Component
+'use client'
+
+import { useState } from "react";
+
+export function Counter() {
+  const \[count, setCount\] \= useState(0)
+
+  return (
+    \<button onClick={() \=\> setCount(count \+ 1)}\>
+      Count: {count}
+    \</button\>
+  )
+}
+```
+
+**TypeScript Patterns:**
+
+```tsx
+// types/index.ts
+export interface User {
+ id: string
+ name: string
+ email: string
+ avatar?: string
+}
+
+export interface Recipe {
+  id: string
+  title: string
+  description: string
+  ingredients: Ingredient\[\]
+  steps: string\[\]
+  cookTime: number
+  servings: number
+  author: User
+  createdAt: Date
+}
+
+export interface Ingredient {
+  name: string
+  amount: string
+  unit: string
+}
+```
+
+```tsx
+// Component with typed props
+interface RecipeCardProps {
+ recipe: Recipe
+ onLike?: (id: string) \=\> void
+}
+
+export function RecipeCard({ recipe, onLike }: RecipeCardProps) {
+  return \<div\>{/\* Component \*/}\</div\>
+}
+```
+
+**Practical Exercises:**
+
+- Create Next.js project with TypeScript
+- Build multi-page application
+- Implement nested layouts
+- Create typed components
+- Add loading and error states
+
+**Homework:**
+
+- Set up Next.js project
+- Create 5 pages with proper routing
+- Implement shared layout with navigation
+- Type all components
+
+---
+
+### **Session 2 \- Thursday, December 4, 2025**
+
+**Topic:** Advanced Next.js Patterns & State Management
+
+**Learning Objectives:**
+
+- Client-side state management (Context API, Zustand, Simple store (https://simple-stack.dev/store))
+- Form handling and validation (React Hook Form, Zod)
+- Data fetching strategies
+- Parallel and sequential data fetching
+- Streaming and Suspense
+- Image optimization
+
+**State Management with Zustand:**
+
+```tsx
+// store/useRecipeStore.ts
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+
+interface RecipeState {
+ favorites: string\[\]
+ addFavorite: (id: string) \=\> void
+ removeFavorite: (id: string) \=\> void
+ isFavorite: (id: string) \=\> boolean
+}
+
+export const useRecipeStore \= create\<RecipeState\>()(
+  persist(
+    (set, get) \=\> ({
+      favorites: \[\],
+      addFavorite: (id) \=\>
+        set((state) \=\> ({
+          favorites: \[...state.favorites, id\],
+        })),
+      removeFavorite: (id) \=\>
+        set((state) \=\> ({
+          favorites: state.favorites.filter((fav) \=\> fav \!== id),
+        })),
+      isFavorite: (id) \=\> get().favorites.includes(id),
+    }),
+    {
+      name: 'recipe-storage',
+    }
+  )
+)
+```
+
+**Form Validation with Zod:**
+
+```tsx
+// lib/validations/recipe.ts
+import { z } from 'zod'
+
+export const recipeSchema \= z.object({
+  title: z.string().min(3).max(100),
+  description: z.string().min(10).max(500),
+  cookTime: z.number().min(1).max(480),
+  servings: z.number().min(1).max(50),
+  ingredients: z.array(
+    z.object({
+      name: z.string().min(1),
+      amount: z.string().min(1),
+      unit: z.string().min(1),
+    })
+  ).min(1),
+  steps: z.array(z.string().min(1)).min(1),
+})
+
+export type RecipeInput \= z.infer\<typeof recipeSchema\>
+```
+
+**Form Handling:**
+
+```tsx
+'use client'
+
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { recipeSchema, type RecipeInput } from '@/lib/validations/recipe'
+
+export function RecipeForm() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } \= useForm\<RecipeInput\>({
+    resolver: zodResolver(recipeSchema),
+  })
+
+async function onSubmit(data: RecipeInput) {
+ const response \= await fetch('/api/recipes', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify(data),
+ })
+
+    if (response.ok) {
+      // Handle success
+    }
+
+}
+
+return (
+ \<form onSubmit={handleSubmit(onSubmit)}\>
+ \<input {...register('title')} /\>
+ {errors.title && \<span\>{errors.title.message}\</span\>}
+
+      \<button type="submit" disabled={isSubmitting}\>
+        {isSubmitting ? 'Submitting...' : 'Submit'}
+      \</button\>
+    \</form\>
+
+)
+}
+```
+
+**Practical Exercises:**
+
+- Set up Zustand for state management
+- Create forms with validation
+- Implement data fetching patterns
+- Add loading and error states
+- Optimize images with Next.js Image
+
+**Homework:**
+
+- Implement global state management
+- Create validated forms
+- Add image optimization
+
+---
+
+### **Session 3 \- Saturday, December 6, 2025**
+
+**Topic:** PROJECT 1 \- Recipe Sharing Platform (Frontend Only)
+
+**Project Requirements:** Build a complete recipe sharing platform frontend (mock data for now)
+
+**Features:**
+
+- Homepage with featured recipes
+- Browse all recipes with filters
+- Search functionality
+- Recipe detail page with ingredients and steps
+- Create/Edit recipe form (save to localStorage)
+- User favorites (localStorage)
+- Category filtering
+- Responsive design
+- Image galleries
+- Print recipe view
+- Share functionality
+
+**Technical Requirements:**
+
+- Next.js App Router
+- TypeScript throughout
+- Zustand for state management
+- React Hook Form \+ Zod validation
+- Tailwind CSS for styling
+- Next.js Image optimization
+- Mock data (JSON files)
+- LocalStorage for persistence
+- Proper SEO meta tags
+
+**File Structure:**
+
+app/  
+├── layout.tsx  
+├── page.tsx (home)  
+├── recipes/  
+│ ├── page.tsx (browse)  
+│ ├── \[id\]/  
+│ │ └── page.tsx (detail)  
+│ ├── new/  
+│ │ └── page.tsx (create)  
+│ └── \[id\]/  
+│ └── edit/  
+│ └── page.tsx  
+├── favorites/  
+│ └── page.tsx  
+├── search/  
+│ └── page.tsx  
+components/  
+├── recipes/  
+│ ├── RecipeCard.tsx  
+│ ├── RecipeForm.tsx  
+│ ├── RecipeDetail.tsx  
+│ ├── RecipeSearch.tsx  
+│ └── RecipeFilters.tsx  
+├── ui/  
+│ ├── Button.tsx  
+│ ├── Input.tsx  
+│ └── Card.tsx  
+store/  
+├── useRecipeStore.ts  
+└── useFavoritesStore.ts  
+lib/  
+├── validations/  
+│ └── recipe.ts  
+└── data/  
+ └── mock-recipes.ts  
+types/  
+└── index.ts
+
+**Mock Data Structure:**
+
+```tsx
+// lib/data/mock-recipes.ts
+export const mockRecipes: Recipe\[\] \= \[
+ {
+ id: '1',
+ title: 'Classic Margherita Pizza',
+ description: 'Authentic Italian pizza with fresh ingredients',
+ ingredients: \[
+ { name: 'Pizza dough', amount: '1', unit: 'ball' },
+ { name: 'Tomato sauce', amount: '1/2', unit: 'cup' },
+ { name: 'Fresh mozzarella', amount: '200', unit: 'g' },
+ { name: 'Fresh basil', amount: '10', unit: 'leaves' },
+ \],
+ steps: \[
+ 'Preheat oven to 500°F',
+ 'Roll out pizza dough',
+ 'Spread tomato sauce',
+ 'Add mozzarella cheese',
+ 'Bake for 10-12 minutes',
+ 'Add fresh basil leaves',
+ \],
+ cookTime: 30,
+ servings: 4,
+ category: 'Italian',
+ difficulty: 'Medium',
+ image: '/images/pizza.jpg',
+ author: {
+ id: '1',
+ name: 'Chef Mario',
+ avatar: '/avatars/mario.jpg',
+ },
+ createdAt: new Date('2025-01-01'),
+ },
+ // More recipes...
+\]
+```
+
+**Skills Applied:**
+
+- Next.js routing and layouts
+- TypeScript interfaces
+- State management
+- Form handling and validation
+- Client-side data persistence
+- Responsive design
+- Image optimization
+- SEO optimization
+
+**Deliverable:** Fully functional recipe platform frontend with mock data
+
+---
+
+## **PHASE 2: BACKEND FOUNDATION**
+
+### **Session 4 \- Tuesday, December 10, 2025**
+
+**Topic:** Hono Framework & API Development Fundamentals
+
+**Learning Objectives:**
+
+- Hono framework overview and setup
+- RESTful API design principles
+- Route handling and middleware
+- Request/response patterns
+- Error handling
+- CORS configuration
+- Environment variables
+- API documentation patterns
+
+**Why Hono?**
+
+- **Ultra-fast** \- Faster than Express
+- **Edge-ready** \- Works on Cloudflare Workers, Vercel Edge
+- **Type-safe** \- Full TypeScript support
+- **Lightweight** \- Minimal overhead
+- **Modern DX** \- Clean, intuitive API
+
+**Hono Setup:**
+
+```tsx
+// server/index.ts
+import { Hono } from 'hono'
+import { cors } from 'hono/cors'
+import { logger } from 'hono/logger'
+import { prettyJSON } from 'hono/pretty-json'
+
+const app \= new Hono()
+
+// Middleware
+app.use('\*', logger())
+app.use('\*', prettyJSON())
+app.use('\*', cors({
+ origin: \['http://localhost:3000'\],
+ credentials: true,
+}))
+
+// Routes
+app.get('/', (c) \=\> {
+ return c.json({
+ message: 'Welcome to NHPC API',
+ version: '1.0.0',
+ })
+})
+
+// Health check
+app.get('/health', (c) \=\> {
+ return c.json({
+ status: 'ok',
+ timestamp: new Date().toISOString(),
+ })
+})
+
+export default app;
+```
+
+**Route Organization:**
+
+```tsx
+// server/routes/recipes.ts
+import { Hono } from 'hono'
+import type { Recipe } from '../types'
+
+const recipes \= new Hono()
+
+// GET all recipes
+recipes.get('/', async (c) \=\> {
+ const { page \= '1', limit \= '10', category } \= c.req.query()
+
+// Database query would go here
+ const data: Recipe\[\] \= \[\]
+
+return c.json({
+ data,
+ pagination: {
+ page: parseInt(page),
+ limit: parseInt(limit),
+ total: 100,
+ },
+ })
+})
+
+// GET single recipe
+recipes.get('/:id', async (c) \=\> {
+ const id \= c.req.param('id')
+
+// Database query
+ const recipe \= {} as Recipe
+
+if (\!recipe) {
+ return c.json({ error: 'Recipe not found' }, 404\)
+ }
+
+return c.json({ data: recipe })
+})
+
+// POST create recipe
+recipes.post('/', async (c) \=\> {
+ const body \= await c.req.json()
+
+// Validation
+ // Database insert
+
+return c.json({ data: {} as Recipe }, 201\)
+})
+
+// PATCH update recipe
+recipes.patch('/:id', async (c) \=\> {
+ const id \= c.req.param('id')
+ const body \= await c.req.json()
+
+// Validation
+ // Database update
+
+return c.json({ data: {} as Recipe })
+})
+
+// DELETE recipe
+recipes.delete('/:id', async (c) \=\> {
+ const id \= c.req.param('id')
+
+// Database delete
+
+return c.json({ message: 'Recipe deleted' })
+})
+
+export default recipes;
+
+// server/index.ts \- Mount routes
+import recipes from './routes/recipes'
+
+app.route('/api/recipes', recipes)
+```
+
+**Middleware Pattern:**
+
+```tsx
+// server/middleware/auth.ts
+import type { Context, Next } from 'hono'
+
+export async function authMiddleware(c: Context, next: Next) {
+  const token \= c.req.header('Authorization')?.replace('Bearer ', '')
+
+  if (\!token) {
+    return c.json({ error: 'Unauthorized' }, 401\)
+  }
+
+  try {
+    // Verify token
+    const user \= { id: '1', email: 'user@example.com' }
+    c.set('user', user)
+
+    await next()
+  } catch (error) {
+    return c.json({ error: 'Invalid token' }, 401\)
+  }
+}
+
+// Usage
+recipes.post('/', authMiddleware, async (c) \=\> {
+ const user \= c.get('user')
+ // Create recipe for authenticated user
+})
+
+```
+
+**Error Handling:**
+
+```tsx
+
+// server/middleware/error.ts
+import { Context } from 'hono'
+
+export function errorHandler(err: Error, c: Context) {
+  console.error('Error:', err)
+
+  return c.json({
+    error: err.message || 'Internal Server Error',
+    stack: process.env.NODE\_ENV \=== 'development' ? err.stack : undefined,
+  }, 500\)
+}
+
+```
+
+```tsx
+// server/index.ts
+`app.onError(errorHandler)`;
+```
+
+**Practical Exercises:**
+
+- Set up Hono project
+- Create RESTful routes
+- Implement middleware
+- Add error handling
+- Configure CORS
+- Test with Postman/Thunder Client
+
+**Homework:**
+
+- Create Hono API server
+- Implement CRUD routes
+- Add middleware
+- Test all endpoints
+
+---
+
+### **Session 5 \- Thursday, December 12, 2025**
+
+**Topic:** PostgreSQL, Prisma ORM & Database Design
+
+**Learning Objectives:**
+
+- PostgreSQL setup (Neon, Supabase, or local)
+- Prisma installation and configuration
+- Schema design for relational data
+- Migrations workflow
+- CRUD operations with Prisma
+- Relations and joins
+- Query optimization
+- Seeding database
+
+**Prisma Setup:**
+
+```bash
+npm install prisma @prisma/client
+npx prisma init
+```
+
+**Database Schema:**
+
+```tsx
+// prisma/schema.prisma
+generator client {
+ provider \= "prisma-client-js"
+}
+
+datasource db {
+ provider \= "postgresql"
+ url \= env("DATABASE_URL")
+}
+
+model User {
+ id String @id @default(cuid())
+ email String @unique
+ name String
+ avatar String?
+ bio String? @db.Text
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+recipes Recipe\[\]
+ comments Comment\[\]
+ likes Like\[\]
+
+@@index(\[email\])
+}
+
+model Recipe {
+ id String @id @default(cuid())
+ title String
+ description String @db.Text
+ ingredients Json // Array of ingredients
+ steps String\[\] // Array of steps
+ cookTime Int // in minutes
+ servings Int
+ category String
+ difficulty String
+ image String?
+ published Boolean @default(false)
+
+authorId String
+ author User @relation(fields: \[authorId\], references: \[id\], onDelete: Cascade)
+
+comments Comment\[\]
+ likes Like\[\]
+
+createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+@@index(\[authorId\])
+ @@index(\[category\])
+ @@index(\[published\])
+}
+
+model Comment {
+ id String @id @default(cuid())
+ content String @db.Text
+
+recipeId String
+ recipe Recipe @relation(fields: \[recipeId\], references: \[id\], onDelete: Cascade)
+
+userId String
+ user User @relation(fields: \[userId\], references: \[id\], onDelete: Cascade)
+
+createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+@@index(\[recipeId\])
+ @@index(\[userId\])
+}
+
+model Like {
+ id String @id @default(cuid())
+
+recipeId String
+ recipe Recipe @relation(fields: \[recipeId\], references: \[id\], onDelete: Cascade)
+
+userId String
+ user User @relation(fields: \[userId\], references: \[id\], onDelete: Cascade)
+
+createdAt DateTime @default(now())
+
+@@unique(\[recipeId, userId\])
+ @@index(\[recipeId\])
+ @@index(\[userId\])
+}
+
+```
+
+**Prisma Client Setup:**
+
+```tsx
+// server/lib/prisma.ts
+import { PrismaClient } from '@prisma/client'
+
+const globalForPrisma \= globalThis as unknown as {
+ prisma: PrismaClient | undefined
+}
+
+export const prisma \= globalForPrisma.prisma ?? new PrismaClient({
+  log: process.env.NODE\_ENV \=== 'development' ? \['query', 'error', 'warn'\] : \['error'\],
+})
+
+if (process.env.NODE_ENV \!== 'production') {
+ globalForPrisma.prisma \= prisma
+}
+```
+
+**CRUD Operations:**
+
+```tsx
+// server/controllers/recipes.ts
+import { prisma } from '../lib/prisma'
+import type { Context } from 'hono'
+
+export const recipeController \= {
+  // Get all recipes
+  async getAll(c: Context) {
+    const { page \= '1', limit \= '10', category, search } \= c.req.query()
+
+    const skip \= (parseInt(page) \- 1\) \* parseInt(limit)
+
+    const where \= {
+      published: true,
+      ...(category && { category }),
+      ...(search && {
+        OR: \[
+          { title: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+        \],
+      }),
+    }
+
+    const \[recipes, total\] \= await Promise.all(\[
+      prisma.recipe.findMany({
+        where,
+        skip,
+        take: parseInt(limit),
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+              avatar: true,
+            },
+          },
+          \_count: {
+            select: {
+              likes: true,
+              comments: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.recipe.count({ where }),
+    \])
+
+    return c.json({
+      data: recipes,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit)),
+      },
+    })
+  },
+
+// Get single recipe
+ async getById(c: Context) {
+ const id \= c.req.param('id')
+
+    const recipe \= await prisma.recipe.findUnique({
+      where: { id },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+            bio: true,
+          },
+        },
+        comments: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                avatar: true,
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+        },
+        \_count: {
+          select: { likes: true },
+        },
+      },
+    })
+
+    if (\!recipe) {
+      return c.json({ error: 'Recipe not found' }, 404\)
+    }
+
+    return c.json({ data: recipe })
+
+},
+
+// Create recipe
+ async create(c: Context) {
+ const body \= await c.req.json()
+ const user \= c.get('user')
+
+    const recipe \= await prisma.recipe.create({
+      data: {
+        ...body,
+        authorId: user.id,
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+          },
+        },
+      },
+    })
+
+    return c.json({ data: recipe }, 201\)
+
+},
+
+// Update recipe
+ async update(c: Context) {
+ const id \= c.req.param('id')
+ const body \= await c.req.json()
+ const user \= c.get('user')
+
+    // Check ownership
+    const existing \= await prisma.recipe.findUnique({
+      where: { id },
+      select: { authorId: true },
+    })
+
+    if (\!existing || existing.authorId \!== user.id) {
+      return c.json({ error: 'Forbidden' }, 403\)
+    }
+
+    const recipe \= await prisma.recipe.update({
+      where: { id },
+      data: body,
+    })
+
+    return c.json({ data: recipe })
+
+},
+
+// Delete recipe
+ async delete(c: Context) {
+ const id \= c.req.param('id')
+ const user \= c.get('user')
+
+    const existing \= await prisma.recipe.findUnique({
+      where: { id },
+      select: { authorId: true },
+    })
+
+    if (\!existing || existing.authorId \!== user.id) {
+      return c.json({ error: 'Forbidden' }, 403\)
+    }
+
+    await prisma.recipe.delete({ where: { id } })
+
+    return c.json({ message: 'Recipe deleted' })
+
+},
+}
+```
+
+**Database Seeding:**
+
+```tsx
+// prisma/seed.ts
+import { PrismaClient } from '@prisma/client'
+
+const prisma \= new PrismaClient()
+
+async function main() {
+ // Create users
+ const user1 \= await prisma.user.create({
+ data: {
+ email: 'chef@example.com',
+ name: 'Chef Mario',
+ avatar: '/avatars/mario.jpg',
+ bio: 'Professional Italian chef',
+ },
+ })
+
+// Create recipes
+ await prisma.recipe.create({
+ data: {
+ title: 'Classic Margherita Pizza',
+ description: 'Authentic Italian pizza',
+ ingredients: \[
+ { name: 'Pizza dough', amount: '1', unit: 'ball' },
+ { name: 'Tomato sauce', amount: '1/2', unit: 'cup' },
+ \],
+ steps: \[
+ 'Preheat oven to 500°F',
+ 'Roll out pizza dough',
+ \],
+ cookTime: 30,
+ servings: 4,
+ category: 'Italian',
+ difficulty: 'Medium',
+ published: true,
+ authorId: user1.id,
+ },
+ })
+
+console.log('Database seeded\!')
+}
+
+main()
+ .catch((e) \=\> {
+ console.error(e)
+ process.exit(1)
+ })
+ .finally(async () \=\> {
+ await prisma.$disconnect()
+ })
+
+```
+
+**Practical Exercises:**
+
+- Set up PostgreSQL database
+- Install and configure Prisma
+- Design and create schema
+- Run migrations
+- Implement CRUD operations
+- Seed database with test data
+
+**Homework:**
+
+- Complete database schema
+- Implement all Prisma queries
+- Test database operations
+- Create seed data
+
+---
+
+### **Session 6 \- Saturday, December 14, 2025**
+
+**Topic:** PROJECT 2 & 3 \- RESTful APIs
+
+---
+
+## **PROJECT 2: Blog API**
+
+**Project Requirements:** Complete RESTful API for a blog platform
+
+**Features:**
+
+- User management (CRUD)
+- Blog post management (CRUD)
+- Categories and tags
+- Comments system
+- Post likes/reactions
+- Search and filtering
+- Pagination
+- Author profiles
+- Draft/published status
+
+**Technical Requirements:**
+
+- Hono framework
+- PostgreSQL \+ Prisma
+- TypeScript
+- Input validation (Zod)
+- Error handling
+- API documentation
+- Testing setup
+
+**Database Schema:**
+
+```tsx
+model User {
+ id String @id @default(cuid())
+ email String @unique
+ username String @unique
+ name String
+ bio String? @db.Text
+ avatar String?
+
+posts Post\[\]
+ comments Comment\[\]
+ likes Like\[\]
+
+createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+@@index(\[username\])
+}
+
+model Post {
+ id String @id @default(cuid())
+ title String
+ slug String @unique
+ content String @db.Text
+ excerpt String?
+ coverImage String?
+ published Boolean @default(false)
+
+authorId String
+ author User @relation(fields: \[authorId\], references: \[id\], onDelete: Cascade)
+
+categoryId String?
+ category Category? @relation(fields: \[categoryId\], references: \[id\])
+
+tags Tag\[\]
+ comments Comment\[\]
+ likes Like\[\]
+
+createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ publishedAt DateTime?
+
+@@index(\[authorId\])
+ @@index(\[slug\])
+ @@index(\[published\])
+}
+
+model Category {
+ id String @id @default(cuid())
+ name String @unique
+ slug String @unique
+ posts Post\[\]
+}
+
+model Tag {
+ id String @id @default(cuid())
+ name String @unique
+ slug String @unique
+ posts Post\[\]
+}
+
+model Comment {
+ id String @id @default(cuid())
+ content String @db.Text
+
+postId String
+ post Post @relation(fields: \[postId\], references: \[id\], onDelete: Cascade)
+
+userId String
+ user User @relation(fields: \[userId\], references: \[id\], onDelete: Cascade)
+
+createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+@@index(\[postId\])
+ @@index(\[userId\])
+}
+
+model Like {
+ id String @id @default(cuid())
+
+postId String
+ post Post @relation(fields: \[postId\], references: \[id\], onDelete: Cascade)
+
+userId String
+ user User @relation(fields: \[userId\], references: \[id\], onDelete: Cascade)
+
+createdAt DateTime @default(now())
+
+@@unique(\[postId, userId\])
+}
+```
+
+**API Endpoints:**
+
+Users:  
+GET /api/users  
+GET /api/users/:id  
+POST /api/users  
+PATCH /api/users/:id  
+DELETE /api/users/:id
+
+Posts:  
+GET /api/posts `(with pagination, filtering) `
+GET /api/posts/:slug  
+POST /api/posts  
+PATCH /api/posts/:id  
+DELETE /api/posts/:id  
+GET /api/posts/:id/comments  
+POST /api/posts/:id/like
+
+Categories:  
+GET /api/categories  
+POST /api/categories
+
+Tags:  
+GET /api/tags  
+POST /api/tags
+
+Comments:  
+POST /api/comments  
+DELETE /api/comments/:id
+
+**Deliverable:** Complete blog API with documentation
+
+---
+
+## **PROJECT 3: E-commerce Product API**
+
+**Project Requirements:** RESTful API for e-commerce product management
+
+**Features:**
+
+- Product catalog (CRUD)
+- Categories and subcategories
+- Product variants (size, color, etc.)
+- Inventory tracking
+- Price management
+- Product reviews and ratings
+- Search and filtering
+- Sorting options
+- Product images
+- Related products
+
+**Database Schema:**
+
+```tsx
+model Product {
+ id String @id @default(cuid())
+ name String
+ slug String @unique
+ description String @db.Text
+ basePrice Decimal @db.Decimal(10, 2\)
+ sku String @unique
+
+categoryId String
+ category Category @relation(fields: \[categoryId\], references: \[id\])
+
+variants ProductVariant\[\]
+ images ProductImage\[\]
+ reviews Review\[\]
+
+published Boolean @default(false)
+ featured Boolean @default(false)
+
+createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+@@index(\[categoryId\])
+ @@index(\[slug\])
+ @@index(\[published\])
+}
+
+model Category {
+ id String @id @default(cuid())
+ name String
+ slug String @unique
+ parentId String?
+ parent Category? @relation("CategoryTree", fields: \[parentId\], references: \[id\])
+ children Category\[\] @relation("CategoryTree")
+ products Product\[\]
+}
+
+model ProductVariant {
+ id String @id @default(cuid())
+ productId String
+ product Product @relation(fields: \[productId\], references: \[id\], onDelete: Cascade)
+
+sku String @unique
+ name String // e.g., "Medium / Blue"
+ price Decimal @db.Decimal(10, 2\)
+ stock Int @default(0)
+
+attributes Json // { size: "M", color: "Blue" }
+
+@@index(\[productId\])
+}
+
+model ProductImage {
+ id String @id @default(cuid())
+ productId String
+ product Product @relation(fields: \[productId\], references: \[id\], onDelete: Cascade)
+
+url String
+ alt String?
+ order Int @default(0)
+
+@@index(\[productId\])
+}
+
+model Review {
+ id String @id @default(cuid())
+ productId String
+ product Product @relation(fields: \[productId\], references: \[id\], onDelete: Cascade)
+
+userId String
+ rating Int // 1-5
+ title String
+ comment String @db.Text
+ verified Boolean @default(false)
+
+createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+@@index(\[productId\])
+ @@index(\[userId\])
+}
+```
+
+**API Endpoints:**
+
+Products:  
+GET /api/products (search, filter, sort, pagination)  
+GET /api/products/:slug  
+POST /api/products  
+PATCH /api/products/:id  
+DELETE /api/products/:id  
+GET /api/products/:id/variants  
+GET /api/products/:id/reviews
+
+Categories:  
+GET /api/categories (hierarchical)  
+POST /api/categories
+
+Reviews:  
+POST /api/reviews  
+GET /api/products/:id/reviews
+
+**Skills Applied (Projects 2 & 3):**
+
+- Hono route organization
+- Prisma complex queries
+- Data validation
+- Error handling
+- Pagination logic
+- Search and filtering
+- Relational data
+- API best practices
+
+**Deliverable:** Two complete RESTful APIs
+
+---
+
+## **PHASE 3: FULL-STACK INTEGRATION**
+
+### **Session 7 \- Tuesday, December 17, 2025**
+
+**Topic:** Connecting Next.js Frontend with Hono Backend
+
+**Learning Objectives:**
+
+- API integration patterns
+- Environment variables in Next.js
+- TypeScript API types sharing
+- Error handling in requests
+- Loading states
+- Optimistic updates
+- SWR for data fetching
+- API route proxying
+
+**API Client Setup:**
+
+```tsx
+// frontend/lib/api.ts
+import type { Recipe } from '@/types'
+
+const API_URL \= process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787'
+
+class ApiError extends Error {
+ constructor(public status: number, message: string) {
+ super(message)
+ }
+}
+
+async function fetchApi\<T\>(
+ endpoint: string,
+ options?: RequestInit
+): Promise\<T\> {
+ const url \= \`${API\_URL}${endpoint}\`
+
+const response \= await fetch(url, {
+ ...options,
+ headers: {
+ 'Content-Type': 'application/json',
+ ...options?.headers,
+ },
+ })
+
+if (\!response.ok) {
+ const error \= await response.json()
+ throw new ApiError(response.status, error.message || 'An error occurred')
+ }
+
+return response.json()
+}
+
+export const api \= {
+  // Recipes
+  recipes: {
+    getAll: (params?: {
+      page?: number
+      limit?: number
+      category?: string
+      search?: string
+    }) \=\> {
+      const searchParams \= new URLSearchParams()
+      if (params) {
+        Object.entries(params).forEach((\[key, value\]) \=\> {
+          if (value \!== undefined) {
+            searchParams.append(key, value.toString())
+          }
+        })
+      }
+      return fetchApi\<{ data: Recipe\[\]; pagination: any }\>(
+        \`/api/recipes?${searchParams}\`
+      )
+    },
+
+    getById: (id: string) \=\>
+      fetchApi\<{ data: Recipe }\>(\`/api/recipes/${id}\`),
+
+    create: (data: Partial\<Recipe\>) \=\>
+      fetchApi\<{ data: Recipe }\>('/api/recipes', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    update: (id: string, data: Partial\<Recipe\>) \=\>
+      fetchApi\<{ data: Recipe }\>(\`/api/recipes/${id}\`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+
+    delete: (id: string) \=\>
+      fetchApi\<{ message: string }\>(\`/api/recipes/${id}\`, {
+        method: 'DELETE',
+      }),
+  },
+}
+```
+
+**Using SWR for Data Fetching:**
+
+```tsx
+// hooks/useRecipes.ts
+import useSWR from 'swr'
+import { api } from '@/lib/api'
+
+export function useRecipes(params?: {
+  page?: number
+  category?: string
+  search?: string
+}) {
+  const { data, error, isLoading, mutate } \= useSWR(
+    \['/api/recipes', params\],
+    () \=\> api.recipes.getAll(params)
+  )
+
+return {
+ recipes: data?.data,
+ pagination: data?.pagination,
+ isLoading,
+ isError: error,
+ mutate,
+ }
+}
+
+export function useRecipe(id: string) {
+  const { data, error, isLoading, mutate } \= useSWR(
+    id ? \`/api/recipes/${id}\` : null,
+    () \=\> api.recipes.getById(id)
+  )
+
+return {
+ recipe: data?.data,
+ isLoading,
+ isError: error,
+ mutate,
+ }
+}
+```
+
+**Server Component Data Fetching:**
+
+```tsx
+// app/recipes/page.tsx
+import { api } from '@/lib/api'
+import { RecipeCard } from '@/components/recipes/RecipeCard'
+
+export default async function RecipesPage({
+  searchParams,
+}: {
+  searchParams: { page?: string; category?: string; search?: string }
+}) {
+  const { data: recipes, pagination } \= await api.recipes.getAll({
+    page: searchParams.page ? parseInt(searchParams.page) : 1,
+    category: searchParams.category,
+    search: searchParams.search,
+  })
+
+return (
+ \<div\>
+ \<h1\>Recipes\</h1\>
+ \<div className="grid grid-cols-3 gap-4"\>
+ {recipes.map((recipe) \=\> (
+ \<RecipeCard key={recipe.id} recipe={recipe} /\>
+ ))}
+ \</div\>
+ {/\* Pagination component \*/}
+ \</div\>
+ )
+}
+```
+
+**Client Component with Mutations:**
+
+```tsx
+// components/recipes/CreateRecipeForm.tsx
+'use client'
+
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { api } from '@/lib/api'
+import { useRouter } from 'next/navigation'
+import { recipeSchema, type RecipeInput } from '@/lib/validations/recipe'
+
+export function CreateRecipeForm() {
+  const router \= useRouter()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } \= useForm\<RecipeInput\>({
+    resolver: zodResolver(recipeSchema),
+  })
+
+async function onSubmit(data: RecipeInput) {
+ try {
+ const result \= await api.recipes.create(data)
+ router.push(\`/recipes/${result.data.id}\`)
+ } catch (error) {
+ console.error('Error creating recipe:', error)
+ // Show error toast
+ }
+ }
+
+return (
+ \<form onSubmit={handleSubmit(onSubmit)}\>
+ {/\* Form fields \*/}
+ \<button type="submit" disabled={isSubmitting}\>
+ {isSubmitting ? 'Creating...' : 'Create Recipe'}
+ \</button\>
+ \</form\>
+ )
+}
+```
+
+**Type Sharing Between Frontend and Backend:**
+
+```tsx
+// shared/types.ts (in a shared package or copied to both projects)
+export interface Recipe {
+ id: string
+ title: string
+ description: string
+ ingredients: Ingredient\[\]
+ steps: string\[\]
+ cookTime: number
+ servings: number
+ category: string
+ difficulty: string
+ image?: string
+ author: {
+ id: string
+ name: string
+ avatar?: string
+ }
+ createdAt: Date
+ updatedAt: Date
+}
+
+export interface ApiResponse\<T\> {
+  data: T
+  error?: string
+}
+
+export interface PaginatedResponse\<T\> {
+  data: T\[\]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    pages: number
+  }
+}
+```
+
+**Practical Exercises:**
+
+- Set up API client
+- Implement SWR hooks
+- Create forms with mutations
+- Handle loading and error states
+- Share types between projects
+
+**Homework:**
+
+- Connect frontend to backend
+- Implement all CRUD operations
+- Add error handling
+- Test full integration
+
+---
+
+### **Session 8 \- Thursday, December 19, 2025**
+
+**Topic:** Authentication & Authorization
+
+**Learning Objectives:**
+
+- JWT authentication
+- Session management
+- Protected routes (frontend & backend)
+- Role-based access control
+- Password hashing (bcrypt)
+- Refresh tokens
+- OAuth integration (optional)
+
+**Backend Authentication:**
+
+```tsx
+// server/lib/auth.ts
+import { sign, verify } from 'hono/jwt'
+import { hash, compare } from 'bcrypt'
+
+const JWT_SECRET \= process.env.JWT_SECRET\!
+
+export const auth \= {
+  async hashPassword(password: string): Promise\<string\> {
+    return hash(password, 10\)
+  },
+
+async comparePassword(password: string, hash: string): Promise\<boolean\> {
+ return compare(password, hash)
+ },
+
+async generateToken(userId: string): Promise\<string\> {
+ return sign(
+ {
+ sub: userId,
+ exp: Math.floor(Date.now() / 1000\) \+ 60 \* 60 \* 24 \* 7, // 7 days
+ },
+ JWT_SECRET
+ )
+ },
+
+async verifyToken(token: string): Promise\<{ sub: string } | null\> {
+ try {
+ return await verify(token, JWT_SECRET)
+ } catch {
+ return null
+ }
+ },
+}
+
+// server/middleware/auth.ts
+import { Context, Next } from 'hono'
+import { auth } from '../lib/auth'
+import { prisma } from '../lib/prisma'
+
+export async function authMiddleware(c: Context, next: Next) {
+  const authHeader \= c.req.header('Authorization')
+  const token \= authHeader?.replace('Bearer ', '')
+
+if (\!token) {
+ return c.json({ error: 'Unauthorized' }, 401\)
+ }
+
+const payload \= await auth.verifyToken(token)
+
+if (\!payload) {
+ return c.json({ error: 'Invalid token' }, 401\)
+ }
+
+const user \= await prisma.user.findUnique({
+ where: { id: payload.sub },
+ select: {
+ id: true,
+ email: true,
+ name: true,
+ role: true,
+ },
+ })
+
+if (\!user) {
+ return c.json({ error: 'User not found' }, 401\)
+ }
+
+c.set('user', user)
+ await next()
+}
+
+// Auth routes
+import { Hono } from 'hono'
+import { z } from 'zod'
+
+const authRouter \= new Hono()
+
+const registerSchema \= z.object({
+ email: z.string().email(),
+ password: z.string().min(8),
+ name: z.string().min(2),
+})
+
+const loginSchema \= z.object({
+ email: z.string().email(),
+ password: z.string(),
+})
+
+authRouter.post('/register', async (c) \=\> {
+ const body \= await c.req.json()
+ const validated \= registerSchema.parse(body)
+
+// Check if user exists
+ const existing \= await prisma.user.findUnique({
+ where: { email: validated.email },
+ })
+
+if (existing) {
+ return c.json({ error: 'User already exists' }, 400\)
+ }
+
+// Hash password
+ const hashedPassword \= await auth.hashPassword(validated.password)
+
+// Create user
+ const user \= await prisma.user.create({
+ data: {
+ email: validated.email,
+ name: validated.name,
+ password: hashedPassword,
+ },
+ select: {
+ id: true,
+ email: true,
+ name: true,
+ },
+ })
+
+// Generate token
+ const token \= await auth.generateToken(user.id)
+
+return c.json({
+ user,
+ token,
+ }, 201\)
+})
+
+authRouter.post('/login', async (c) \=\> {
+ const body \= await c.req.json()
+ const validated \= loginSchema.parse(body)
+
+// Find user
+ const user \= await prisma.user.findUnique({
+ where: { email: validated.email },
+ })
+
+if (\!user) {
+ return c.json({ error: 'Invalid credentials' }, 401\)
+ }
+
+// Check password
+ const valid \= await auth.comparePassword(validated.password, user.password)
+
+if (\!valid) {
+ return c.json({ error: 'Invalid credentials' }, 401\)
+ }
+
+// Generate token
+ const token \= await auth.generateToken(user.id)
+
+return c.json({
+ user: {
+ id: user.id,
+ email: user.email,
+ name: user.name,
+ },
+ token,
+ })
+})
+
+authRouter.get('/me', authMiddleware, async (c) \=\> {
+ const user \= c.get('user')
+ return c.json({ user })
+})
+
+export default authRouter;
+```
+
+**Frontend Authentication:**
+
+```tsx
+// frontend/lib/auth.ts
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+
+interface User {
+ id: string
+ email: string
+ name: string
+}
+
+interface AuthState {
+ user: User | null
+ token: string | null
+ isAuthenticated: boolean
+ login: (email: string, password: string) \=\> Promise\<void\>
+ register: (email: string, password: string, name: string) \=\> Promise\<void\>
+ logout: () \=\> void
+}
+
+export const useAuth \= create\<AuthState\>()(
+  persist(
+    (set) \=\> ({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+
+      login: async (email, password) \=\> {
+        const response \= await fetch(\`${API\_URL}/api/auth/login\`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        })
+
+        if (\!response.ok) {
+          throw new Error('Login failed')
+        }
+
+        const { user, token } \= await response.json()
+        set({ user, token, isAuthenticated: true })
+      },
+
+      register: async (email, password, name) \=\> {
+        const response \= await fetch(\`${API\_URL}/api/auth/register\`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, name }),
+        })
+
+        if (\!response.ok) {
+          throw new Error('Registration failed')
+        }
+
+        const { user, token } \= await response.json()
+        set({ user, token, isAuthenticated: true })
+      },
+
+      logout: () \=\> {
+        set({ user: null, token: null, isAuthenticated: false })
+      },
+    }),
+    {
+      name: 'auth-storage',
+    }
+
+)
+)
+
+// Update API client to include auth token
+export async function fetchApi\<T\>(
+ endpoint: string,
+ options?: RequestInit
+): Promise\<T\> {
+ const { token } \= useAuth.getState()
+
+const response \= await fetch(\`${API\_URL}${endpoint}\`, {
+ ...options,
+ headers: {
+ 'Content-Type': 'application/json',
+ ...(token && { Authorization: \`Bearer ${token}\` }),
+ ...options?.headers,
+ },
+ })
+
+// Handle response...
+}
+```
+
+**Protected Route Component:**
+
+```tsx
+// components/auth/ProtectedRoute.tsx
+'use client'
+
+import { useAuth } from "@/lib/auth";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+export function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } \= useAuth()
+  const router \= useRouter()
+
+useEffect(() \=\> {
+ if (\!isAuthenticated) {
+ router.push('/login')
+ }
+ }, \[isAuthenticated, router\])
+
+if (\!isAuthenticated) {
+ return \<div\>Loading...\</div\>
+ }
+
+return \<\>{children}\</\>
+}
+```
+
+**Practical Exercises:**
+
+- Implement JWT authentication
+- Create login/register forms
+- Add protected routes
+- Store auth token
+- Add auth middleware
+
+**Homework:**
+
+- Complete authentication system
+- Protect API routes
+- Add auth to frontend
+- Test auth flow
+
+---
+
+### **Session 9 \- Saturday, December 21, 2025**
+
+**Topic:** PROJECT 4 \- Full-Stack Job Board
+
+**Project Requirements:** Complete job board platform with frontend and backend
+
+**Features:**
+
+**For Job Seekers:**
+
+- Browse job listings with filters
+- Search jobs by title, company, location
+- View job details
+- Apply to jobs (with resume upload)
+- Save favorite jobs
+- User dashboard with applications
+- Application status tracking
+
+**For Employers:**
+
+- Post job listings
+- Manage job posts (edit, delete, close)
+- View applications
+- Filter and search applications
+- Mark applications (reviewed, shortlisted, rejected)
+- Company profile
+
+**General:**
+
+- Authentication system
+- Role-based access (job seeker vs employer)
+- Email notifications
+- Responsive design
+- Advanced search and filtering
+
+**Database Schema:**
+
+```tsx
+model User {
+ id String @id @default(cuid())
+ email String @unique
+ password String
+ name String
+ role UserRole @default(JOB_SEEKER)
+```
+
+```tsx
+// Job Seeker fields
+ resume String?
+ phone String?
+ location String?
+ skills String\[\]
+
+// Employer fields
+ companyId String?
+ company Company? @relation(fields: \[companyId\], references: \[id\])
+
+savedJobs SavedJob\[\]
+ applications Application\[\]
+ jobs Job\[\] // Jobs posted by employer
+
+createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+@@index(\[email\])
+ @@index(\[role\])
+}
+
+model Company {
+ id String @id @default(cuid())
+ name String
+ logo String?
+ description String? @db.Text
+ website String?
+ location String
+ industry String
+ size String?
+
+users User\[\]
+ jobs Job\[\]
+
+createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+}
+
+model Job {
+ id String @id @default(cuid())
+ title String
+ description String @db.Text
+ requirements String @db.Text
+ location String
+ type JobType // Full-time, Part-time, Contract, Remote
+ experience String // Entry, Mid, Senior
+ salary String?
+ category String
+ skills String\[\]
+ status JobStatus @default(OPEN)
+
+companyId String
+ company Company @relation(fields: \[companyId\], references: \[id\], onDelete: Cascade)
+
+postedById String
+ postedBy User @relation(fields: \[postedById\], references: \[id\])
+
+applications Application\[\]
+ savedBy SavedJob\[\]
+
+createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ expiresAt DateTime?
+
+@@index(\[companyId\])
+ @@index(\[postedById\])
+ @@index(\[status\])
+ @@index(\[category\])
+}
+
+model Application {
+ id String @id @default(cuid())
+
+jobId String
+ job Job @relation(fields: \[jobId\], references: \[id\], onDelete: Cascade)
+
+userId String
+ user User @relation(fields: \[userId\], references: \[id\], onDelete: Cascade)
+
+coverLetter String? @db.Text
+ resume String // URL to uploaded resume
+ status ApplicationStatus @default(PENDING)
+
+createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+@@unique(\[jobId, userId\])
+ @@index(\[jobId\])
+ @@index(\[userId\])
+ @@index(\[status\])
+}
+
+model SavedJob {
+ id String @id @default(cuid())
+
+userId String
+ user User @relation(fields: \[userId\], references: \[id\], onDelete: Cascade)
+
+jobId String
+ job Job @relation(fields: \[jobId\], references: \[id\], onDelete: Cascade)
+
+createdAt DateTime @default(now())
+
+@@unique(\[userId, jobId\])
+ @@index(\[userId\])
+}
+
+enum UserRole {
+ JOB_SEEKER
+ EMPLOYER
+ ADMIN
+}
+
+enum JobType {
+ FULL_TIME
+ PART_TIME
+ CONTRACT
+ REMOTE
+ INTERNSHIP
+}
+
+enum JobStatus {
+ OPEN
+ CLOSED
+ FILLED
+}
+
+enum ApplicationStatus {
+ PENDING
+ REVIEWED
+ SHORTLISTED
+ REJECTED
+ ACCEPTED
+}
+```
+
+**File Structure:**
+
+Backend (Hono):  
+server/  
+├── index.ts  
+├── routes/  
+│ ├── auth.ts  
+│ ├── jobs.ts  
+│ ├── applications.ts  
+│ ├── companies.ts  
+│ └── users.ts  
+├── controllers/  
+│ ├── jobController.ts  
+│ └── applicationController.ts  
+├── middleware/  
+│ ├── auth.ts  
+│ └── roles.ts  
+└── lib/  
+ ├── prisma.ts  
+ └── email.ts
+
+Frontend (Next.js):  
+app/  
+├── (auth)/  
+│ ├── login/  
+│ └── register/  
+├── (main)/  
+│ ├── jobs/  
+│ │ ├── page.tsx (browse)  
+│ │ └── \[id\]/  
+│ │ └── page.tsx (detail)  
+│ ├── dashboard/  
+│ │ ├── applications/  
+│ │ ├── saved/  
+│ │ └── profile/  
+│ └── employer/  
+│ ├── jobs/  
+│ │ ├── page.tsx (manage)  
+│ │ ├── new/  
+│ │ └── \[id\]/  
+│ │ ├── edit/  
+│ │ └── applications/  
+│ └── company/  
+components/  
+├── jobs/  
+│ ├── JobCard.tsx  
+│ ├── JobFilters.tsx  
+│ ├── JobSearch.tsx  
+│ ├── JobForm.tsx  
+│ └── ApplicationForm.tsx  
+├── dashboard/  
+│ └── ApplicationCard.tsx  
+lib/  
+├── api.ts  
+└── auth.ts
+
+**Key Features:**
+
+**Advanced Job Search:**
+
+```tsx
+// server/controllers/jobController.ts
+export const jobController \= {
+ async search(c: Context) {
+ const {
+ q: query,
+ location,
+ type,
+ category,
+ experience,
+ salary,
+ page \= '1',
+ limit \= '10',
+ } \= c.req.query()
+
+    const where: any \= {
+      status: 'OPEN',
+    }
+
+    if (query) {
+      where.OR \= \[
+        { title: { contains: query, mode: 'insensitive' } },
+        { description: { contains: query, mode: 'insensitive' } },
+        { skills: { hasSome: query.split(' ') } },
+      \]
+    }
+
+    if (location) {
+      where.location \= { contains: location, mode: 'insensitive' }
+    }
+
+    if (type) {
+      where.type \= type
+    }
+
+    if (category) {
+      where.category \= category
+    }
+
+    if (experience) {
+      where.experience \= experience
+    }
+
+    const skip \= (parseInt(page) \- 1\) \* parseInt(limit)
+
+    const \[jobs, total\] \= await Promise.all(\[
+      prisma.job.findMany({
+        where,
+        skip,
+        take: parseInt(limit),
+        include: {
+          company: {
+            select: {
+              id: true,
+              name: true,
+              logo: true,
+              location: true,
+            },
+          },
+          \_count: {
+            select: { applications: true },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.job.count({ where }),
+    \])
+
+    return c.json({
+      data: jobs,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit)),
+      },
+    })
+
+},
+}
+```
+
+**Application System:**
+
+```tsx
+// server/controllers/applicationController.ts
+export const applicationController \= {
+ async apply(c: Context) {
+ const user \= c.get('user')
+ const { jobId, coverLetter, resume } \= await c.req.json()
+
+    // Check if already applied
+    const existing \= await prisma.application.findUnique({
+      where: {
+        jobId\_userId: {
+          jobId,
+          userId: user.id,
+        },
+      },
+    })
+
+    if (existing) {
+      return c.json({ error: 'Already applied' }, 400\)
+    }
+
+    const application \= await prisma.application.create({
+      data: {
+        jobId,
+        userId: user.id,
+        coverLetter,
+        resume,
+      },
+      include: {
+        job: {
+          include: {
+            company: true,
+          },
+        },
+      },
+    })
+
+    // Send notification email to employer
+    // await sendApplicationNotification(application)
+
+    return c.json({ data: application }, 201\)
+
+},
+
+async updateStatus(c: Context) {
+ const user \= c.get('user')
+ const { id } \= c.req.param()
+ const { status } \= await c.req.json()
+
+    // Check if user is employer and owns the job
+    const application \= await prisma.application.findUnique({
+      where: { id },
+      include: {
+        job: true,
+      },
+    })
+
+    if (\!application || application.job.postedById \!== user.id) {
+      return c.json({ error: 'Forbidden' }, 403\)
+    }
+
+    const updated \= await prisma.application.update({
+      where: { id },
+      data: { status },
+    })
+
+    return c.json({ data: updated })
+
+},
+}
+```
+
+**Skills Applied:**
+
+- Full-stack integration
+- Authentication & authorization
+- Role-based access control
+- File uploads
+- Complex filtering
+- Email notifications
+- Multi-user system
+
+**Deliverable:** Complete job board platform (frontend \+ backend)
+
+---
+
+## **PHASE 4: ADVANCED FEATURES**
+
+### **Session 10 \- Tuesday, December 23, 2025**
+
+**Topic:** File Uploads & Cloud Storage
+
+**Learning Objectives:**
+
+- File upload handling in Hono
+- Cloud storage (Cloudflare R2, AWS S3, or UploadThing)
+- Image optimization
+- File validation
+- Presigned URLs
+- Direct uploads
+
+**File Upload Implementation:**
+
+```tsx
+// server/routes/upload.ts
+import { Hono } from 'hono'
+
+const upload \= new Hono()
+
+// Using Cloudflare R2 (or AWS S3)
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+
+const s3Client \= new S3Client({
+ region: 'auto',
+ endpoint: \`https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com\`,
+ credentials: {
+ accessKeyId: process.env.R2_ACCESS_KEY_ID\!,
+ secretAccessKey: process.env.R2_SECRET_ACCESS_KEY\!,
+ },
+})
+
+upload.post('/presigned-url', authMiddleware, async (c) \=\> {
+ const { filename, contentType } \= await c.req.json()
+
+const key \= \`${Date.now()}-${filename}\`
+
+const command \= new PutObjectCommand({
+ Bucket: process.env.R2_BUCKET_NAME,
+ Key: key,
+ ContentType: contentType,
+ })
+
+const url \= await getSignedUrl(s3Client, command, { expiresIn: 3600 })
+
+return c.json({
+ uploadUrl: url,
+ fileUrl: \`${process.env.R2\_PUBLIC\_URL}/${key}\`,
+ })
+})
+
+upload.post('/direct', authMiddleware, async (c) \=\> {
+ const body \= await c.req.parseBody()
+ const file \= body\['file'\] as File
+
+if (\!file) {
+ return c.json({ error: 'No file provided' }, 400\)
+ }
+
+// Validate file
+ const maxSize \= 5 \* 1024 \* 1024 // 5MB
+ if (file.size \> maxSize) {
+ return c.json({ error: 'File too large' }, 400\)
+ }
+
+const allowedTypes \= \['image/jpeg', 'image/png', 'image/webp', 'application/pdf'\]
+ if (\!allowedTypes.includes(file.type)) {
+ return c.json({ error: 'Invalid file type' }, 400\)
+ }
+
+// Upload to storage
+ const key \= \`${Date.now()}-${file.name}\`
+ const buffer \= await file.arrayBuffer()
+
+await s3Client.send(
+ new PutObjectCommand({
+ Bucket: process.env.R2_BUCKET_NAME,
+ Key: key,
+ Body: Buffer.from(buffer),
+ ContentType: file.type,
+ })
+ )
+
+const fileUrl \= \`${process.env.R2\_PUBLIC\_URL}/${key}\`
+
+return c.json({ fileUrl })
+})
+
+export default upload;
+```
+
+**Frontend File Upload:**
+
+```tsx
+// components/FileUpload.tsx
+'use client'
+
+import { useState } from "react";
+import { api } from "@/lib/api";
+
+export function FileUpload({ onUploadComplete }: {
+  onUploadComplete: (url: string) \=\> void
+}) {
+  const \[uploading, setUploading\] \= useState(false)
+  const \[progress, setProgress\] \= useState(0)
+
+async function handleUpload(e: React.ChangeEvent\<HTMLInputElement\>) {
+ const file \= e.target.files?.\[0\]
+ if (\!file) return
+
+    setUploading(true)
+
+    try {
+      // Get presigned URL
+      const { uploadUrl, fileUrl } \= await api.upload.getPresignedUrl({
+        filename: file.name,
+        contentType: file.type,
+      })
+
+      // Upload directly to storage
+      await fetch(uploadUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+        },
+      })
+
+      onUploadComplete(fileUrl)
+    } catch (error) {
+      console.error('Upload failed:', error)
+    } finally {
+      setUploading(false)
+    }
+
+}
+
+return (
+ \<div\>
+ \<input
+ type="file"
+ onChange={handleUpload}
+ disabled={uploading}
+ accept="image/\*,.pdf"
+ /\>
+ {uploading && \<div\>Uploading... {progress}%\</div\>}
+ \</div\>
+ )
+}
+```
+
+**Practical Exercises:**
+
+- Set up cloud storage
+- Implement file upload
+- Add file validation
+- Create upload component
+- Test with different file types
+
+**Homework:**
+
+- Complete file upload system
+- Add image optimization
+- Implement file deletion
+
+---
+
+### **Session 11 \- Thursday, December 25, 2025**
+
+**Topic:** PROJECT 5 \- Social Media Dashboard
+
+**Project Requirements:** Social media-style platform with posts, comments, likes
+
+**Features:**
+
+- User profiles
+- Create text/image posts
+- Like and comment on posts
+- Follow/unfollow users
+- News feed (posts from followed users)
+- User search
+- Notifications
+- Real-time updates (polling)
+- Image uploads
+- Hashtags
+- User mentions
+
+**Database Schema:**
+
+````tsx
+model User {
+ id String @id @default(cuid())
+ email String @unique
+ username String @unique
+ name String
+ bio String? @db.Text
+ avatar String?
+
+posts Post\[\]
+ comments Comment\[\]
+ likes Like\[\]
+
+followers Follow\[\] @relation("Followers")
+ following Follow\[\] @relation("Following")
+
+notifications Notification\[\]
+
+createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+@@index(\[username\])
+}
+
+model Post {
+ id String @id @default(cuid())
+ content String @db.Text
+ images String\[\] // Array of image URLs
+
+authorId String
+ author User @relation(fields: \[authorId\], references: \[id\], onDelete: Cascade)
+
+comments Comment\[\]
+ likes Like\[\]
+
+createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+@@index(\[authorId\])
+ @@index(\[createdAt\])
+}
+
+model Comment {
+ id String @id @default(cuid())
+ content String @db.Text
+
+postId String
+ post Post @relation(fields: \[postId\], references: \[id\], onDelete: Cascade)
+
+userId String
+ user User @relation(fields: \[userId\], references: \[id\], onDelete: Cascade)
+
+createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+@@index(\[postId\])
+ @@index(\[userId\])
+}
+
+model Like {
+ id String @id @default(cuid())
+
+postId String
+ post Post @relation(fields: \[postId\], references: \[id\], onDelete: Cascade)
+
+userId String
+ user User @relation(fields: \[userId\], references: \[id\], onDelete: Cascade)
+
+createdAt DateTime @default(now())
+
+@@unique(\[postId, userId\])
+ @@index(\[postId\])
+ @@index(\[userId\])
+}
+
+model Follow {
+ id String @id @default(cuid())
+
+followerId String
+ follower User @relation("Following", fields: \[followerId\], references: \[id\], onDelete: Cascade)
+
+followingId String
+ following User @relation("Followers", fields: \[followingId\], references: \[id\], onDelete: Cascade)
+
+createdAt DateTime @default(now())
+
+@@unique(\[followerId, followingId\])
+ @@index(\[followerId\])
+ @@index(\[followingId\])
+}
+
+model Notification {
+ id String @id @default(cuid())```
+
+```tsx
+ type NotificationType
+ message String
+ read Boolean @default(false)
+
+userId String
+ user User @relation(fields: \[userId\], references: \[id\], onDelete: Cascade)
+
+actorId String? // User who triggered the notification
+ postId String?
+
+createdAt DateTime @default(now())
+
+@@index(\[userId, read\])
+ @@index(\[createdAt\])
+}
+
+enum NotificationType {
+ LIKE
+ COMMENT
+ FOLLOW
+ MENTION
+}
+````
+
+**News Feed Algorithm:**
+
+```tsx
+// server/controllers/feedController.ts
+export const feedController \= {
+ async getFeed(c: Context) {
+ const user \= c.get('user')
+ const { page \= '1', limit \= '20' } \= c.req.query()
+
+    const skip \= (parseInt(page) \- 1\) \* parseInt(limit)
+
+    // Get list of users the current user follows
+    const following \= await prisma.follow.findMany({
+      where: { followerId: user.id },
+      select: { followingId: true },
+    })
+
+    const followingIds \= following.map(f \=\> f.followingId)
+
+    // Include user's own posts
+    followingIds.push(user.id)
+
+    const posts \= await prisma.post.findMany({
+      where: {
+        authorId: { in: followingIds },
+      },
+      skip,
+      take: parseInt(limit),
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            avatar: true,
+          },
+        },
+        \_count: {
+          select: {
+            likes: true,
+            comments: true,
+          },
+        },
+        likes: {
+          where: { userId: user.id },
+          select: { id: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    // Transform to include isLiked flag
+    const postsWithLikes \= posts.map(post \=\> ({
+      ...post,
+      isLiked: post.likes.length \> 0,
+      likes: undefined, // Remove from response
+    }))
+
+    return c.json({ data: postsWithLikes })
+
+},
+}
+```
+
+**Skills Applied:**
+
+- Social features
+- Follow system
+- News feed algorithm
+- Notifications
+- Image uploads
+- Real-time updates
+
+**Deliverable:** Social media platform with full features
+
+---
+
+## **PHASE 5: PRODUCTION APPLICATION**
+
+### **Sessions 12-13 \- Saturday December 27 & Tuesday December 30, 2025**
+
+**Topic:** PROJECT 6 \- Multi-Vendor Marketplace Platform (Capstone)
+
+**Project Requirements:** Complete e-commerce marketplace where multiple vendors can sell products
+
+**Features:**
+
+**For Customers:**
+
+- Browse products from multiple vendors
+- Advanced search and filtering
+- Product details with reviews
+- Shopping cart
+- Checkout process
+- Order tracking
+- Wishlist
+- User reviews and ratings
+- Order history
+
+**For Vendors:**
+
+- Vendor registration and onboarding
+- Product management (CRUD)
+- Inventory management
+- Order management
+- Sales analytics dashboard
+- Revenue tracking
+- Product variants
+- Vendor profile
+
+**For Admin:**
+
+- Vendor approval
+- Platform analytics
+- User management
+- Order oversight
+- Commission management
+
+**Database Schema:**
+
+```tsx
+model User {
+ id String @id @default(cuid())
+ email String @unique
+ password String
+ name String
+ role UserRole @default(CUSTOMER)
+ phone String?
+
+addresses Address\[\]
+ cart CartItem\[\]
+ orders Order\[\]
+ reviews Review\[\]
+ wishlist Wishlist\[\]
+```
+
+```tsx
+// Vendor specific
+ vendor Vendor?
+
+createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+@@index(\[email\])
+ @@index(\[role\])
+}
+
+model Vendor {
+ id String @id @default(cuid())
+ userId String @unique
+ user User @relation(fields: \[userId\], references: \[id\], onDelete: Cascade)
+
+businessName String
+ description String? @db.Text
+ logo String?
+ status VendorStatus @default(PENDING)
+
+products Product\[\]
+ orders OrderItem\[\]
+
+createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+@@index(\[status\])
+}
+
+model Product {
+ id String @id @default(cuid())
+ name String
+ slug String @unique
+ description String @db.Text
+
+vendorId String
+ vendor Vendor @relation(fields: \[vendorId\], references: \[id\], onDelete: Cascade)
+
+categoryId String
+ category Category @relation(fields: \[categoryId\], references: \[id\])
+
+basePrice Decimal @db.Decimal(10, 2\)
+
+variants ProductVariant\[\]
+ images ProductImage\[\]
+ reviews Review\[\]
+
+status ProductStatus @default(DRAFT)
+ featured Boolean @default(false)
+
+createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+@@index(\[vendorId\])
+ @@index(\[categoryId\])
+ @@index(\[status\])
+ @@index(\[slug\])
+}
+
+model ProductVariant {
+ id String @id @default(cuid())
+ productId String
+ product Product @relation(fields: \[productId\], references: \[id\], onDelete: Cascade)
+
+name String
+ sku String @unique
+ price Decimal @db.Decimal(10, 2\)
+ stock Int @default(0)
+
+attributes Json // { size: "M", color: "Blue" }
+
+cartItems CartItem\[\]
+ orderItems OrderItem\[\]
+ wishlist Wishlist\[\]
+
+@@index(\[productId\])
+ @@index(\[sku\])
+}
+
+model CartItem {
+ id String @id @default(cuid())
+
+userId String
+ user User @relation(fields: \[userId\], references: \[id\], onDelete: Cascade)
+
+variantId String
+ variant ProductVariant @relation(fields: \[variantId\], references: \[id\], onDelete: Cascade)
+
+quantity Int @default(1)
+
+createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+@@unique(\[userId, variantId\])
+ @@index(\[userId\])
+}
+
+model Order {
+ id String @id @default(cuid())
+ orderNumber String @unique
+
+userId String
+ user User @relation(fields: \[userId\], references: \[id\])
+
+items OrderItem\[\]
+
+subtotal Decimal @db.Decimal(10, 2\)
+ tax Decimal @db.Decimal(10, 2\)
+ shipping Decimal @db.Decimal(10, 2\)
+ total Decimal @db.Decimal(10, 2\)
+
+status OrderStatus @default(PENDING)
+
+shippingAddressId String
+ shippingAddress Address @relation(fields: \[shippingAddressId\], references: \[id\])
+
+paymentMethod String
+ paymentStatus PaymentStatus @default(PENDING)
+
+createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+@@index(\[userId\])
+ @@index(\[orderNumber\])
+ @@index(\[status\])
+}
+
+model OrderItem {
+ id String @id @default(cuid())
+
+orderId String
+ order Order @relation(fields: \[orderId\], references: \[id\], onDelete: Cascade)
+
+variantId String
+ variant ProductVariant @relation(fields: \[variantId\], references: \[id\])
+
+vendorId String
+ vendor Vendor @relation(fields: \[vendorId\], references: \[id\])
+
+quantity Int
+ price Decimal @db.Decimal(10, 2\)
+
+status OrderItemStatus @default(PENDING)
+
+@@index(\[orderId\])
+ @@index(\[vendorId\])
+}
+
+model Review {
+ id String @id @default(cuid())
+
+productId String
+ product Product @relation(fields: \[productId\], references: \[id\], onDelete: Cascade)
+
+userId String
+ user User @relation(fields: \[userId\], references: \[id\], onDelete: Cascade)
+
+rating Int // 1-5
+ title String
+ comment String @db.Text
+ verified Boolean @default(false)
+
+createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+@@unique(\[productId, userId\])
+ @@index(\[productId\])
+}
+
+model Address {
+ id String @id @default(cuid())
+ userId String
+ user User @relation(fields: \[userId\], references: \[id\], onDelete: Cascade)
+
+fullName String
+ phone String
+ street String
+ city String
+ state String
+ zipCode String
+ country String
+ isDefault Boolean @default(false)
+
+orders Order\[\]
+
+@@index(\[userId\])
+}
+
+model Category {
+ id String @id @default(cuid())
+ name String @unique
+ slug String @unique
+ parentId String?
+ parent Category? @relation("CategoryTree", fields: \[parentId\], references: \[id\])
+ children Category\[\] @relation("CategoryTree")
+ products Product\[\]
+}
+
+model Wishlist {
+ id String @id @default(cuid())
+
+userId String
+ user User @relation(fields: \[userId\], references: \[id\], onDelete: Cascade)
+
+variantId String
+ variant ProductVariant @relation(fields: \[variantId\], references: \[id\], onDelete: Cascade)
+
+createdAt DateTime @default(now())
+
+@@unique(\[userId, variantId\])
+ @@index(\[userId\])
+}
+
+enum UserRole {
+ CUSTOMER
+ VENDOR
+ ADMIN
+}
+
+enum VendorStatus {
+ PENDING
+ APPROVED
+ SUSPENDED
+}
+
+enum ProductStatus {
+ DRAFT
+ ACTIVE
+ OUT_OF_STOCK
+ DISCONTINUED
+}
+
+enum OrderStatus {
+ PENDING
+ CONFIRMED
+ PROCESSING
+ SHIPPED
+ DELIVERED
+ CANCELLED
+}
+
+enum OrderItemStatus {
+ PENDING
+ CONFIRMED
+ SHIPPED
+ DELIVERED
+ CANCELLED
+}
+
+enum PaymentStatus {
+ PENDING
+ PAID
+ FAILED
+ REFUNDED
+}
+```
+
+**Complex Features Implementation:**
+
+**Cart Management:**
+
+```tsx
+// server/controllers/cartController.ts
+export const cartController \= {
+ async getCart(c: Context) {
+ const user \= c.get('user')
+
+    const cart \= await prisma.cartItem.findMany({
+      where: { userId: user.id },
+      include: {
+        variant: {
+          include: {
+            product: {
+              include: {
+                vendor: {
+                  select: {
+                    id: true,
+                    businessName: true,
+                  },
+                },
+                images: {
+                  take: 1,
+                },
+              },
+            },
+          },
+        },
+      },
+    })
+
+    const total \= cart.reduce((sum, item) \=\> {
+      return sum \+ (Number(item.variant.price) \* item.quantity)
+    }, 0\)
+
+    return c.json({
+      items: cart,
+      total,
+      count: cart.reduce((sum, item) \=\> sum \+ item.quantity, 0),
+    })
+
+},
+
+async addToCart(c: Context) {
+ const user \= c.get('user')
+ const { variantId, quantity \= 1 } \= await c.req.json()
+
+    // Check stock
+    const variant \= await prisma.productVariant.findUnique({
+      where: { id: variantId },
+    })
+
+    if (\!variant || variant.stock \< quantity) {
+      return c.json({ error: 'Insufficient stock' }, 400\)
+    }
+
+    // Add or update cart item
+    const cartItem \= await prisma.cartItem.upsert({
+      where: {
+        userId\_variantId: {
+          userId: user.id,
+          variantId,
+        },
+      },
+      update: {
+        quantity: { increment: quantity },
+      },
+      create: {
+        userId: user.id,
+        variantId,
+        quantity,
+      },
+    })
+
+    return c.json({ data: cartItem })
+
+},
+}
+```
+
+**Order Processing:**
+
+```tsx
+// server/controllers/orderController.ts
+export const orderController \= {
+ async createOrder(c: Context) {
+ const user \= c.get('user')
+ const { shippingAddressId, paymentMethod } \= await c.req.json()
+
+    // Get cart items
+    const cartItems \= await prisma.cartItem.findMany({
+      where: { userId: user.id },
+      include: {
+        variant: {
+          include: {
+            product: {
+              include: {
+                vendor: true,
+              },
+            },
+          },
+        },
+      },
+    })
+
+    if (cartItems.length \=== 0\) {
+      return c.json({ error: 'Cart is empty' }, 400\)
+    }
+
+    // Calculate totals
+    const subtotal \= cartItems.reduce((sum, item) \=\> {
+      return sum \+ (Number(item.variant.price) \* item.quantity)
+    }, 0\)
+
+    const tax \= subtotal \* 0.1 // 10% tax
+    const shipping \= 10 // Flat shipping
+    const total \= subtotal \+ tax \+ shipping
+
+    // Create order in transaction
+    const order \= await prisma.$transaction(async (tx) \=\> {
+      // Create order
+      const order \= await tx.order.create({
+        data: {
+          orderNumber: \`ORD-${Date.now()}\`,
+          userId: user.id,
+          subtotal,
+          tax,
+          shipping,
+          total,
+          shippingAddressId,
+          paymentMethod,
+          items: {
+            create: cartItems.map(item \=\> ({
+              variantId: item.variantId,
+              vendorId: item.variant.product.vendorId,
+              quantity: item.quantity,
+              price: item.variant.price,
+            })),
+          },
+        },
+        include: {
+          items: {
+            include: {
+              variant: {
+                include: {
+                  product: true,
+                },
+              },
+            },
+          },
+          shippingAddress: true,
+        },
+      })
+
+      // Update stock
+      for (const item of cartItems) {
+        await tx.productVariant.update({
+          where: { id: item.variantId },
+          data: {
+            stock: { decrement: item.quantity },
+          },
+        })
+      }
+
+      // Clear cart
+      await tx.cartItem.deleteMany({
+        where: { userId: user.id },
+      })
+
+      return order
+    })
+
+    // Send confirmation email
+    // await sendOrderConfirmation(order)
+
+    return c.json({ data: order }, 201\)
+
+},
+}
+```
+
+**Vendor Analytics:**
+
+```tsx
+// server/controllers/vendorController.ts
+export const vendorController \= {
+ async getAnalytics(c: Context) {
+ const user \= c.get('user')
+
+    const vendor \= await prisma.vendor.findUnique({
+      where: { userId: user.id },
+    })
+
+    if (\!vendor) {
+      return c.json({ error: 'Vendor not found' }, 404\)
+    }
+
+    const \[
+      totalProducts,
+      totalOrders,
+      revenue,
+      recentOrders,
+    \] \= await Promise.all(\[
+      prisma.product.count({
+        where: { vendorId: vendor.id },
+      }),
+      prisma.orderItem.count({
+        where: { vendorId: vendor.id },
+      }),
+      prisma.orderItem.aggregate({
+        where: {
+          vendorId: vendor.id,
+          status: 'DELIVERED',
+        },
+        \_sum: {
+          price: true,
+        },
+      }),
+      prisma.orderItem.findMany({
+        where: { vendorId: vendor.id },
+        take: 10,
+        orderBy: { id: 'desc' },
+        include: {
+          order: {
+            include: {
+              user: {
+                select: {
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+          },
+          variant: {
+            include: {
+              product: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    \])
+
+    return c.json({
+      totalProducts,
+      totalOrders,
+      revenue: revenue.\_sum.price || 0,
+      recentOrders,
+    })
+
+},
+}
+```
+
+**File Structure:**
+
+Backend:  
+server/  
+├── index.ts  
+├── routes/  
+│ ├── auth.ts  
+│ ├── products.ts  
+│ ├── vendors.ts  
+│ ├── cart.ts  
+│ ├── orders.ts  
+│ ├── reviews.ts  
+│ ├── admin.ts  
+│ └── upload.ts  
+├── controllers/  
+├── middleware/  
+└── lib/
+
+Frontend:  
+app/  
+├── (auth)/  
+│ ├── login/  
+│ ├── register/  
+│ └── vendor/  
+│ └── register/  
+├── (main)/  
+│ ├── products/  
+│ │ ├── page.tsx  
+│ │ └── \[slug\]/  
+│ ├── cart/  
+│ ├── checkout/  
+│ ├── orders/  
+│ │ └── \[id\]/  
+│ └── wishlist/  
+├── (vendor)/  
+│ ├── dashboard/  
+│ ├── products/  
+│ ├── orders/  
+│ └── analytics/  
+└── (admin)/  
+ ├── dashboard/  
+ ├── vendors/  
+ └── users/
+
+**Skills Applied (Everything):**
+
+- Full NHPC stack mastery
+- Complex database design
+- Multi-user system
+- E-commerce logic
+- Payment integration ready
+- File uploads
+- Search and filtering
+- Analytics and reporting
+- Role-based access control
+- Transaction management
+
+**Deliverable:** Production-ready marketplace platform
+
+---
+
+## **DEPLOYMENT**
+
+### **Deployment Guide**
+
+**Backend (Hono) Deployment Options:**
+
+1. **Cloudflare Workers:**
+
+```tsx
+npm install wrangler \-D
+npx wrangler init
+npx wrangler deploy
+```
+
+2. **Vercel Edge:**
+
+```tsx
+// api/index.ts
+import app from './server'
+
+export default app
+export const config \= {
+  runtime: 'edge',
+}
+```
+
+3. **Node.js (Traditional):**
+
+- Deploy to Railway, Render, or Fly.io
+- Use PM2 for process management
+
+**Frontend (Next.js) Deployment:**
+
+**Vercel (Recommended):**
+
+```tsx
+vercel;
+```
+
+**Database:**
+
+- Neon (Serverless PostgreSQL)
+- Supabase
+- PlanetScale
+- Railway
+
+---
+
+## **Course Summary**
+
+### **What You've Built:**
+
+1. **Recipe Platform** (Frontend)
+2. **Blog API** (Backend)
+3. **E-commerce API** (Backend)
+4. **Job Board** (Full-stack)
+5. **Social Media** (Full-stack)
+6. **Marketplace** (Full-stack Production)
+
+### **Technologies Mastered:**
+
+✅ **Next.js 15** \- Modern React framework  
+ ✅ **Hono** \- Ultra-fast API framework  
+ ✅ **PostgreSQL** \- Relational database  
+ ✅ **Prisma ORM** \- Type-safe database access  
+ ✅ **TypeScript** \- End-to-end type safety  
+ ✅ **Cloudflare/Vercel** \- Edge deployment  
+ ✅ **Authentication** \- JWT, sessions  
+ ✅ **File Uploads** \- Cloud storage  
+ ✅ **Real-time** \- Polling, notifications  
+ ✅ **E-commerce** \- Cart, orders, payments
+
+### **Core Competencies:**
+
+- ✅ Build modern full-stack applications
+- ✅ Design RESTful APIs
+- ✅ Implement authentication systems
+- ✅ Handle file uploads
+- ✅ Create complex database schemas
+- ✅ Deploy to production
+- ✅ Follow best practices
+- ✅ Write type-safe code
+
+---
+
+## **Why NHPC \> MERN**
+
+| Feature        | MERN        | NHPC                  |
+| -------------- | ----------- | --------------------- |
+| Type Safety    | ❌          | ✅ Full TypeScript    |
+| Performance    | ⚡ Good     | ⚡⚡ Excellent (Edge) |
+| DX             | 👍 Good     | 👍👍 Excellent        |
+| Database       | MongoDB     | PostgreSQL (+ Prisma) |
+| Backend        | Express     | Hono (faster)         |
+| Deployment     | Traditional | Edge-first            |
+| Learning Curve | Moderate    | Moderate              |
+| Modern         | Established | Cutting-edge          |
+
+---
+
+**You're now a NHPC Stack developer\! Ready to build modern, scalable, type-safe applications\! 🚀**
+
+---
+
+_Course Created: November 2025_  
+ _Start Date: December 2, 2025_  
+ _End Date: December 30, 2025_  
+ _Stack: Next.js \+ Hono \+ Prisma \+ Cloudflare (NHPC)_

@@ -1,0 +1,637 @@
+---
+title: Complete Guide to Setting Up Prisma 7 ORM with Next.js 16 - Step-by-Step Tutorial
+description: Master Prisma 7 ORM integration with Next.js 16 in this comprehensive guide. Learn database setup with Prisma Postgres, schema design, migrations with db push, seeding, server actions, and Vercel deployment. Includes solutions to common issues, proper TypeScript configuration, and production-ready patterns. Build a complete CRUD application with categories using modern Next.js App Router, Server Components, and Prisma Client.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwfrP6eChROx6ybt2CcUd1VSITq573GszPLuZkK
+category: tutorial
+createdAt: 2025-11-26
+updatedAt: 2025-11-26
+---
+
+# Prisma 7 ORM + Next.js 16 Setup Guide
+
+## Prerequisites
+
+- Node.js 18+
+- A Vercel account (for deployment)
+- Understanding: Prisma Postgres provides 5 free databases, Neon provides 10 free projects
+
+---
+
+## Step 1: Create Next.js Project
+
+```bash
+npx create-next-app@latest nextjs-prisma
+```
+
+**Select these options:**
+
+- ✅ TypeScript
+- ✅ ESLint
+- ✅ Tailwind CSS
+- ❌ No src directory
+- ✅ App Router
+- ✅ Turbopack
+- ❌ No customized import alias
+
+Navigate to project:
+
+```bash
+cd nextjs-prisma
+```
+
+---
+
+## Step 2: Install Prisma Dependencies
+
+```bash
+npm install prisma tsx @types/pg --save-dev
+npm install @prisma/client @prisma/adapter-pg dotenv pg
+```
+
+---
+
+## Step 3: Initialize Prisma
+
+```bash
+npx prisma init --db --output ../app/generated/prisma
+```
+
+**What this creates:**
+
+- `prisma/` directory with `schema.prisma`
+- `prisma.config.ts` configuration file
+- Prisma Postgres database instance
+- `.env` file with `DATABASE_URL`
+- Output directory at `app/generated/prisma`
+
+---
+
+## Step 4: Define Database Schema
+
+Update `prisma/schema.prisma`:
+
+```prisma
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+```
+
+---
+
+## Step 5: Configure Prisma with Environment Variables
+
+Add dotenv import to `prisma.config.ts`:
+
+```typescript
+import "dotenv/config";
+import { defineConfig, env } from "prisma/config";
+
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  migrations: {
+    path: "prisma/migrations",
+  },
+  datasource: {
+    url: env("DATABASE_URL"),
+  },
+});
+```
+
+---
+
+## Step 6: Push Schema to Database
+
+⚠️ **IMPORTANT FIX:** The standard migration command doesn't work properly.
+
+**DON'T USE:**
+
+```bash
+npx prisma migrate dev --name init  # ❌ This doesn't work
+```
+
+**USE INSTEAD:**
+
+```bash
+npx prisma db push  # ✅ This works
+```
+
+Then generate Prisma Client:
+
+```bash
+npx prisma generate
+```
+
+---
+
+## Step 7: Create Seed File
+
+Create `prisma/seed.ts`:
+
+```typescript
+import db from "@/lib/prisma";
+import { Prisma } from "../app/generated/prisma/client";
+
+const categoriesData: Prisma.CategoryCreateInput[] = [
+  {
+    title: "Electronics",
+    slug: "electronics",
+  },
+  {
+    title: "Fashion",
+    slug: "fashion",
+  },
+  {
+    title: "Home & Garden",
+    slug: "home-garden",
+  },
+  {
+    title: "Sports",
+    slug: "sports",
+  },
+];
+
+export async function main() {
+  for (const cat of categoriesData) {
+    await db.category.create({ data: cat });
+  }
+}
+
+main();
+```
+
+---
+
+## Step 8: Configure Seed Script
+
+Update `prisma.config.ts` to include seed configuration:
+
+```typescript
+import "dotenv/config";
+import { defineConfig, env } from "prisma/config";
+
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  migrations: {
+    path: "prisma/migrations",
+    seed: `tsx prisma/seed.ts`,
+  },
+  datasource: {
+    url: env("DATABASE_URL"),
+  },
+});
+```
+
+---
+
+## Step 9: Handle Turbopack Issue (Next.js 15.2.0/15.2.1 Only)
+
+⚠️ **If using Next.js v15.2.0 or v15.2.1**, remove Turbopack from dev script:
+
+**Update `package.json`:**
+
+```json
+{
+  "scripts": {
+    "dev": "next dev", // Remove --turbopack
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  }
+}
+```
+
+---
+
+## Step 10: Seed Database
+
+```bash
+npx prisma db seed
+```
+
+View your data:
+
+```bash
+npx prisma studio
+```
+
+---
+
+## Step 11: Set Up Prisma Client
+
+Create `lib/prisma.ts`:
+
+```bash
+mkdir -p lib && touch lib/prisma.ts
+```
+
+Add this code:
+
+```typescript
+import { PrismaClient } from "../app/generated/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+
+const globalForPrisma = global as unknown as {
+  prisma: PrismaClient;
+};
+
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL,
+});
+
+const db = globalForPrisma.prisma || new PrismaClient({ adapter });
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
+
+export default db;
+```
+
+**Note:** We export as `db` for cleaner imports throughout the application.
+
+---
+
+## Step 12: Create Home Page (List Categories)
+
+Update `app/page.tsx`:
+
+```typescript
+import db from '@/lib/prisma'
+import Link from 'next/link'
+
+export default async function Home() {
+  const categories = await db.category.findMany({
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+
+  return (
+    <div className="bg-blue-50 p-8 min-h-screen">
+      <div className="flex items-center py-6 justify-between">
+        <h2 className="scroll-m-20 text-3xl font-semibold tracking-tight">
+          Categories
+        </h2>
+      </div>
+      <div className="bg-white p-8 rounded grid lg:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-4">
+        {categories.map((category) => (
+          <Link
+            href={`/${category.slug}`}
+            key={category.id}
+            className="p-4 border rounded hover:bg-gray-50 transition-colors"
+          >
+            {category.title}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+## Step 13: Create Category Controller
+
+Create `controllers/category.ts`:
+
+```bash
+mkdir -p controllers && touch controllers/category.ts
+```
+
+Add this code:
+
+```typescript
+import db from "@/lib/prisma";
+
+export async function getCategories() {
+  try {
+    const categories = await db.category.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+    return categories;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+}
+
+export async function getCategoryBySlug(slug: string) {
+  try {
+    const category = await db.category.findUnique({
+      where: { slug },
+    });
+    return category;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+}
+```
+
+---
+
+## Step 14: Create Category Server Actions
+
+Create `controllers/actions/category.ts`:
+
+```bash
+mkdir -p controllers/actions && touch controllers/actions/category.ts
+```
+
+Add this code:
+
+```typescript
+"use server";
+
+import db from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
+
+export type CategoryFormData = {
+  name: string;
+};
+
+export async function createCategory(data: CategoryFormData) {
+  try {
+    const slug = data.name.toLowerCase().trim().split(" ").join("-");
+
+    const newCategory = {
+      title: data.name,
+      slug,
+    };
+
+    await db.category.create({
+      data: newCategory,
+    });
+
+    revalidatePath("/");
+
+    return {
+      success: true,
+      message: "Category Created successfully",
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      success: false,
+      message: "Failed to Create Category",
+    };
+  }
+}
+
+export async function updateCategory(id: string, data: CategoryFormData) {
+  try {
+    const slug = data.name.toLowerCase().trim().split(" ").join("-");
+
+    await db.category.update({
+      where: { id },
+      data: {
+        title: data.name,
+        slug,
+      },
+    });
+
+    revalidatePath("/");
+
+    return {
+      success: true,
+      message: "Category Updated successfully",
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      success: false,
+      message: "Failed to Update Category",
+    };
+  }
+}
+
+export async function deleteCategory(id: string) {
+  try {
+    await db.category.delete({
+      where: { id },
+    });
+
+    revalidatePath("/");
+
+    return {
+      success: true,
+      message: "Category Deleted successfully",
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      success: false,
+      message: "Failed to Delete Category",
+    };
+  }
+}
+```
+
+---
+
+## Step 15: Prepare for Deployment
+
+Update `package.json` with postinstall script:
+
+```json
+{
+  "name": "nextjs-prisma",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "postinstall": "prisma generate",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^6.2.1",
+    "@prisma/client": "^6.2.1",
+    "next": "15.1.4",
+    "pg": "^8.13.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@types/node": "^20",
+    "@types/pg": "^8",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.1.4",
+    "postcss": "^8",
+    "prisma": "^6.2.1",
+    "tailwindcss": "^3.4.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5"
+  }
+}
+```
+
+---
+
+## Step 16: Deploy to Vercel
+
+### Method 1: Via CLI
+
+Install Vercel CLI:
+
+```bash
+npm install -g vercel
+```
+
+Login and deploy:
+
+```bash
+vercel login
+vercel
+```
+
+### Method 2: Via GitHub (Recommended)
+
+1. Push code to GitHub:
+
+```bash
+git init
+git add .
+git commit -m "Initial commit with Prisma 7 and Next.js 16"
+git remote add origin <your-repo-url>
+git push -u origin main
+```
+
+2. Connect to Vercel:
+
+   - Go to [vercel.com](https://vercel.com)
+   - Click "Import Project"
+   - Select your GitHub repository
+   - Vercel will automatically detect Next.js and deploy
+
+3. Add environment variables in Vercel:
+   - Go to Project Settings → Environment Variables
+   - Add `DATABASE_URL` with your Prisma Postgres connection string
+
+---
+
+## Common Issues & Solutions
+
+### Issue 1: Migration Command Not Working
+
+**Problem:** `npx prisma migrate dev --name init` fails
+
+**Solution:** Use `npx prisma db push` instead
+
+### Issue 2: Turbopack Conflicts (Next.js 15.2.0/15.2.1)
+
+**Problem:** Development server issues with Turbopack
+
+**Solution:** Remove `--turbopack` flag from dev script
+
+### Issue 3: Database Limitations
+
+**Prisma Postgres:** 5 free databases
+**Neon:** 10 free projects
+
+Choose based on your needs.
+
+---
+
+## Quick Reference Commands
+
+```bash
+# Initialize Prisma
+npx prisma init --db --output ../app/generated/prisma
+
+# Push schema (instead of migrate)
+npx prisma db push
+
+# Generate client
+npx prisma generate
+
+# Seed database
+npx prisma db seed
+
+# Open Prisma Studio
+npx prisma studio
+
+# Deploy to Vercel
+vercel
+```
+
+---
+
+## Project Structure
+
+```
+nextjs-prisma/
+├── app/
+│   ├── generated/
+│   │   └── prisma/          # Generated Prisma Client
+│   ├── globals.css          # Global styles
+│   ├── layout.tsx           # Root layout
+│   └── page.tsx             # Home page (categories list)
+├── components/
+│   ├── ui/                  # UI components (shadcn/ui)
+│   └── category-form.tsx    # Category form component
+├── controllers/
+│   ├── actions/
+│   │   └── category.ts      # Category server actions
+│   └── category.ts          # Category controller
+├── lib/
+│   ├── prisma.ts            # Prisma Client (exported as 'db')
+│   └── utils.ts             # Utility functions
+├── prisma/
+│   ├── schema.prisma        # Database schema
+│   └── seed.ts              # Seed data
+├── prisma.config.ts         # Prisma configuration
+├── .env                     # Environment variables
+└── package.json
+```
+
+---
+
+## Next Steps
+
+- Add more models (Products, Users, Orders, etc.)
+- Implement edit/delete functionality for categories
+- Add authentication (NextAuth.js, Clerk, etc.)
+- Create category detail pages with related content
+- Implement search and filtering
+- Add pagination for large datasets
+- Improve UI/UX with better styling
+- Add form validation with Zod
+- Implement image uploads for categories
+- Add a dashboard with analytics
+
+---
+
+## Resources
+
+- [Prisma Documentation](https://www.prisma.io/docs)
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Vercel Deployment Guide](https://vercel.com/docs)
+- Video Tutorial: https://youtu.be/j6loiKjgo0M
+
+---
+
+**Last Updated:** November 2025
+**Prisma Version:** 7.x
+**Next.js Version:** 16.x

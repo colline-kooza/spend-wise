@@ -1,0 +1,1550 @@
+---
+title: Building an AI-Powered E-commerce Chatbot:From Concept to Production
+description: Learn how to build a conversational shopping assistant using Vercel AI SDK and Claude. This comprehensive guide covers the complete implementation of an AI chatbot that handles user registration, product discovery, checkout, and payment processing - all through natural conversation. Includes database schema, API implementation, React components, and deployment strategies.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwf0UikVStvnF3cx4uPCTU9aqg2f0oY8klybGQI
+category: tutorial
+createdAt: 2025-12-10
+updatedAt: 2025-12-10
+---
+
+# AI-Powered E-commerce Chatbot - Complete Implementation Guide
+
+## 📋 App Overview
+
+**Name**: ChatShop Assistant
+
+**Concept**: A conversational AI shopping assistant built with Vercel AI SDK's **Agent** architecture that guides customers through the entire purchase journey - from product discovery to payment - using natural language chat. The agent autonomously handles multi-step workflows, making intelligent decisions about tool usage while maintaining conversation context.
+
+**Key Value Propositions**:
+
+- **Intelligent Agent Workflow**: Uses AI SDK's Agent class for autonomous multi-step reasoning
+- **Dynamic Tool Orchestration**: Agent decides which tools to use and when, without hardcoded flows
+- **Context-Aware Shopping**: Maintains conversation state across the entire purchase journey
+- **Structured Outputs**: Type-safe responses with guaranteed data schemas
+- **Production-Ready**: Built-in loop control, error handling, and token management
+
+---
+
+## 🏗️ Technical Architecture
+
+### **Stack Recommendation**
+
+**Frontend**:
+
+- **Next.js 15+** (App Router) - for the web interface
+- **React 19** - UI components
+- **Tailwind CSS** - styling
+- **Vercel AI SDK (`ai` package)** - Agent architecture and `useChat` hook
+- **TypeScript** - end-to-end type safety
+
+**Backend**:
+
+- **Next.js API Routes** - backend logic
+- **Vercel AI SDK Agent Class** - autonomous agent orchestration
+- **Anthropic Claude Sonnet 4.5** (or OpenAI GPT-4) - the AI brain
+- **PostgreSQL** - database (users, products, orders, sessions)
+- **Prisma** - ORM with full TypeScript support
+- **Stripe** - payment processing
+- **Resend** - transactional emails
+
+**Hosting**:
+
+- **Vercel** - deployment (frontend + API routes)
+- **Neon** - serverless PostgreSQL
+
+---
+
+## 🗄️ Database Schema
+
+```prisma
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User
+model User {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  phone     String
+  createdAt DateTime  @default(now())
+  orders    Order[]
+  sessions  Session[]
+}
+
+// Product
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  description String
+  price       Decimal     @db.Decimal(10, 2)
+  category    String
+  imageUrl    String
+  stock       Int
+  tags        String[]    // For better search matching
+  createdAt   DateTime    @default(now())
+  orderItems  OrderItem[]
+
+  @@index([category])
+  @@index([name])
+}
+
+// Session (tracks agent conversation state)
+model Session {
+  id               String   @id @default(cuid())
+  userId           String?
+  user             User?    @relation(fields: [userId], references: [id])
+  stage            String   @default("registration") // registration, product_discovery, selection, checkout, payment, completed
+  selectedProducts Json     @default("[]") // Array of {productId, quantity}
+  location         String?
+  totalAmount      Decimal? @db.Decimal(10, 2)
+  conversationHistory Json  @default("[]") // Store messages for context
+  metadata         Json     @default("{}") // Flexible field for additional data
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// Order
+model Order {
+  id          String      @id @default(cuid())
+  orderNumber String      @unique @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  totalAmount Decimal     @db.Decimal(10, 2)
+  location    String
+  status      String      @default("pending") // pending, paid, processing, shipped, delivered, cancelled
+  paymentId   String?     // Stripe/Paystack payment ID
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  items       OrderItem[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+// OrderItem
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int     @default(1)
+  price     Decimal @db.Decimal(10, 2) // Price at time of purchase
+
+  @@index([orderId])
+  @@index([productId])
+}
+```
+
+---
+
+## 🤖 Agent Architecture with AI SDK
+
+### **Why Use the Agent Class?**
+
+Instead of manually managing conversation state and tool calls, the AI SDK's **Agent** class provides:
+
+1. **Autonomous Decision-Making**: Agent decides which tools to use and when
+2. **Multi-Step Reasoning**: Automatically handles tool call loops
+3. **Type Safety**: Full TypeScript inference for tools and outputs
+4. **Built-in Loop Control**: Configure stopping conditions and step limits
+5. **Reusability**: Define once, use across multiple routes
+
+---
+
+## 🔧 Implementation - Step by Step
+
+### **Phase 1: Project Setup**
+
+**Step 1.1: Initialize Next.js Project**
+
+```bash
+npx create-next-app@latest chatshop-assistant --typescript --tailwind --app
+cd chatshop-assistant
+
+# Install AI SDK and dependencies
+npm install ai @ai-sdk/anthropic @ai-sdk/openai zod
+npm install prisma @prisma/client stripe resend
+npm install -D @types/node tsx
+```
+
+**Step 1.2: Setup Database**
+
+```bash
+# Initialize Prisma
+npx prisma init
+
+# Copy the schema from above into prisma/schema.prisma
+
+# Create and apply migration
+npx prisma migrate dev --name init
+
+# Generate Prisma Client
+npx prisma generate
+```
+
+**Step 1.3: Environment Variables**
+
+```env
+# .env.local
+
+# Database
+DATABASE_URL="postgresql://user:password@localhost:5432/chatshop"
+
+# AI Provider (choose one)
+ANTHROPIC_API_KEY="sk-ant-..."
+# OR
+OPENAI_API_KEY="sk-..."
+
+# Payment
+STRIPE_SECRET_KEY="sk_test_..."
+STRIPE_PUBLISHABLE_KEY="pk_test_..."
+
+# Email
+RESEND_API_KEY="re_..."
+
+# App
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+```
+
+**Step 1.4: Create Prisma Client Singleton**
+
+```typescript
+// lib/prisma.ts
+
+import { PrismaClient } from "@prisma/client";
+
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+export const prisma = globalForPrisma.prisma ?? new PrismaClient();
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+```
+
+---
+
+### **Phase 2: Define the Shopping Agent**
+
+**Step 2.1: Create Agent Tools**
+
+```typescript
+// lib/agent/tools.ts
+
+import { tool } from "ai";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import Stripe from "stripe";
+import { Resend } from "resend";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2024-11-20.acacia",
+});
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+export const registerUserTool = tool({
+  description:
+    "Register a new user with their name, email, and phone number. Call this first when a user provides their registration details.",
+  parameters: z.object({
+    name: z.string().describe("Full name of the user"),
+    email: z.string().email().describe("Email address"),
+    phone: z.string().describe("Phone number"),
+    sessionId: z.string().describe("Current session ID"),
+  }),
+  execute: async ({ name, email, phone, sessionId }) => {
+    try {
+      // Check if user exists
+      let user = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (!user) {
+        user = await prisma.user.create({
+          data: { name, email, phone },
+        });
+      }
+
+      // Update session with user
+      await prisma.session.update({
+        where: { id: sessionId },
+        data: {
+          userId: user.id,
+          stage: "product_discovery",
+        },
+      });
+
+      return {
+        success: true,
+        userId: user.id,
+        message: `Welcome ${name}! You're all set. What product are you looking for today?`,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: "Failed to register user. Please try again.",
+      };
+    }
+  },
+});
+
+export const searchProductsTool = tool({
+  description:
+    "Search for products based on user query. Always returns exactly 4 products. Use this when user describes what they want to buy.",
+  parameters: z.object({
+    query: z.string().describe("Search query from user description"),
+    category: z.string().optional().describe("Optional category filter"),
+  }),
+  execute: async ({ query, category }) => {
+    try {
+      const products = await prisma.product.findMany({
+        where: {
+          AND: [
+            {
+              OR: [
+                { name: { contains: query, mode: "insensitive" } },
+                { description: { contains: query, mode: "insensitive" } },
+                { tags: { hasSome: [query.toLowerCase()] } },
+              ],
+            },
+            category ? { category } : {},
+          ],
+          stock: { gt: 0 }, // Only in-stock products
+        },
+        take: 4,
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (products.length === 0) {
+        return {
+          success: false,
+          message:
+            "I couldn't find any products matching your search. Could you describe what you're looking for differently?",
+        };
+      }
+
+      return {
+        success: true,
+        products: products.map((p) => ({
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          price: p.price.toString(),
+          imageUrl: p.imageUrl,
+          stock: p.stock,
+        })),
+        message: `I found ${products.length} great options for you!`,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: "Failed to search products. Please try again.",
+      };
+    }
+  },
+});
+
+export const saveProductSelectionTool = tool({
+  description:
+    "Save the products user has selected (1-2 products max). Call this after user confirms their selection.",
+  parameters: z.object({
+    sessionId: z.string().describe("Current session ID"),
+    productIds: z
+      .array(z.string())
+      .min(1)
+      .max(2)
+      .describe("Array of selected product IDs"),
+  }),
+  execute: async ({ sessionId, productIds }) => {
+    try {
+      // Get products with current prices
+      const products = await prisma.product.findMany({
+        where: { id: { in: productIds } },
+      });
+
+      if (products.length !== productIds.length) {
+        return {
+          success: false,
+          error: "One or more selected products are not available.",
+        };
+      }
+
+      const total = products.reduce((sum, p) => sum + Number(p.price), 0);
+
+      // Update session
+      await prisma.session.update({
+        where: { id: sessionId },
+        data: {
+          selectedProducts: productIds.map((id) => ({
+            productId: id,
+            quantity: 1,
+          })),
+          totalAmount: total,
+          stage: "checkout",
+        },
+      });
+
+      return {
+        success: true,
+        products: products.map((p) => ({
+          name: p.name,
+          price: p.price.toString(),
+        })),
+        total: total.toFixed(2),
+        message: "Great choice! Where would you like these delivered?",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: "Failed to save selection. Please try again.",
+      };
+    }
+  },
+});
+
+export const saveDeliveryLocationTool = tool({
+  description: "Save the delivery address provided by the user.",
+  parameters: z.object({
+    sessionId: z.string().describe("Current session ID"),
+    location: z.string().describe("Full delivery address"),
+  }),
+  execute: async ({ sessionId, location }) => {
+    try {
+      const session = await prisma.session.update({
+        where: { id: sessionId },
+        data: {
+          location,
+          stage: "payment",
+        },
+        include: {
+          user: true,
+        },
+      });
+
+      return {
+        success: true,
+        location,
+        totalAmount: session.totalAmount?.toString(),
+        userName: session.user?.name,
+        message: "Perfect! Ready to confirm your order?",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: "Failed to save location. Please try again.",
+      };
+    }
+  },
+});
+
+export const createPaymentIntentTool = tool({
+  description:
+    "Create a payment intent for the order. Call this when user confirms they want to proceed with payment.",
+  parameters: z.object({
+    sessionId: z.string().describe("Current session ID"),
+  }),
+  execute: async ({ sessionId }) => {
+    try {
+      const session = await prisma.session.findUnique({
+        where: { id: sessionId },
+      });
+
+      if (!session?.totalAmount) {
+        return {
+          success: false,
+          error: "No order total found. Please start over.",
+        };
+      }
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(Number(session.totalAmount) * 100), // Convert to cents
+        currency: "usd",
+        metadata: {
+          sessionId,
+          userId: session.userId!,
+        },
+        automatic_payment_methods: { enabled: true },
+      });
+
+      return {
+        success: true,
+        clientSecret: paymentIntent.client_secret,
+        amount: session.totalAmount.toString(),
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: "Failed to create payment. Please try again.",
+      };
+    }
+  },
+});
+
+export const createOrderTool = tool({
+  description:
+    "Create the final order after successful payment. This should be called after payment is confirmed.",
+  parameters: z.object({
+    sessionId: z.string().describe("Current session ID"),
+    paymentId: z.string().describe("Stripe payment intent ID"),
+  }),
+  execute: async ({ sessionId, paymentId }) => {
+    try {
+      const session = await prisma.session.findUnique({
+        where: { id: sessionId },
+        include: { user: true },
+      });
+
+      if (!session?.userId || !session.location) {
+        return {
+          success: false,
+          error: "Missing order information. Please start over.",
+        };
+      }
+
+      const selectedProducts = session.selectedProducts as Array<{
+        productId: string;
+        quantity: number;
+      }>;
+
+      const products = await prisma.product.findMany({
+        where: { id: { in: selectedProducts.map((p) => p.productId) } },
+      });
+
+      // Create order with items
+      const order = await prisma.order.create({
+        data: {
+          userId: session.userId,
+          totalAmount: session.totalAmount!,
+          location: session.location,
+          status: "paid",
+          paymentId,
+          items: {
+            create: products.map((p) => ({
+              productId: p.id,
+              quantity: 1,
+              price: p.price,
+            })),
+          },
+        },
+        include: {
+          items: {
+            include: { product: true },
+          },
+        },
+      });
+
+      // Send confirmation email
+      await resend.emails.send({
+        from: "ChatShop <orders@chatshop.example.com>",
+        to: session.user!.email,
+        subject: `Order Confirmation #${order.orderNumber}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #2563eb;">Thank you for your order!</h1>
+            <p>Hi ${session.user!.name},</p>
+            <p>Your order has been confirmed and is being processed.</p>
+            
+            <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h2 style="margin-top: 0;">Order Details</h2>
+              <p><strong>Order Number:</strong> ${order.orderNumber}</p>
+              <p><strong>Total:</strong> $${order.totalAmount}</p>
+              <p><strong>Delivery Address:</strong><br>${order.location}</p>
+            </div>
+
+            <h3>Items Ordered:</h3>
+            <ul>
+              ${order.items
+                .map(
+                  (item) => `
+                <li>
+                  <strong>${item.product.name}</strong><br>
+                  Quantity: ${item.quantity} × $${item.price}
+                </li>
+              `
+                )
+                .join("")}
+            </ul>
+
+            <p>We'll send you another email when your order ships.</p>
+            <p>Thanks for shopping with ChatShop!</p>
+          </div>
+        `,
+      });
+
+      // Mark session as completed
+      await prisma.session.update({
+        where: { id: sessionId },
+        data: { stage: "completed" },
+      });
+
+      return {
+        success: true,
+        order: {
+          orderNumber: order.orderNumber,
+          total: order.totalAmount.toString(),
+          items: order.items.map((item) => ({
+            name: item.product.name,
+            price: item.price.toString(),
+            quantity: item.quantity,
+          })),
+        },
+        message: `🎉 Order ${order.orderNumber} created successfully! Check your email for confirmation.`,
+      };
+    } catch (error) {
+      console.error("Order creation error:", error);
+      return {
+        success: false,
+        error: "Failed to create order. Please contact support.",
+      };
+    }
+  },
+});
+```
+
+**Step 2.2: Create the Shopping Agent**
+
+```typescript
+// lib/agent/shopping-agent.ts
+
+import { Experimental_Agent as Agent, stepCountIs } from 'ai';
+import { anthropic } from '@ai-sdk/anthropic';
+import {
+  registerUserTool,
+  searchProductsTool,
+  saveProductSelectionTool,
+  saveDeliveryLocationTool,
+  createPaymentIntentTool,
+  createOrderTool,
+} from './tools';
+
+export const shoppingAgent = new Agent({
+  model: anthropic('claude-sonnet-4-20250514'),
+
+  system: `You are ChatShop Assistant, a friendly and efficient AI shopping companion.
+
+Your goal is to guide customers through a complete purchase journey:
+
+1. **REGISTRATION PHASE**:
+   - Greet the user warmly
+   - Collect their name, email, and phone number
+   - Call registerUserTool once you have all three pieces of information
+
+2. **PRODUCT DISCOVERY PHASE**:
+   - Ask what they're looking for
+   - Use searchProductsTool to find 4 relevant products
+   - Present products clearly with name, description, and price
+   - Let them know they can choose 1-2 products
+
+3. **SELECTION PHASE**:
+   - Help them choose between options
+   - Once they decide, call saveProductSelectionTool
+   - Show the selected products with total price
+
+4. **CHECKOUT PHASE**:
+   - Ask for their delivery address
+   - Call saveDeliveryLocationTool
+   - Confirm the order details (items, total, address)
+
+5. **PAYMENT PHASE**:
+   - When they confirm, call createPaymentIntentTool
+   - Guide them through payment
+   - After payment succeeds, call createOrderTool
+
+6. **COMPLETION PHASE**:
+   - Share order confirmation details
+   - Thank them and mention the confirmation email
+   - Offer to start a new order if they want
+
+**Important Guidelines**:
+- Be conversational and friendly, not robotic
+- Only move forward when you have the required information
+- Always confirm before moving to the next phase
+- Present products in a clear, scannable format
+- Keep responses concise but helpful
+- If a tool call fails, explain the issue and suggest next steps
+- Never make up product details or prices
+- Always pass the sessionId to tools that require it`,
+
+  tools: {
+    registerUser: registerUserTool,
+    searchProducts: searchProductsTool,
+    saveSelection: saveProductSelectionTool,
+    saveLocation: saveDeliveryLocationTool,
+    createPayment: createPaymentIntentTool,
+    createOrder: createOrderTool,
+  },
+
+  // Allow up to 15 steps for the complete workflow
+  stopWhen: stepCountIs(15),
+
+  // Optional: Dynamic behavior based on conversation progress
+  prepareStep: async ({ stepNumber, messages }) => {
+    // After 10 steps, provide additional context
+    if (stepNumber === 10) {
+      return {
+        system: `You've been helping this customer for a while.
+        Check if they're still engaged or need assistance completing their order.
+        Be proactive in resolving any concerns.`,
+      };
+    }
+
+    // Manage context window for long conversations
+    if (messages.length > 20) {
+      return {
+        messages: [
+          messages[0], // Keep system message
+          ...messages.slice(-15), // Keep last 15 messages
+        ],
+      };
+    }
+
+    return {}; // Use default settings
+  },
+});
+
+// Export the inferred message type for use in components
+export type ShoppingAgentMessage = typeof shoppingAgent extends Agent
+  infer _Model,
+  infer _Tools,
+  infer _Options
+>
+  ? Experimental_InferAgentUIMessage<typeof shoppingAgent>
+  : never;
+```
+
+---
+
+### **Phase 3: Create API Route**
+
+**Step 3.1: Chat API with Agent**
+
+```typescript
+// app/api/chat/route.ts
+
+import { shoppingAgent } from "@/lib/agent/shopping-agent";
+import { prisma } from "@/lib/prisma";
+
+export const maxDuration = 60; // Allow up to 60 seconds for complex workflows
+
+export async function POST(request: Request) {
+  try {
+    const { messages, sessionId } = await request.json();
+
+    // Ensure session exists
+    let session = await prisma.session.findUnique({
+      where: { id: sessionId },
+    });
+
+    if (!session) {
+      // Create new session
+      session = await prisma.session.create({
+        data: {
+          id: sessionId,
+          stage: "registration",
+        },
+      });
+    }
+
+    // Use the agent's respond method for streaming responses
+    // The agent will autonomously decide which tools to call
+    return shoppingAgent.respond({
+      messages,
+    });
+  } catch (error) {
+    console.error("Chat API error:", error);
+    return new Response(
+      JSON.stringify({ error: "Failed to process message" }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+}
+```
+
+---
+
+### **Phase 4: Build Frontend**
+
+**Step 4.1: Chat Interface with Type Safety**
+
+```typescript
+// app/page.tsx
+
+'use client';
+
+import { useChat } from 'ai/react';
+import { useEffect, useState } from 'react';
+import { Send, ShoppingBag, Sparkles } from 'lucide-react';
+import type { ShoppingAgentMessage } from '@/lib/agent/shopping-agent';
+
+export default function ChatShop() {
+  const [sessionId, setSessionId] = useState<string>('');
+
+  useEffect(() => {
+    // Generate or retrieve session ID
+    const storedSession = localStorage.getItem('chatshop-session');
+    if (storedSession) {
+      setSessionId(storedSession);
+    } else {
+      const newSession = crypto.randomUUID();
+      setSessionId(newSession);
+      localStorage.setItem('chatshop-session', newSession);
+    }
+  }, []);
+
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error } =
+    useChat<ShoppingAgentMessage>({
+      api: '/api/chat',
+      body: { sessionId },
+      onError: error => {
+        console.error('Chat error:', error);
+      },
+    });
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+    handleSubmit(e);
+  };
+
+  return (
+    <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
+              <ShoppingBag className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">
+                ChatShop Assistant
+              </h1>
+              <p className="text-sm text-gray-600">
+                Your AI shopping companion
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              localStorage.removeItem('chatshop-session');
+              window.location.reload();
+            }}
+            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+          >
+            Start Over
+          </button>
+        </div>
+      </header>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+          {messages.length === 0 && (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Welcome to ChatShop!
+              </h2>
+              <p className="text-gray-600 max-w-md mx-auto">
+                I'm your personal shopping assistant. Let's get started by
+                getting to know you, then I'll help you find exactly what you
+                need.
+              </p>
+            </div>
+          )}
+
+          {messages.map(message => (
+            <div
+              key={message.id}
+              className={`flex ${
+                message.role === 'user' ? 'justify-end' : 'justify-start'
+              }`}
+            >
+              <div
+                className={`max-w-[85%] rounded-2xl px-6 py-4 ${
+                  message.role === 'user'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                    : 'bg-white text-gray-900 shadow-md border border-gray-100'
+                }`}
+              >
+                <div className="whitespace-pre-wrap break-words">
+                  {message.content}
+                </div>
+
+                {/* Tool calls visualization (optional) */}
+                {message.toolInvocations?.map((tool, idx) => (
+                  <div
+                    key={idx}
+                    className="mt-3 pt-3 border-t border-gray-200 text-sm"
+                  >
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                      <span className="font-medium">
+                        {tool.toolName === 'searchProducts' && 'Searching products...'}
+                        {tool.toolName === 'registerUser' && 'Registering user...'}
+                        {tool.toolName === 'saveSelection' && 'Saving selection...'}
+                        {tool.toolName === 'createOrder' && 'Creating order...'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="bg-white rounded-2xl px-6 py-4 shadow-md border border-gray-100">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" />
+                  <div
+                    className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                    style={{ animationDelay: '0.2s' }}
+                  />
+                  <div
+                    className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                    style={{ animationDelay: '0.4s' }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-800">
+              <p className="font-medium">Something went wrong</p>
+              <p className="text-sm mt-1">{error.message}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Input */}
+      <div className="border-t border-gray-200 bg-white">
+        <form
+          onSubmit={handleFormSubmit}
+          className="max-w-4xl mx-auto px-4 py-4"
+        >
+          <div className="flex gap-3">
+            <input
+              value={input}
+              onChange={handleInputChange}
+              placeholder="Type your message..."
+              disabled={isLoading}
+              className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-400"
+            />
+            <button
+              type="submit"
+              disabled={isLoading || !input.trim()}
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl flex items-center gap-2 font-medium"
+            >
+              <Send className="w-4 h-4" />
+              Send
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+### **Phase 5: Seed Database & Test**
+
+**Step 5.1: Seed Products**
+
+```typescript
+// prisma/seed.ts
+
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+async function main() {
+  console.log("Seeding database...");
+
+  const products = [
+    {
+      name: "Wireless Noise-Cancelling Headphones",
+      description:
+        "Premium over-ear headphones with active noise cancellation, 30-hour battery life, and superior sound quality.",
+      price: 299.99,
+      category: "Electronics",
+      imageUrl: "/products/headphones.jpg",
+      stock: 45,
+      tags: ["headphones", "audio", "wireless", "noise-cancelling"],
+    },
+    {
+      name: 'Ultra HD 4K Smart TV 55"',
+      description:
+        "55-inch 4K UHD Smart TV with HDR, built-in streaming apps, and voice control.",
+      price: 699.99,
+      category: "Electronics",
+      imageUrl: "/products/tv.jpg",
+      stock: 20,
+      tags: ["tv", "smart tv", "4k", "entertainment"],
+    },
+    {
+      name: "Professional Running Shoes",
+      description:
+        "Lightweight running shoes with advanced cushioning, breathable mesh upper, and superior grip.",
+      price: 129.99,
+      category: "Sports",
+      imageUrl: "/products/running-shoes.jpg",
+      stock: 100,
+      tags: ["shoes", "running", "sports", "fitness"],
+    },
+    {
+      name: "Stainless Steel Coffee Maker",
+      description:
+        "Programmable 12-cup coffee maker with thermal carafe, auto-brew timer, and brew strength selector.",
+      price: 89.99,
+      category: "Home",
+      imageUrl: "/products/coffee-maker.jpg",
+      stock: 35,
+      tags: ["coffee", "kitchen", "appliance"],
+    },
+    {
+      name: "Yoga Mat Premium",
+      description:
+        "Extra thick 6mm yoga mat with non-slip surface, carrying strap, and eco-friendly materials.",
+      price: 39.99,
+      category: "Sports",
+      imageUrl: "/products/yoga-mat.jpg",
+      stock: 75,
+      tags: ["yoga", "fitness", "exercise", "mat"],
+    },
+    {
+      name: "Wireless Gaming Mouse",
+      description:
+        "High-precision gaming mouse with 16000 DPI, programmable buttons, and RGB lighting.",
+      price: 79.99,
+      category: "Electronics",
+      imageUrl: "/products/gaming-mouse.jpg",
+      stock: 60,
+      tags: ["mouse", "gaming", "wireless", "rgb"],
+    },
+    {
+      name: "Portable Bluetooth Speaker",
+      description:
+        "Waterproof portable speaker with 360° sound, 20-hour battery, and powerful bass.",
+      price: 119.99,
+      category: "Electronics",
+      imageUrl: "/products/bluetooth-speaker.jpg",
+      stock: 50,
+      tags: ["speaker", "bluetooth", "portable", "waterproof"],
+    },
+    {
+      name: "Ergonomic Office Chair",
+      description:
+        "Adjustable office chair with lumbar support, breathable mesh back, and tilt mechanism.",
+      price: 249.99,
+      category: "Furniture",
+      imageUrl: "/products/office-chair.jpg",
+      stock: 30,
+      tags: ["chair", "office", "ergonomic", "furniture"],
+    },
+    {
+      name: "Smart Watch Fitness Tracker",
+      description:
+        "Advanced smartwatch with heart rate monitoring, GPS, sleep tracking, and 7-day battery life.",
+      price: 199.99,
+      category: "Electronics",
+      imageUrl: "/products/smartwatch.jpg",
+      stock: 55,
+      tags: ["smartwatch", "fitness", "tracker", "wearable"],
+    },
+    {
+      name: "Stainless Steel Water Bottle",
+      description:
+        "Insulated 32oz water bottle that keeps drinks cold for 24 hours or hot for 12 hours.",
+      price: 29.99,
+      category: "Sports",
+      imageUrl: "/products/water-bottle.jpg",
+      stock: 120,
+      tags: ["water bottle", "insulated", "sports", "hydration"],
+    },
+    {
+      name: "LED Desk Lamp",
+      description:
+        "Adjustable LED desk lamp with touch control, USB charging port, and 5 brightness levels.",
+      price: 44.99,
+      category: "Home",
+      imageUrl: "/products/desk-lamp.jpg",
+      stock: 40,
+      tags: ["lamp", "led", "desk", "lighting"],
+    },
+    {
+      name: "Wireless Mechanical Keyboard",
+      description:
+        "RGB mechanical keyboard with tactile switches, wireless connectivity, and aluminum frame.",
+      price: 149.99,
+      category: "Electronics",
+      imageUrl: "/products/keyboard.jpg",
+      stock: 45,
+      tags: ["keyboard", "mechanical", "wireless", "gaming"],
+    },
+  ];
+
+  for (const product of products) {
+    await prisma.product.create({
+      data: product,
+    });
+  }
+
+  console.log(`✅ Created ${products.length} products`);
+}
+
+main()
+  .catch((e) => {
+    console.error("Error seeding database:", e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
+```
+
+Add seed script to `package.json`:
+
+```json
+{
+  "scripts": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}
+```
+
+Run the seed:
+
+```bash
+npm run seed
+```
+
+---
+
+## 🎯 How the Agent Works
+
+### **Autonomous Workflow Example**
+
+Let's trace how the agent handles a complete purchase:
+
+**1. User starts conversation:**
+
+```
+User: "Hi"
+```
+
+**Agent's autonomous reasoning:**
+
+- No tools called yet (registration needed)
+- Responds conversationally asking for registration details
+
+**2. User provides details:**
+
+```
+User: "I'm John Doe, email john@example.com, phone 0700123456"
+```
+
+**Agent autonomously:**
+
+- Recognizes all registration data is present
+- Calls `registerUser` tool with extracted info
+- Receives success response
+- Transitions to product discovery phase
+
+**3. User describes need:**
+
+```
+User: "I need headphones for work"
+```
+
+**Agent autonomously:**
+
+- Calls `searchProducts` tool with query "headphones work"
+- Receives 4 products
+- Presents them clearly with formatting
+- Asks user to choose
+
+**4. User selects:**
+
+```
+User: "I'll take the wireless noise-cancelling ones"
+```
+
+**Agent autonomously:**
+
+- Identifies which product was selected
+- Calls `saveSelection` tool with product ID
+- Receives total price
+- Asks for delivery location
+
+**5. And so on...**
+
+The agent continues making autonomous decisions about:
+
+- Which tool to call next
+- What information to extract from user messages
+- When to ask clarifying questions
+- How to format responses
+
+### **Key Agent Features in Action**
+
+**Loop Control:**
+
+```typescript
+stopWhen: stepCountIs(15);
+```
+
+- Allows up to 15 tool calls in sequence
+- Prevents infinite loops
+- Agent can search products → save selection → get location → create payment → create order all autonomously
+
+**Dynamic Behavior:**
+
+```typescript
+prepareStep: async ({ stepNumber, messages }) => {
+  if (stepNumber === 10) {
+    // Inject helpful guidance after many steps
+    return { system: "..." };
+  }
+  return {};
+};
+```
+
+- Adapts system prompt based on progress
+- Manages context window for long conversations
+
+**Type Safety:**
+
+```typescript
+const { messages } = useChat<ShoppingAgentMessage>();
+```
+
+- Full TypeScript inference from agent to UI
+- Catch errors at compile time
+- Autocomplete for tool results
+
+---
+
+## 🚀 Deployment Guide
+
+### **Step 1: Prepare for Production**
+
+```bash
+# Build the application
+npm run build
+
+# Test production build locally
+npm start
+```
+
+### **Step 2: Deploy to Vercel**
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Login
+vercel login
+
+# Deploy
+vercel --prod
+```
+
+**Or use Vercel Dashboard:**
+
+1. Push code to GitHub
+2. Import repository in Vercel
+3. Add environment variables
+4. Deploy
+
+### **Step 3: Setup Production Database**
+
+**Option A: Supabase**
+
+1. Create project at supabase.com
+2. Copy connection string
+3. Add to Vercel environment variables
+4. Run migrations: `npx prisma migrate deploy`
+
+**Option B: Neon**
+
+1. Create database at neon.tech
+2. Copy connection string
+3. Add to Vercel environment variables
+4. Run migrations
+
+### **Step 4: Configure Webhooks**
+
+For Stripe payment confirmations:
+
+```typescript
+// app/api/webhooks/stripe/route.ts
+
+import { headers } from "next/headers";
+import { prisma } from "@/lib/prisma";
+import Stripe from "stripe";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+
+export async function POST(request: Request) {
+  const body = await request.text();
+  const signature = headers().get("stripe-signature")!;
+
+  let event: Stripe.Event;
+
+  try {
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+  } catch (err) {
+    return new Response("Webhook signature verification failed", {
+      status: 400,
+    });
+  }
+
+  if (event.type === "payment_intent.succeeded") {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+
+    // Update order status
+    await prisma.order.updateMany({
+      where: { paymentId: paymentIntent.id },
+      data: { status: "processing" },
+    });
+  }
+
+  return new Response(JSON.stringify({ received: true }), { status: 200 });
+}
+```
+
+---
+
+## 📊 Monitoring & Analytics
+
+### **Add Logging**
+
+```typescript
+// lib/agent/shopping-agent.ts
+
+export const shoppingAgent = new Agent({
+  // ... existing config
+
+  onStepFinish: async ({ step, stepNumber }) => {
+    // Log each step for debugging
+    console.log(`Step ${stepNumber}:`, {
+      toolCalls: step.toolCalls?.map((t) => t.toolName),
+      text: step.text?.substring(0, 100),
+      usage: step.usage,
+    });
+
+    // Send to analytics service
+    // await analytics.track('agent_step', { ... });
+  },
+});
+```
+
+### **Track Conversions**
+
+```typescript
+// In createOrderTool execute function
+
+await analytics.track("order_completed", {
+  orderId: order.id,
+  userId: session.userId,
+  total: order.totalAmount,
+  itemCount: order.items.length,
+});
+```
+
+---
+
+## 🔄 Advanced Patterns
+
+### **1. Multi-Agent Orchestration**
+
+For complex workflows, create specialized agents:
+
+```typescript
+// lib/agent/product-recommendation-agent.ts
+export const recommendationAgent = new Agent({
+  model: anthropic('claude-sonnet-4-20250514'),
+  system: 'You are an expert product recommendation specialist...',
+  tools: { analyzePreferences, findSimilarProducts },
+});
+
+// lib/agent/customer-support-agent.ts
+export const supportAgent = new Agent({
+  model: anthropic('claude-sonnet-4-20250514'),
+  system: 'You handle customer support queries...',
+  tools: { checkOrderStatus, processReturn, escalateToHuman },
+});
+
+// Main orchestrator routes to specialized agents
+export const orchestratorAgent = new Agent({
+  model: anthropic('claude-sonnet-4-20250514'),
+  system: 'Route requests to appropriate specialized agents...',
+  tools: {
+    delegateToRecommendation: ...,
+    delegateToSupport: ...,
+    delegateToShopping: ...,
+  },
+});
+```
+
+### **2. Evaluation Loop for Quality**
+
+Add quality checks:
+
+```typescript
+export const shoppingAgent = new Agent({
+  // ... config
+
+  prepareStep: async ({ messages, stepNumber }) => {
+    // Every 5 steps, evaluate conversation quality
+    if (stepNumber % 5 === 0) {
+      const lastMessages = messages.slice(-5);
+
+      // Use a separate model call to evaluate
+      const evaluation = await generateObject({
+        model: anthropic("claude-sonnet-4-20250514"),
+        schema: z.object({
+          userSatisfaction: z.number().min(1).max(10),
+          needsClarification: z.boolean(),
+          suggestedAction: z.string(),
+        }),
+        prompt: `Evaluate this conversation: ${JSON.stringify(lastMessages)}`,
+      });
+
+      if (evaluation.object.userSatisfaction < 7) {
+        return {
+          system: `User seems dissatisfied. ${evaluation.object.suggestedAction}`,
+        };
+      }
+    }
+
+    return {};
+  },
+});
+```
+
+### **3. Parallel Product Analysis**
+
+```typescript
+// tools.ts - Enhanced search with parallel analysis
+
+export const searchProductsWithAnalysisTool = tool({
+  description: "Search and analyze products in parallel",
+  parameters: z.object({
+    query: z.string(),
+  }),
+  execute: async ({ query }) => {
+    // Search products
+    const products = await prisma.product.findMany({
+      where: {
+        /* search criteria */
+      },
+      take: 4,
+    });
+
+    // Analyze each product in parallel
+    const analyses = await Promise.all(
+      products.map(async (product) => {
+        const analysis = await generateObject({
+          model: anthropic("claude-sonnet-4-20250514"),
+          schema: z.object({
+            strengths: z.array(z.string()),
+            bestFor: z.string(),
+            valueRating: z.number().min(1).max(10),
+          }),
+          prompt: `Analyze this product: ${JSON.stringify(product)}`,
+        });
+
+        return {
+          ...product,
+          analysis: analysis.object,
+        };
+      })
+    );
+
+    return { products: analyses };
+  },
+});
+```
+
+---
+
+## 🎓 Key Concepts Summary
+
+### **Tools vs Agents**
+
+**Tools** (What we built):
+
+- Individual functions the AI can call
+- `registerUserTool`, `searchProductsTool`, etc.
+- Reactive - called when needed
+
+**Agent** (What orchestrates):
+
+- The `Agent` class that decides which tools to use
+- Autonomous - makes multi-step decisions
+- Maintains conversation context
+- Handles the complete workflow
+
+### **Agent Loop Control**
+
+```typescript
+stopWhen: stepCountIs(15); // Max 15 tool calls
+prepareStep: async ({ stepNumber }) => {
+  // Modify behavior between steps
+};
+```
+
+### **Workflow Patterns Used**
+
+1. **Sequential Processing**: Registration → Discovery → Selection → Checkout → Payment → Order
+2. **Routing**: Agent decides which tool to call based on conversation stage
+3. **Loop Control**: Autonomous multi-step execution with stopping conditions
+
+---
+
+## 🔮 Future Enhancements
+
+1. **Voice Integration**: Add speech-to-text for voice orders
+2. **Image Search**: Upload product images to find similar items
+3. **Order Tracking Agent**: Separate agent for post-purchase support
+4. **Personalization**: Learn user preferences over time
+5. **Multi-language**: Support international customers
+6. **Admin Dashboard**: Manage products, view analytics, monitor agent performance
+7. **A/B Testing**: Test different agent prompts and workflows
+8. **Human Handoff**: Escalate complex issues to human support
+
+---
+
+## 📚 Additional Resources
+
+- [Vercel AI SDK Docs](https://sdk.vercel.ai/docs)
+- [Agent Class Documentation](https://sdk.vercel.ai/docs/ai-sdk-core/agents)
+- [Anthropic Claude API](https://docs.anthropic.com)
+- [Stripe Integration Guide](https://stripe.com/docs)
+
+---
+
+**This implementation gives you a production-ready AI shopping agent that autonomously handles the complete e-commerce workflow using the latest Vercel AI SDK patterns!**

@@ -1,0 +1,511 @@
+---
+title: Self-Hosting Next.js Apps with Hetzner and DokPloy - Complete Step-by-Step Guide
+description: Learn how to self-host your Next.js applications using Hetzner VPS and DokPloy for a cost-effective alternative to Vercel with push-to-deploy, SSL certificates, and automatic deployments.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwfLEf8QTjC86YbrIfyxwcaAq20imPOgv7SMUVe
+category: tutorial
+createdAt: 2025-08-31
+updatedAt: 2025-08-31
+---
+
+# Self-Hosting Next.js Apps with Hetzner and DokPloy - Complete Step-by-Step Guide
+
+Self-hosting web applications can seem daunting with all the serverless options available, but tinkering with servers is incredibly educational and cost-effective. This guide shows you how to deploy your Next.js applications using Hetzner VPS and DokPloy, getting all the features of platforms like Vercel at a fraction of the cost.
+
+## What You'll Get
+
+By the end of this guide, you'll have:
+
+- A Hetzner VPS server running Ubuntu
+- DokPloy managing your deployments with a clean interface
+- Automatic deployments from GitHub
+- Analytics integration with Umami
+- Multiple applications on a single VPS
+- Cost: ~$7/month vs $20-100+ on managed platforms
+
+## Why This Setup?
+
+- **Cost Effective**: Hetzner offers incredible value - 3 CPUs and 4GB RAM for around $7/month
+- **Educational**: Understanding servers makes you a better developer
+- **Scalable**: Add load balancing, multiple servers, and more as you grow
+- **Full Control**: No vendor lock-in, deploy anything you want
+
+## Prerequisites
+
+- Basic terminal/command line knowledge
+- A GitHub account with your Next.js project
+- A domain name (optional but recommended for SSL)
+- Credit card for Hetzner VPS (~$7/month)
+
+## Step 1: Setting Up Hetzner VPS
+
+### 1.1 Create Hetzner Account
+
+1. Visit [Hetzner Cloud](https://www.hetzner.com/cloud)
+2. Create an account and verify email
+3. Add payment method
+
+### 1.2 Create SSH Key
+
+Before creating your server, generate an SSH key for secure access:
+
+**On Mac/Linux:**
+
+```bash
+ssh-keygen -b 4096 -t rsa
+```
+
+**Get your public key:**
+
+```bash
+cat ~/.ssh/id_rsa.pub
+```
+
+Copy the entire output - you'll need this for Hetzner.
+
+### 1.3 Create New Server
+
+1. **Create Project**: Click "New Project" and give it a name
+2. **Add Server**: Click "Add Server"
+3. **Configuration**:
+
+   - **Location**: Choose closest to your users (e.g., Ashburn for US)
+   - **Image**: Ubuntu (latest version)
+   - **Type**: Shared CPU (best price-to-performance)
+   - **Size**: CPX21 (3 vCPU, 4GB RAM) - good balance of performance and cost
+   - **Networking**: Leave default (Public IPv4 & IPv6)
+
+4. **SSH Key Setup**:
+
+   - Click "Add SSH Key"
+   - Paste your public key from Step 1.2
+   - Name it (e.g., "My MacBook")
+   - Set as default
+
+5. **Finalize**:
+
+   - Skip volumes and firewall (can add later)
+   - Name your server (e.g., "testing-server")
+   - Click "Create & Buy Now"
+
+6. **Wait for Server**: Server will show "Running" status when ready
+
+## Step 2: Installing DokPloy
+
+### 2.1 SSH into Your Server
+
+Copy your server's public IP from Hetzner dashboard:
+
+```bash
+ssh root@YOUR_SERVER_IP
+```
+
+Type "yes" when prompted to accept the connection. You should see Ubuntu system information.
+
+### 2.2 Install DokPloy
+
+Run the official DokPloy installation command:
+
+```bash
+curl -fsSL https://dokploy.com/install.sh | sh
+```
+
+This installation:
+
+- Sets up Docker and Docker Compose
+- Installs Traefik for reverse proxy
+- Configures the DokPloy dashboard
+- Takes about 1-2 minutes
+
+### 2.3 Access DokPloy Dashboard
+
+1. **Get Access URL**: After installation, you'll see a public IP address
+2. **Open Dashboard**: Visit `http://YOUR_SERVER_IP` in your browser
+3. **Create Account**:
+   - Set up admin username and secure password
+   - This will be your main admin account
+
+### 2.4 Enable Security (Optional but Recommended)
+
+1. **Two-Factor Authentication**:
+   - Go to Settings in the dashboard
+   - Enable 2FA for additional security
+
+## Step 3: Connect GitHub to DokPloy
+
+### 3.1 Create GitHub App
+
+1. **Navigate to Git Integration**:
+
+   - In DokPloy dashboard, go to "Git" section
+   - Click "Connect GitHub"
+
+2. **Create GitHub App**:
+
+   - Click "Create GitHub App"
+   - **App Name**: Choose something unique like `dokploy-yourusername-[random]`
+   - GitHub app names must be globally unique, so add random numbers if needed
+
+3. **Install GitHub App**:
+   - Click "Install" after creating the app
+   - Choose "All repositories" or select specific ones
+   - Complete the authorization process
+
+### 3.2 Verify Connection
+
+You should now see your GitHub repositories available in DokPloy. If repositories don't load immediately, wait a moment for synchronization.
+
+## Step 4: Deploying Your Next.js Application
+
+### 4.1 Prepare Your Next.js Project (if needed)
+
+If you don't have a project ready, create one:
+
+```bash
+npx create-next-app@14.2.4 my-dokploy-app
+cd my-dokploy-app
+
+# Initialize git and push to GitHub
+git init
+git add .
+git commit -m "Initial commit"
+# Create repository on GitHub and push
+git remote add origin https://github.com/yourusername/my-dokploy-app.git
+git push -u origin main
+```
+
+### 4.2 Create Project in DokPloy
+
+1. **Create New Project**:
+
+   - Click "Create Project" in DokPloy dashboard
+   - **Name**: "my-nextjs-app" (or your preferred name)
+   - Click "Create"
+
+2. **Add Application Service**:
+   - Click "Add a Service"
+   - Select "Application" (not template or database)
+   - **Name**: "next-frontend"
+   - Click "Create"
+
+### 4.3 Configure Application
+
+1. **Select Repository**:
+
+   - Choose your connected GitHub repository from the dropdown
+   - Select the correct repository
+
+2. **Build Configuration**:
+
+   - **Build Path**: `/` (root directory)
+   - **Build Pack**: Select "Next" from the dropdown
+   - **Branch**: `main` (or your default branch)
+   - **Port**: Leave as `3000` (Next.js default)
+
+3. **Domain Configuration**:
+
+   - Click "Generate" for a random subdomain (for testing)
+   - Or enter custom domain: `https://myapp.yourdomain.com`
+   - **Note**: HTTPS only works with proper domains, not IP addresses
+
+4. **Environment Variables** (if needed):
+   - Add any required environment variables
+   - Common examples: `NEXT_PUBLIC_API_URL`, `DATABASE_URL`
+
+### 4.4 Deploy Application
+
+1. **Save Configuration**:
+
+   - Click "Save" to store all settings
+
+2. **Start Deployment**:
+
+   - Click "Deploy" button
+   - Monitor progress in the deployment logs
+   - Deployment typically takes 1-3 minutes
+
+3. **Monitor Deployment**:
+   - Watch the build logs for any errors
+   - Wait for "Deployment successful" message
+
+### 4.5 Test Your Application
+
+1. **Access Application**:
+
+   - Click on the generated domain URL
+   - Your Next.js application should load
+   - For HTTP domains, you may see security warnings (normal for testing)
+
+2. **Test Auto-Deployment**:
+
+   ```bash
+   # Make a simple change to your app
+   echo "export default function Home() { return <h1>Hey there from DokPloy!</h1> }" > pages/index.js
+
+   # Or for App Router
+   echo "export default function Home() { return <h1>Hey there from DokPloy!</h1> }" > app/page.js
+
+   git add .
+   git commit -m "Test auto-deploy"
+   git push origin main
+   ```
+
+3. **Verify Auto-Deployment**:
+   - DokPloy should automatically detect the GitHub push
+   - Check the "Deployments" tab for new deployment
+   - Should show as "webhook" initiated
+   - Changes should appear on your live site
+
+## Step 5: Adding Analytics with Umami
+
+### 5.1 Deploy Umami from Template
+
+1. **Add Analytics Service**:
+
+   - Go to your project in DokPloy
+   - Click "Add a Service"
+   - Select "Template" instead of "Application"
+
+2. **Choose Umami Template**:
+
+   - Find and select "Umami" from the available templates
+   - **Name**: "analytics"
+   - Click "Create"
+
+3. **Configure Umami**:
+   - Generate a domain for Umami (click "Generate")
+   - Or use custom subdomain: `analytics.yourdomain.com`
+   - Click "Deploy"
+
+### 5.2 Set Up Umami
+
+1. **Access Umami Dashboard**:
+
+   - Wait for deployment to complete
+   - Visit the Umami URL
+   - **Default login**: Username `admin`, Password `umami`
+
+2. **Secure Your Installation**:
+   - **IMPORTANT**: Change the default password immediately
+   - Go to Settings → Profile
+   - Update password to something secure
+
+### 5.3 Add Your Website to Umami
+
+1. **Add Website**:
+
+   - In Umami, go to Settings → Websites
+   - Click "Add Website"
+   - **Website Name**: Your app name
+   - **Domain**: Your Next.js app URL (e.g., `https://myapp.yourdomain.com`)
+   - Click "Save"
+
+2. **Get Tracking Code**:
+   - Click on your website in the list
+   - Go to "Tracking Code" tab
+   - Copy the script tag provided
+
+### 5.4 Integrate Analytics into Next.js
+
+Add the Umami tracking script to your Next.js application:
+
+**For App Router (app/layout.js):**
+
+```javascript
+import Script from "next/script";
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <head>
+        <Script
+          async
+          src="https://your-umami-domain.com/script.js"
+          data-website-id="your-website-id"
+          strategy="afterInteractive"
+        />
+      </head>
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+**For Pages Router (pages/\_app.js):**
+
+```javascript
+import Script from "next/script";
+
+export default function App({ Component, pageProps }) {
+  return (
+    <>
+      <Script
+        async
+        src="https://your-umami-domain.com/script.js"
+        data-website-id="your-website-id"
+        strategy="afterInteractive"
+      />
+      <Component {...pageProps} />
+    </>
+  );
+}
+```
+
+### 5.5 Deploy and Test Analytics
+
+1. **Commit Changes**:
+
+   ```bash
+   git add .
+   git commit -m "Add Umami analytics"
+   git push origin main
+   ```
+
+2. **Test Tracking**:
+   - Wait for auto-deployment to complete
+   - Visit your application several times
+   - Refresh different pages
+   - Check Umami dashboard for page views
+
+**Note**: Analytics tracking works best with HTTPS domains. HTTP may have limitations due to browser security policies.
+
+## Step 6: Domain Setup and SSL (Optional but Recommended)
+
+### 6.1 DNS Configuration
+
+If you want custom domains with SSL certificates:
+
+1. **Point Domain to Server**:
+   - In your DNS provider (Cloudflare, Namecheap, etc.)
+   - Add A records:
+     - `@` (root) → Your server IP
+     - `*` (wildcard for subdomains) → Your server IP
+
+### 6.2 Using Cloudflare (Recommended)
+
+1. **Add Domain to Cloudflare**:
+
+   - Transfer nameservers to Cloudflare
+   - Add your server IP as A record
+   - Enable proxy for additional protection
+
+2. **Update DokPloy Domains**:
+   - Change your app domains to use your custom domain
+   - SSL certificates will be generated automatically
+   - HTTPS will work properly
+
+## Step 7: Monitoring and Resource Usage
+
+### 7.1 Monitor Server Resources
+
+DokPloy provides built-in monitoring:
+
+1. **Resource Panel**:
+
+   - View CPU, RAM, and disk usage
+   - Monitor Docker container status
+   - Check system resources
+
+2. **Check Server Load**:
+   ```bash
+   # SSH into server to check resources
+   htop  # View CPU and memory usage
+   df -h # Check disk space
+   ```
+
+### 7.2 Performance During Deployment
+
+- CPU usage typically spikes to ~50% during builds
+- Multiple services can run simultaneously without issues
+- The CPX21 (3 CPU, 4GB RAM) handles multiple applications well
+
+## Troubleshooting Common Issues
+
+### SSL Certificate Problems
+
+- SSL only works with proper domains, not IP addresses
+- Ensure DNS is properly configured and propagated
+- Wait a few minutes for certificate generation
+
+### Deployment Failures
+
+- Check deployment logs for specific error messages
+- Verify your package.json has correct build scripts
+- Ensure all environment variables are set
+
+### GitHub Webhook Issues
+
+- Verify GitHub app has proper repository access
+- Check that webhook URL is correctly configured
+- Test manual deployments first
+
+### Analytics Not Working
+
+- HTTPS domains work better than HTTP for tracking
+- Check browser console for any script loading errors
+- Verify tracking code is properly placed in your app
+
+### Resource Issues
+
+- Monitor server resources in DokPloy dashboard
+- Consider upgrading server size if running many applications
+- Use `htop` via SSH to check real-time resource usage
+
+## Cost Breakdown
+
+**Monthly Costs:**
+
+- Hetzner CPX21 VPS: ~$7/month
+- Domain (optional): ~$10-15/year
+- **Total**: ~$7-8/month
+
+**Compare to Managed Platforms:**
+
+- Vercel Pro: $20/month + usage
+- Railway: $5-20+/month
+- Render: $7-25+/month
+
+**Savings**: 60-80% cost reduction while maintaining similar functionality
+
+## Scaling Your Setup
+
+### Adding More Applications
+
+1. **Deploy Multiple Apps**:
+
+   - Each app gets its own subdomain automatically
+   - Use the same GitHub integration
+   - Add databases, APIs, frontend apps on the same server
+
+2. **Resource Management**:
+   - Monitor usage in DokPloy dashboard
+   - Upgrade server size when needed
+   - Consider multiple servers for high-traffic applications
+
+### Load Balancing and High Availability
+
+DokPloy supports:
+
+- Docker Swarm for container orchestration
+- Multiple server management
+- Load balancer configuration
+- Database clustering
+
+## Conclusion
+
+You now have a production-ready Next.js deployment setup that rivals managed platforms at a fraction of the cost. DokPloy's clean interface makes server management approachable while providing enterprise-grade features.
+
+The combination of Hetzner's affordable infrastructure and DokPloy's user-friendly management layer gives you:
+
+- Full control over your deployment
+- Significant cost savings
+- Educational value in understanding server operations
+- Scalability for future growth
+
+**Next Steps:**
+
+- Deploy additional applications to the same server
+- Set up proper domain names with SSL
+- Explore DokPloy's database and service templates
+- Monitor your applications and optimize performance
+
+Remember: tinkering with servers helps you understand the fundamentals of web deployment, making you a more well-rounded developer. The skills you learn here will serve you well as your applications grow and scale.

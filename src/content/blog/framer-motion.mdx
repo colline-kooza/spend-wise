@@ -1,0 +1,1354 @@
+---
+title: Framer Motion Scroll Animations Guide - Next.js, TypeScript & Tailwind
+description: Master scroll animations with Framer Motion in Next.js. Learn whileInView, useInView, and useScroll hooks through 4 production-ready case studies - fade/zoom sections, stacked cards, horizontal parallax galleries, and text reveal effects with complete TypeScript examples.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwftkbcNw2iVG7KkMc0Z9LTeyBRuPQlIEYzv36N
+category: tutorial
+createdAt: 2025-12-08
+updatedAt: 2025-12-08
+---
+
+# Framer Motion Scroll Animations Documentation
+
+## Complete Guide for Next.js with TypeScript and Tailwind CSS
+
+---
+
+## Table of Contents
+
+1. [Introduction](#introduction)
+2. [Setup and Installation](#setup-and-installation)
+3. [Core Concepts](#core-concepts)
+4. [Case Study 1: Fade & Zoom Sections on Scroll](#case-study-1-fade--zoom-sections-on-scroll)
+5. [Case Study 2: Stacked Sections](#case-study-2-stacked-sections)
+6. [Case Study 3: Horizontal Scroll Gallery with Parallax](#case-study-3-horizontal-scroll-gallery-with-parallax)
+7. [Case Study 4: Text Reveal with Progress Indicator](#case-study-4-text-reveal-with-progress-indicator)
+8. [Advanced Tips and Best Practices](#advanced-tips-and-best-practices)
+9. [Performance Optimization](#performance-optimization)
+10. [Troubleshooting](#troubleshooting)
+
+---
+
+## Introduction
+
+Framer Motion is a powerful animation library for React that makes creating scroll-based animations intuitive and performant. This documentation provides practical, production-ready examples for common scroll animation patterns in modern web applications.
+
+### What You'll Learn
+
+- Three distinct methods for scroll animations: `whileInView`, `useInView`, and `useScroll`
+- When to use each method for optimal results
+- Real-world implementations with complete code examples
+- Performance optimization techniques
+
+---
+
+## Setup and Installation
+
+### Prerequisites
+
+- Node.js 16.x or higher
+- Next.js 13.x or higher
+- Basic understanding of React and TypeScript
+
+### Step 1: Create a Next.js Project
+
+```bash
+npx create-next-app@latest framer-scroll-demo --typescript --tailwind --app
+cd framer-scroll-demo
+```
+
+### Step 2: Install Framer Motion
+
+```bash
+npm install framer-motion
+```
+
+### Step 3: Project Structure
+
+```
+framer-scroll-demo/
+├── app/
+│   ├── page.tsx                 # Main page
+│   ├── layout.tsx              # Root layout
+│   └── globals.css             # Global styles
+├── components/
+│   ├── FadeZoomSections.tsx    # Case Study 1
+│   ├── StackedSections.tsx     # Case Study 2
+│   ├── HorizontalGallery.tsx   # Case Study 3
+│   └── TextReveal.tsx          # Case Study 4
+└── public/
+    └── images/                  # Image assets
+```
+
+---
+
+## Core Concepts
+
+### Three Animation Approaches
+
+#### 1. **whileInView** (Simplest)
+
+- Best for: Basic fade-ins, simple animations
+- Usage: Add directly to motion components
+- Limitation: One animation per element
+
+```tsx
+<motion.div
+  initial={{ opacity: 0 }}
+  whileInView={{ opacity: 1 }}
+  viewport={{ once: true, amount: 0.5 }}
+/>
+```
+
+#### 2. **useInView** (Boolean-based)
+
+- Best for: Multiple synchronized animations
+- Usage: Returns boolean indicating viewport status
+- Use case: Orchestrating several elements
+
+```tsx
+const ref = useRef(null);
+const isInView = useInView(ref, { amount: 0.5 });
+```
+
+#### 3. **useScroll** (Continuous)
+
+- Best for: Progress-based animations, parallax
+- Usage: Returns scroll progress values (0-1)
+- Use case: Smooth, continuous effects
+
+```tsx
+const { scrollYProgress } = useScroll({
+  target: ref,
+  offset: ["start end", "end start"],
+});
+```
+
+---
+
+## Case Study 1: Fade & Zoom Sections on Scroll
+
+### Overview
+
+Create a landing page with 5 sections that fade in and zoom in from different directions as they enter the viewport.
+
+### Features
+
+- Alternating animation directions
+- Smooth fade and scale transitions
+- Responsive design
+- Configurable animation delays
+
+### Step-by-Step Implementation
+
+#### Step 1: Create the Component File
+
+Create `components/FadeZoomSections.tsx`:
+
+```tsx
+"use client";
+
+import { motion } from "framer-motion";
+import { useRef } from "react";
+
+interface SectionProps {
+  title: string;
+  description: string;
+  color: string;
+  direction: "left" | "right" | "up" | "down";
+}
+
+const Section = ({ title, description, color, direction }: SectionProps) => {
+  // Define animation variants based on direction
+  const variants = {
+    hidden: {
+      opacity: 0,
+      scale: 0.8,
+      x: direction === "left" ? -100 : direction === "right" ? 100 : 0,
+      y: direction === "up" ? -100 : direction === "down" ? 100 : 0,
+    },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      x: 0,
+      y: 0,
+      transition: {
+        duration: 0.8,
+        ease: [0.17, 0.55, 0.55, 1], // Custom easing
+      },
+    },
+  };
+
+  return (
+    <motion.section
+      className={`flex min-h-screen items-center justify-center ${color}`}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.3 }}
+      variants={variants}
+    >
+      <div className="mx-auto max-w-4xl px-6 text-center">
+        <motion.h2
+          className="mb-6 text-5xl font-bold md:text-7xl"
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            visible: {
+              opacity: 1,
+              y: 0,
+              transition: { delay: 0.2, duration: 0.6 },
+            },
+          }}
+        >
+          {title}
+        </motion.h2>
+        <motion.p
+          className="text-xl opacity-90 md:text-2xl"
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            visible: {
+              opacity: 1,
+              y: 0,
+              transition: { delay: 0.4, duration: 0.6 },
+            },
+          }}
+        >
+          {description}
+        </motion.p>
+      </div>
+    </motion.section>
+  );
+};
+
+export default function FadeZoomSections() {
+  const sections: SectionProps[] = [
+    {
+      title: "Welcome",
+      description: "Experience smooth scroll animations with Framer Motion",
+      color: "bg-gradient-to-br from-purple-600 to-blue-600 text-white",
+      direction: "up",
+    },
+    {
+      title: "Our Services",
+      description: "Building modern web experiences that captivate users",
+      color: "bg-gradient-to-br from-blue-600 to-cyan-600 text-white",
+      direction: "left",
+    },
+    {
+      title: "Featured Work",
+      description: "Showcasing projects that push the boundaries of design",
+      color: "bg-gradient-to-br from-cyan-600 to-teal-600 text-white",
+      direction: "right",
+    },
+    {
+      title: "Our Team",
+      description: "Meet the creative minds behind innovative solutions",
+      color: "bg-gradient-to-br from-teal-600 to-green-600 text-white",
+      direction: "left",
+    },
+    {
+      title: "Get Started",
+      description: "Ready to transform your digital presence?",
+      color: "bg-gradient-to-br from-green-600 to-emerald-600 text-white",
+      direction: "down",
+    },
+  ];
+
+  return (
+    <div className="overflow-x-hidden">
+      {sections.map((section, index) => (
+        <Section key={index} {...section} />
+      ))}
+    </div>
+  );
+}
+```
+
+#### Step 2: Add to Your Page
+
+Update `app/page.tsx`:
+
+```tsx
+import FadeZoomSections from "@/components/FadeZoomSections";
+
+export default function Home() {
+  return (
+    <main>
+      <FadeZoomSections />
+    </main>
+  );
+}
+```
+
+#### Step 3: Customize Colors and Animations
+
+Modify the `sections` array to change colors, text, or animation directions:
+
+```tsx
+// Change direction for different effects
+direction: "left"; // Slides in from left
+direction: "right"; // Slides in from right
+direction: "up"; // Zooms in from top
+direction: "down"; // Zooms in from bottom
+```
+
+### Key Concepts Explained
+
+1. **Viewport Configuration**
+
+   ```tsx
+   viewport={{ once: true, amount: 0.3 }}
+   ```
+
+   - `once: true` - Animation triggers only once
+   - `amount: 0.3` - Triggers when 30% of element is visible
+
+2. **Staggered Children**
+
+   ```tsx
+   variants={{
+     hidden: { opacity: 0, y: 20 },
+     visible: {
+       opacity: 1,
+       y: 0,
+       transition: { delay: 0.4 }  // Stagger effect
+     }
+   }}
+   ```
+
+3. **Custom Easing**
+   ```tsx
+   ease: [0.17, 0.55, 0.55, 1]; // Cubic bezier curve
+   ```
+
+---
+
+## Case Study 2: Stacked Sections
+
+### Overview
+
+Create sections that stack on top of each other as you scroll, creating a layered card effect popular on modern websites.
+
+### Features
+
+- Smooth stacking animation
+- Scale and opacity transitions
+- Sticky positioning
+- Z-index management
+
+### Step-by-Step Implementation
+
+#### Step 1: Create the Component
+
+Create `components/StackedSections.tsx`:
+
+```tsx
+"use client";
+
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
+
+interface StackedCardProps {
+  index: number;
+  title: string;
+  description: string;
+  color: string;
+  progress: any;
+  range: [number, number];
+  targetScale: number;
+}
+
+const StackedCard = ({
+  index,
+  title,
+  description,
+  color,
+  progress,
+  range,
+  targetScale,
+}: StackedCardProps) => {
+  const container = useRef(null);
+
+  // Transform scroll progress to scale
+  const scale = useTransform(progress, range, [1, targetScale]);
+
+  return (
+    <div
+      ref={container}
+      className="sticky top-0 flex h-screen items-center justify-center"
+      style={{
+        top: `calc(${index * 50}px)`,
+      }}
+    >
+      <motion.div
+        style={{
+          scale,
+          backgroundColor: color,
+        }}
+        className="relative flex h-[600px] w-full max-w-5xl origin-top flex-col justify-between rounded-3xl p-12 shadow-2xl"
+      >
+        <div>
+          <h2 className="mb-6 text-6xl font-bold text-white">{title}</h2>
+          <p className="text-2xl text-white/90">{description}</p>
+        </div>
+
+        <div className="flex items-end justify-between">
+          <div className="text-lg text-white/70">Section {index + 1}</div>
+          <div className="text-sm text-white/50">Scroll to continue</div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+export default function StackedSections() {
+  const container = useRef(null);
+
+  const { scrollYProgress } = useScroll({
+    target: container,
+    offset: ["start start", "end end"],
+  });
+
+  const sections = [
+    {
+      title: "Innovation",
+      description:
+        "Pioneering the future of digital experiences through cutting-edge technology and creative thinking.",
+      color: "#1e40af", // blue-800
+    },
+    {
+      title: "Design",
+      description:
+        "Crafting beautiful, intuitive interfaces that users love to interact with every single day.",
+      color: "#7c3aed", // violet-600
+    },
+    {
+      title: "Development",
+      description:
+        "Building robust, scalable solutions that stand the test of time and user demands.",
+      color: "#db2777", // pink-600
+    },
+  ];
+
+  return (
+    <div ref={container} className="relative bg-black">
+      {/* Hero Section */}
+      <div className="flex h-screen items-center justify-center bg-gradient-to-b from-gray-900 to-black">
+        <div className="text-center">
+          <motion.h1
+            className="mb-6 text-7xl font-bold text-white md:text-9xl"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            Stacked Cards
+          </motion.h1>
+          <motion.p
+            className="text-xl text-gray-400 md:text-2xl"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.8 }}
+          >
+            Scroll to see the magic unfold
+          </motion.p>
+        </div>
+      </div>
+
+      {/* Stacked Cards */}
+      {sections.map((section, index) => {
+        const targetScale = 1 - (sections.length - index) * 0.05;
+        const range: [number, number] = [index / sections.length, 1];
+
+        return (
+          <StackedCard
+            key={index}
+            index={index}
+            {...section}
+            progress={scrollYProgress}
+            range={range}
+            targetScale={targetScale}
+          />
+        );
+      })}
+
+      {/* Footer Spacing */}
+      <div className="flex h-screen items-center justify-center bg-black">
+        <p className="text-xl text-white/50">End of stacked sections</p>
+      </div>
+    </div>
+  );
+}
+```
+
+#### Step 2: Understanding the Stacking Logic
+
+**Key Concepts:**
+
+1. **Sticky Positioning**
+
+   ```tsx
+   style={{ top: `calc(${index * 50}px)` }}
+   ```
+
+   Each card sticks at a slight offset, creating the stacked effect.
+
+2. **Scale Transformation**
+
+   ```tsx
+   const targetScale = 1 - (sections.length - index) * 0.05;
+   ```
+
+   Cards beneath scale down slightly as new cards appear.
+
+3. **Scroll Range Mapping**
+   ```tsx
+   const range: [number, number] = [index / sections.length, 1];
+   ```
+   Defines when each card's animation starts and ends.
+
+#### Step 3: Customization Options
+
+```tsx
+// Adjust stacking offset
+style={{ top: `calc(${index * 50}px)` }}  // Change 50 to adjust spacing
+
+// Modify scale intensity
+const targetScale = 1 - ((sections.length - index) * 0.05);  // Change 0.05
+
+// Change card height
+className="... h-[600px] ..."  // Adjust height value
+```
+
+### Visual Flow Explanation
+
+```
+Scroll Position: 0%
+┌─────────────┐
+│  Section 1  │ scale: 1.0
+└─────────────┘
+
+Scroll Position: 33%
+┌─────────────┐
+│  Section 2  │ scale: 1.0
+├─────────────┤
+│  Section 1  │ scale: 0.95
+└─────────────┘
+
+Scroll Position: 66%
+┌─────────────┐
+│  Section 3  │ scale: 1.0
+├─────────────┤
+│  Section 2  │ scale: 0.95
+├─────────────┤
+│  Section 1  │ scale: 0.90
+└─────────────┘
+```
+
+---
+
+## Case Study 3: Horizontal Scroll Gallery with Parallax
+
+### Overview
+
+Create a horizontal scrolling gallery where images move at different speeds, creating a parallax effect. This is commonly seen on portfolio websites and product showcases.
+
+### Features
+
+- Horizontal scroll with vertical scrolling
+- Multi-layer parallax effect
+- Smooth image transitions
+- Responsive grid layout
+
+### Step-by-Step Implementation
+
+#### Step 1: Create the Gallery Component
+
+Create `components/HorizontalGallery.tsx`:
+
+```tsx
+"use client";
+
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
+import Image from "next/image";
+
+interface GalleryItem {
+  id: number;
+  title: string;
+  image: string;
+  speed: number; // Parallax speed multiplier
+}
+
+export default function HorizontalGallery() {
+  const container = useRef(null);
+
+  const { scrollYProgress } = useScroll({
+    target: container,
+    offset: ["start end", "end start"],
+  });
+
+  const items: GalleryItem[] = [
+    {
+      id: 1,
+      title: "Mountain Vista",
+      image: "/images/mountain.jpg",
+      speed: 0.5,
+    },
+    { id: 2, title: "Urban Landscape", image: "/images/city.jpg", speed: 1.5 },
+    { id: 3, title: "Ocean Sunset", image: "/images/ocean.jpg", speed: 0.8 },
+    { id: 4, title: "Forest Path", image: "/images/forest.jpg", speed: 1.2 },
+    { id: 5, title: "Desert Dunes", image: "/images/desert.jpg", speed: 0.6 },
+    {
+      id: 6,
+      title: "Northern Lights",
+      image: "/images/aurora.jpg",
+      speed: 1.4,
+    },
+  ];
+
+  return (
+    <div className="bg-black text-white">
+      {/* Hero Section */}
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <motion.h1
+            className="mb-6 text-7xl font-bold md:text-9xl"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1 }}
+          >
+            Gallery
+          </motion.h1>
+          <motion.p
+            className="text-xl text-gray-400"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            Scroll to explore our work
+          </motion.p>
+        </div>
+      </div>
+
+      {/* Horizontal Scroll Container */}
+      <div ref={container} className="relative h-[300vh]">
+        <div className="sticky top-0 flex h-screen items-center overflow-hidden">
+          <div className="flex gap-8 px-8">
+            {items.map((item, index) => (
+              <GalleryCard
+                key={item.id}
+                item={item}
+                progress={scrollYProgress}
+                index={index}
+                total={items.length}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="flex h-screen items-center justify-center">
+        <p className="text-xl text-gray-500">End of gallery</p>
+      </div>
+    </div>
+  );
+}
+
+interface GalleryCardProps {
+  item: GalleryItem;
+  progress: any;
+  index: number;
+  total: number;
+}
+
+const GalleryCard = ({ item, progress, index, total }: GalleryCardProps) => {
+  // Calculate horizontal movement based on scroll progress
+  // Each card moves at a different speed based on item.speed
+  const baseX = useTransform(progress, [0, 1], [0, -1000 * item.speed]);
+
+  // Add slight rotation for dynamic effect
+  const rotate = useTransform(
+    progress,
+    [0, 0.5, 1],
+    [0, index % 2 === 0 ? 2 : -2, 0]
+  );
+
+  // Scale effect as cards enter/exit view
+  const scale = useTransform(
+    progress,
+    [(index - 1) / total, index / total, (index + 1) / total],
+    [0.8, 1, 0.8]
+  );
+
+  return (
+    <motion.div
+      style={{
+        x: baseX,
+        rotate,
+        scale,
+      }}
+      className="group relative h-[600px] w-[500px] flex-shrink-0 overflow-hidden rounded-2xl"
+    >
+      {/* Image with hover effect */}
+      <div className="relative h-full w-full bg-gray-900">
+        <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+        {/* Placeholder for actual images */}
+        <div
+          className="h-full w-full bg-gradient-to-br from-purple-600 to-blue-600"
+          style={{
+            backgroundImage: `linear-gradient(135deg, 
+              hsl(${index * 60}, 70%, 50%), 
+              hsl(${index * 60 + 60}, 70%, 40%))`,
+          }}
+        />
+
+        {/* Title overlay */}
+        <motion.div
+          className="absolute right-0 bottom-0 left-0 z-20 p-8"
+          initial={{ y: 20, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          transition={{ delay: index * 0.1 }}
+        >
+          <h3 className="mb-2 text-4xl font-bold">{item.title}</h3>
+          <p className="text-gray-300">Project {item.id}</p>
+        </motion.div>
+      </div>
+
+      {/* Hover overlay */}
+      <motion.div
+        className="absolute inset-0 flex items-center justify-center bg-white/10 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100"
+        initial={{ opacity: 0 }}
+      >
+        <button className="rounded-full bg-white px-8 py-4 text-lg font-semibold text-black transition-transform hover:scale-110">
+          View Project
+        </button>
+      </motion.div>
+    </motion.div>
+  );
+};
+```
+
+#### Step 2: Understanding Horizontal Scrolling
+
+**Container Structure:**
+
+```tsx
+<div className="h-[300vh]">
+  {" "}
+  {/* Tall container for scroll distance */}
+  <div className="sticky top-0 h-screen">
+    {" "}
+    {/* Sticky viewport */}
+    <div className="flex gap-8">
+      {" "}
+      {/* Horizontal items */}
+      {/* Cards here */}
+    </div>
+  </div>
+</div>
+```
+
+**Parallax Calculation:**
+
+```tsx
+const baseX = useTransform(
+  progress, // Input: 0 to 1
+  [0, 1], // Input range
+  [0, -1000 * item.speed] // Output: horizontal position
+);
+```
+
+#### Step 3: Advanced Parallax Techniques
+
+```tsx
+// Different parallax layers
+const backgroundX = useTransform(progress, [0, 1], [0, -500]); // Slow
+const middlegroundX = useTransform(progress, [0, 1], [0, -1000]); // Medium
+const foregroundX = useTransform(progress, [0, 1], [0, -1500]); // Fast
+```
+
+#### Step 4: Adding Real Images
+
+Replace the placeholder div with Next.js Image component:
+
+```tsx
+<Image
+  src={item.image}
+  alt={item.title}
+  fill
+  className="object-cover"
+  sizes="(max-width: 768px) 100vw, 500px"
+/>
+```
+
+### Customization Guide
+
+```tsx
+// Adjust scroll distance
+<div className="h-[300vh]">  // Change 300vh for longer/shorter scroll
+
+// Modify parallax intensity
+speed: 0.5   // Slower movement
+speed: 1.0   // Normal speed
+speed: 2.0   // Faster movement
+
+// Change card dimensions
+className="w-[500px] h-[600px]"  // Adjust size
+
+// Adjust gap between cards
+className="flex gap-8"  // Change gap-8 to desired spacing
+```
+
+---
+
+## Case Study 4: Text Reveal with Progress Indicator
+
+### Overview
+
+Create a text reveal animation with a reading progress indicator, perfect for blog posts, articles, and storytelling pages.
+
+### Features
+
+- Character-by-character text reveal
+- Scroll progress bar
+- Smooth color transitions
+- Sticky progress indicator
+
+### Step-by-Step Implementation
+
+#### Step 1: Create the Component
+
+Create `components/TextReveal.tsx`:
+
+```tsx
+"use client";
+
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
+
+export default function TextReveal() {
+  const container = useRef(null);
+
+  const { scrollYProgress } = useScroll({
+    target: container,
+    offset: ["start start", "end end"],
+  });
+
+  // Progress bar width
+  const progressWidth = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+
+  // Background color transition
+  const backgroundColor = useTransform(
+    scrollYProgress,
+    [0, 0.5, 1],
+    ["#0f172a", "#1e1b4b", "#312e81"] // slate-900 to indigo-900
+  );
+
+  const paragraphs = [
+    "In the realm of modern web design, scroll animations have emerged as a powerful tool for creating engaging user experiences. They transform static content into dynamic narratives that unfold as users navigate through your site.",
+
+    "Framer Motion provides an elegant API for implementing these animations with minimal code. Its declarative approach means you describe what you want, not how to achieve it, leading to cleaner and more maintainable codebases.",
+
+    "The key to effective scroll animations lies in subtlety and purpose. Every animation should serve the content, guiding users' attention and making the experience more intuitive rather than distracting from the message.",
+
+    "Performance is crucial when implementing scroll animations. Framer Motion runs animations off the main thread when possible, ensuring smooth experiences even on lower-end devices. Always test your animations across different devices and browsers.",
+
+    "As we push the boundaries of what's possible on the web, remember that accessibility should never be compromised. Provide alternatives for users who prefer reduced motion, and ensure your content remains accessible regardless of animation state.",
+  ];
+
+  return (
+    <div className="relative">
+      {/* Fixed Progress Bar */}
+      <div className="fixed top-0 right-0 left-0 z-50 h-2 bg-gray-800">
+        <motion.div
+          className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-red-500"
+          style={{ width: progressWidth }}
+        />
+      </div>
+
+      {/* Hero Section */}
+      <motion.div
+        className="flex min-h-screen items-center justify-center"
+        style={{ backgroundColor }}
+      >
+        <div className="mx-auto max-w-4xl px-6 text-center">
+          <motion.h1
+            className="mb-6 text-7xl font-bold text-white md:text-9xl"
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: [0.17, 0.55, 0.55, 1] }}
+          >
+            Read & Reveal
+          </motion.h1>
+          <motion.p
+            className="text-2xl text-white/70"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+          >
+            Watch the story unfold as you scroll
+          </motion.p>
+        </div>
+      </motion.div>
+
+      {/* Text Reveal Sections */}
+      <div ref={container} className="relative">
+        {paragraphs.map((paragraph, index) => (
+          <RevealParagraph key={index} text={paragraph} index={index} />
+        ))}
+      </div>
+
+      {/* Footer */}
+      <motion.div
+        className="flex min-h-screen items-center justify-center bg-black"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+      >
+        <div className="text-center">
+          <h2 className="mb-4 text-5xl font-bold text-white">The End</h2>
+          <p className="text-xl text-gray-400">Thanks for scrolling</p>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+interface RevealParagraphProps {
+  text: string;
+  index: number;
+}
+
+const RevealParagraph = ({ text, index }: RevealParagraphProps) => {
+  const ref = useRef(null);
+
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start 0.8", "start 0.3"],
+  });
+
+  // Split text into words for animation
+  const words = text.split(" ");
+
+  return (
+    <div
+      ref={ref}
+      className="flex min-h-screen items-center justify-center px-6"
+    >
+      <div className="max-w-4xl">
+        <motion.p
+          className="text-4xl leading-relaxed md:text-5xl"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 0.8 }}
+        >
+          {words.map((word, wordIndex) => (
+            <motion.span
+              key={wordIndex}
+              className="mr-3 mb-2 inline-block"
+              style={{
+                opacity: useTransform(
+                  scrollYProgress,
+                  [wordIndex / words.length, (wordIndex + 1) / words.length],
+                  [0.3, 1]
+                ),
+              }}
+            >
+              {word}
+            </motion.span>
+          ))}
+        </motion.p>
+
+        {/* Section number indicator */}
+        <motion.div
+          className="mt-12 font-mono text-xl text-white/30"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          {String(index + 1).padStart(2, "0")}
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+```
+
+#### Step 2: Understanding Text Reveal
+
+**Word-by-Word Animation:**
+
+```tsx
+const words = text.split(" ");
+
+{
+  words.map((word, wordIndex) => (
+    <motion.span
+      style={{
+        opacity: useTransform(
+          scrollYProgress,
+          [wordIndex / words.length, (wordIndex + 1) / words.length],
+          [0.3, 1]
+        ),
+      }}
+    >
+      {word}
+    </motion.span>
+  ));
+}
+```
+
+**Progress Mapping:**
+
+- Each word occupies a portion of scroll progress
+- Word 1: 0-10% → opacity 0.3-1
+- Word 2: 10-20% → opacity 0.3-1
+- Word 3: 20-30% → opacity 0.3-1
+
+#### Step 3: Alternative Reveal Styles
+
+**Character-by-Character:**
+
+```tsx
+const characters = text.split("");
+
+{
+  characters.map((char, i) => (
+    <motion.span
+      style={{
+        opacity: useTransform(
+          scrollYProgress,
+          [i / characters.length, (i + 1) / characters.length],
+          [0, 1]
+        ),
+      }}
+    >
+      {char}
+    </motion.span>
+  ));
+}
+```
+
+**Line-by-Line:**
+
+```tsx
+const lines = text.split("\n");
+
+{
+  lines.map((line, i) => (
+    <motion.div
+      initial={{ opacity: 0, x: -50 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      transition={{ delay: i * 0.2 }}
+    >
+      {line}
+    </motion.div>
+  ));
+}
+```
+
+### Customization Options
+
+```tsx
+// Adjust reveal speed
+offset: ['start 0.8', 'start 0.3']  // Faster reveal
+offset: ['start 0.9', 'start 0.5']  // Slower reveal
+
+// Change text opacity range
+[0.3, 1]  // Slight fade to full opacity
+[0, 1]    // Complete fade in
+[0.5, 1]  // Minimal fade effect
+
+// Modify progress bar colors
+from-purple-500 via-pink-500 to-red-500  // Gradient
+bg-blue-500  // Solid color
+```
+
+---
+
+## Advanced Tips and Best Practices
+
+### 1. Viewport Configuration
+
+```tsx
+// Trigger when fully visible
+viewport={{ once: true, amount: 1 }}
+
+// Trigger when 50% visible (good default)
+viewport={{ once: false, amount: 0.5 }}
+
+// Trigger immediately when entering
+viewport={{ once: true, amount: 0 }}
+
+// Trigger with margin offset
+viewport={{
+  once: true,
+  margin: "-100px"  // Trigger 100px before entering
+}}
+```
+
+### 2. Scroll Offset Patterns
+
+```tsx
+// Start when element enters, end when it exits
+offset: ["start end", "end start"];
+
+// Start when element center hits viewport center
+offset: ["center center", "center center"];
+
+// Start at top, end when element exits top
+offset: ["start start", "end start"];
+
+// Custom percentages
+offset: ["start 80%", "end 20%"];
+```
+
+### 3. Performance Optimization
+
+```tsx
+// Use transform instead of position properties
+// GOOD: transform: translateX()
+// BAD: left: X
+
+// Debounce scroll listeners
+const { scrollY } = useScroll();
+const throttledScroll = useTransform(scrollY, (latest) =>
+  Math.round(latest / 10) * 10  // Updates every 10px
+);
+
+// Minimize re-renders
+// Use motion values directly in style
+style={{ x: scrollXProgress }}
+// Instead of
+style={{ x: useTransform(scrollXProgress, v => v) }}
+```
+
+### 4. Responsive Animations
+
+```tsx
+// Disable on mobile
+const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+<motion.div
+  initial={isMobile ? {} : { opacity: 0 }}
+  animate={isMobile ? {} : { opacity: 1 }}
+/>
+
+// Adjust animation values for screen size
+const xOffset = typeof window !== 'undefined' && window.innerWidth < 768
+  ? 50 : 100;
+
+initial={{ x: -xOffset }}
+```
+
+### 5. Accessibility Considerations
+
+```tsx
+// Respect prefers-reduced-motion
+"use client";
+
+import { useReducedMotion } from "framer-motion";
+
+function MyComponent() {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration: shouldReduceMotion ? 0 : 0.5,
+      }}
+    />
+  );
+}
+```
+
+---
+
+## Performance Optimization
+
+### 1. Use will-change Sparingly
+
+```tsx
+// Only for animated properties
+<motion.div
+  style={{ willChange: 'transform' }}
+  animate={{ x: 100 }}
+/>
+
+// Remove after animation completes
+<motion.div
+  animate={{ x: 100 }}
+  onAnimationComplete={() => {
+    // will-change auto-removed by Framer Motion
+  }}
+/>
+```
+
+### 2. Lazy Load Heavy Components
+
+```tsx
+import dynamic from "next/dynamic";
+
+const HeavyAnimation = dynamic(() => import("@/components/HeavyAnimation"), {
+  ssr: false,
+});
+```
+
+### 3. Optimize Images
+
+```tsx
+// Use Next.js Image optimization
+<Image
+  src="/image.jpg"
+  alt="Description"
+  width={800}
+  height={600}
+  loading="lazy"
+  placeholder="blur"
+/>
+```
+
+### 4. Minimize Layout Shifts
+
+```tsx
+// Reserve space for animated elements
+<div className="min-h-[500px]">
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+    Content
+  </motion.div>
+</div>
+```
+
+---
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+#### 1. Animations Not Triggering
+
+**Problem:** Animation doesn't play on scroll
+
+**Solution:**
+
+```tsx
+// Ensure proper viewport configuration
+viewport={{ once: true, amount: 0.3 }}  // Not amount: 0
+
+// Check if element is actually in viewport
+whileInView={{ opacity: 1 }}
+// Add onViewportEnter for debugging
+onViewportEnter={() => console.log('In view!')}
+```
+
+#### 2. Jerky Scrolling
+
+**Problem:** Animations cause janky scroll
+
+**Solution:**
+
+```tsx
+// Use transform instead of position
+// GOOD
+animate={{ x: 100, y: 100 }}
+
+// BAD
+animate={{ left: 100, top: 100 }}
+
+// Enable GPU acceleration
+style={{
+  transform: 'translateZ(0)',
+  willChange: 'transform'
+}}
+```
+
+#### 3. SSR Errors
+
+**Problem:** "window is not defined"
+
+**Solution:**
+
+```tsx
+// Add 'use client' directive
+"use client";
+
+// Or check for window
+const isBrowser = typeof window !== "undefined";
+```
+
+#### 4. Memory Leaks
+
+**Problem:** Performance degrades over time
+
+**Solution:**
+
+```tsx
+// Clean up scroll listeners
+useEffect(() => {
+  const cleanup = someScrollListener();
+  return () => cleanup();
+}, []);
+
+// Use once: true for one-time animations
+viewport={{ once: true }}
+```
+
+#### 5. Hydration Mismatch
+
+**Problem:** Next.js hydration errors
+
+**Solution:**
+
+```tsx
+// Disable SSR for animation
+import dynamic from "next/dynamic";
+
+const AnimatedComponent = dynamic(() => import("./AnimatedComponent"), {
+  ssr: false,
+});
+```
+
+---
+
+## Additional Resources
+
+### Framer Motion Documentation
+
+- [Official Docs](https://www.framer.com/motion/)
+- [Scroll Animations](https://www.framer.com/motion/scroll-animations/)
+- [Use Scroll Hook](https://www.framer.com/motion/use-scroll/)
+
+### Example Repositories
+
+- View source code at: [GitHub Repository Link]
+- Live demos at: [Demo Site Link]
+
+### Community Resources
+
+- Framer Motion Discord
+- Stack Overflow tag: `framer-motion`
+- CodeSandbox examples
+
+---
+
+## Conclusion
+
+Scroll animations, when implemented thoughtfully, can transform a static website into an engaging, memorable experience. The four case studies covered in this documentation represent common patterns you'll encounter in modern web development:
+
+1. **Fade & Zoom Sections** - Perfect for landing pages and storytelling
+2. **Stacked Sections** - Ideal for highlighting sequential content
+3. **Horizontal Gallery** - Great for portfolios and product showcases
+4. **Text Reveal** - Excellent for long-form content and articles
+
+Remember these key principles:
+
+- **Performance first** - Use transforms and opacity
+- **Purposeful animations** - Every animation should enhance UX
+- **Accessibility** - Respect reduced motion preferences
+- **Progressive enhancement** - Content should work without animations
+
+Start with simple animations and gradually build complexity as you become comfortable with the API. The most effective scroll animations are often the subtlest ones.
+
+Happy animating! 🎨✨

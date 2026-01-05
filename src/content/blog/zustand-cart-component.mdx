@@ -1,0 +1,709 @@
+---
+title: Re-usable Zustand Cart
+description: A complete e-commerce shopping cart component with product listing, cart management.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwf6LXcYZmeAIdg2frSMLOz7C3XHR91QayTwuNx
+category: components
+createdAt: 2025-09-17
+updatedAt: 2025-09-17
+---
+
+{/* <ComponentPreview name="zustand-cart-demo" notProse={false} codeCollapsible /> */}
+
+## Installation
+
+<CodeTabs className="gap-0">
+
+<TabsList>
+  <TabsTriggerShadcnCLI />
+  <TabsTrigger value="manual">Manual</TabsTrigger>
+</TabsList>
+
+<TabsContent value="cli" className="[&>figure]:last:mb-0">
+
+```bash
+pnpm dlx shadcn@latest add https://jb.desishub.com/r/zustand-cart.json
+```
+
+</TabsContent>
+
+<TabsContent value="manual">
+
+<Steps>
+
+<Step>Install the following dependencies</Step>
+
+```bash
+npm install zustand lucide-react
+```
+
+<Step>Copy and paste the following code into your project</Step>
+
+<ComponentSource
+  name="zustand-cart"
+  title="components/zustand-cart.tsx"
+  showLineNumbers
+/>
+
+<Step>Copy the cart store hook</Step>
+
+<ComponentSource
+  name="use-cart-store"
+  title="hooks/use-cart-store.ts"
+  showLineNumbers
+/>
+
+<Step>Copy the product card component</Step>
+
+<ComponentSource
+  name="product-card"
+  title="components/product-card.tsx"
+  showLineNumbers
+/>
+
+<Step>Copy the product listing component</Step>
+
+<ComponentSource
+  name="product-listing"
+  title="components/product-listing.tsx"
+  showLineNumbers
+/>
+
+<Step>Copy the cart component</Step>
+
+<ComponentSource name="cart" title="components/cart.tsx" showLineNumbers />
+
+<Step>Update the import paths to match your project setup</Step>
+
+</Steps>
+
+</TabsContent>
+
+</CodeTabs>
+
+## Usage
+
+```tsx
+import { PesaPalCart } from "@/components/zustand-cart";
+```
+
+```tsx
+// In your page component
+export default function ShopPage() {
+  return (
+    <div className="container mx-auto">
+      <PesaPalCart />
+    </div>
+  );
+}
+```
+
+## Props
+
+The `PesaPalCart` component accepts the following props:
+
+| Prop           | Type        | Description                                                                     | Default          |
+| -------------- | ----------- | ------------------------------------------------------------------------------- | ---------------- |
+| `products`     | `Product[]` | (Optional) Array of products to display. If not provided, uses sample products. | `sampleProducts` |
+| `showCategory` | `boolean`   | (Optional) Whether to show category links on product cards.                     | `false`          |
+
+## Types
+
+```ts
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  categoryId?: string;
+}
+
+interface CartItem extends Product {
+  quantity: number;
+}
+
+interface CartState {
+  items: CartItem[];
+  addToCart: (product: Product) => void;
+  incrementQuantity: (productId: string) => void;
+  decrementQuantity: (productId: string) => void;
+  removeFromCart: (productId: string) => void;
+  getCartTotalItems: () => number;
+  getCartTotalPrice: () => number;
+  clearCart: () => void;
+}
+```
+
+## Individual Components
+
+### ProductCard
+
+The `ProductCard` component displays an individual product with image, details, and add to cart functionality.
+
+```tsx
+import { ProductCard } from "@/components/product-card";
+
+<ProductCard product={product} showCategory={true} />;
+```
+
+### ProductListing
+
+The `ProductListing` component displays a grid of product cards.
+
+```tsx
+import { ProductListing } from "@/components/product-listing";
+
+<ProductListing products={products} showCategory={true} />;
+```
+
+### Cart
+
+The `Cart` component displays the shopping cart with items, quantities, and checkout functionality.
+
+```tsx
+import { Cart } from "@/components/cart";
+
+<Cart />;
+```
+
+### useCartStore Hook
+
+The `useCartStore` hook provides access to the cart state and actions.
+
+```tsx
+import { useCartStore } from "@/hooks/use-cart-store";
+
+const { items, addToCart, removeFromCart, getCartTotalPrice } = useCartStore();
+```
+
+## Examples
+
+### Basic Usage
+
+```tsx
+import { PesaPalCart } from "@/components/zustand-cart";
+
+export default function ShopPage() {
+  return <PesaPalCart />;
+}
+```
+
+### Custom Products
+
+```tsx
+import { PesaPalCart } from "@/components/zustand-cart";
+
+const customProducts = [
+  {
+    id: "custom-1",
+    name: "Custom Product",
+    description: "This is a custom product",
+    price: 99.99,
+    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e",
+    categoryId: "custom",
+  },
+  // More products...
+];
+
+export default function ShopPage() {
+  return <PesaPalCart products={customProducts} showCategory={true} />;
+}
+```
+
+### Using Individual Components
+
+```tsx
+import { ProductListing, Cart } from "@/components/zustand-cart";
+
+const products = [
+  // Your products array
+];
+
+export default function ShopPage() {
+  return (
+    <div className="container mx-auto py-8">
+      <h1 className="mb-8 text-3xl font-bold">Our Products</h1>
+      <ProductListing products={products} />
+      <Cart />
+    </div>
+  );
+}
+```
+
+## Customization
+
+You can customize the appearance of the PesaPalCart component by modifying the CSS classes. The component uses Tailwind CSS for styling.
+
+### Styling Product Cards
+
+Override the product card styles by targeting the classes in the `ProductCard` component.
+
+### Custom Checkout Integration
+
+To integrate with PesaPal or another payment gateway, modify the checkout handler in the `Cart` component:
+
+```tsx
+const handleCheckout = () => {
+  // Replace with your payment integration
+  // Example: redirectToPesaPalCheckout(items, totalPrice);
+  alert(`Proceeding to checkout with total: $${totalPrice.toFixed(2)}`);
+};
+```
+
+## Examples
+
+<ComponentPreview name="zustand-cart-demo" notProse={false} codeCollapsible />
+
+Now let me create the individual component files as referenced in the documentation:
+
+### 1. `use-cart-store.ts`
+
+```tsx
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
+
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  categoryId?: string;
+}
+
+export interface CartItem extends Product {
+  quantity: number;
+}
+
+interface CartState {
+  items: CartItem[];
+  addToCart: (product: Product) => void;
+  incrementQuantity: (productId: string) => void;
+  decrementQuantity: (productId: string) => void;
+  removeFromCart: (productId: string) => void;
+  getCartTotalItems: () => number;
+  getCartTotalPrice: () => number;
+  clearCart: () => void;
+}
+
+export const useCartStore = create<CartState>()(
+  persist(
+    (set, get) => ({
+      items: [],
+      addToCart: (product) => {
+        set((state) => {
+          const existingItem = state.items.find(
+            (item) => item.id === product.id
+          );
+          if (existingItem) {
+            return {
+              items: state.items.map((item) =>
+                item.id === product.id
+                  ? { ...item, quantity: item.quantity + 1 }
+                  : item
+              ),
+            };
+          } else {
+            return {
+              items: [...state.items, { ...product, quantity: 1 }],
+            };
+          }
+        });
+      },
+      incrementQuantity: (productId) => {
+        set((state) => ({
+          items: state.items.map((item) =>
+            item.id === productId
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          ),
+        }));
+      },
+      decrementQuantity: (productId) => {
+        set((state) => ({
+          items: state.items
+            .map((item) =>
+              item.id === productId
+                ? { ...item, quantity: Math.max(0, item.quantity - 1) }
+                : item
+            )
+            .filter((item) => item.quantity > 0),
+        }));
+      },
+      removeFromCart: (productId) => {
+        set((state) => ({
+          items: state.items.filter((item) => item.id !== productId),
+        }));
+      },
+      getCartTotalItems: () => {
+        return get().items.reduce((total, item) => total + item.quantity, 0);
+      },
+      getCartTotalPrice: () => {
+        return get().items.reduce(
+          (total, item) => total + item.price * item.quantity,
+          0
+        );
+      },
+      clearCart: () => {
+        set({ items: [] });
+      },
+    }),
+    {
+      name: "ecommerce-cart-storage",
+      storage: createJSONStorage(() => localStorage),
+    }
+  )
+);
+```
+
+### 2. `product-card.tsx`
+
+```tsx
+"use client";
+
+import Link from "next/link";
+import { ShoppingCart, Heart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Product } from "./use-cart-store";
+import { useCartStore } from "./use-cart-store";
+
+interface ProductCardProps {
+  product: Product;
+  showCategory?: boolean;
+}
+
+export function ProductCard({
+  product,
+  showCategory = false,
+}: ProductCardProps) {
+  const addToCart = useCartStore((state) => state.addToCart);
+
+  return (
+    <div className="group overflow-hidden rounded-lg bg-white shadow-md transition-all duration-300 hover:shadow-xl">
+      <Link href={`/products/${product.id}`}>
+        <div className="relative h-48 overflow-hidden">
+          <img
+            src={product.image}
+            alt={product.name}
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = "https://via.placeholder.com/400x300?text=Product";
+            }}
+          />
+          <div className="absolute inset-0 bg-black bg-opacity-0 transition-all duration-300 group-hover:bg-opacity-20" />
+
+          {/* Quick actions overlay */}
+          <div className="absolute right-4 top-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+            <button className="rounded-full bg-white p-2 shadow-md transition-colors hover:bg-gray-50">
+              <Heart className="h-4 w-4 text-gray-600" />
+            </button>
+          </div>
+        </div>
+      </Link>
+
+      <div className="p-4">
+        <Link href={`/products/${product.id}`}>
+          <h3 className="mb-2 line-clamp-2 text-lg font-semibold text-gray-900 transition-colors group-hover:text-blue-600">
+            {product.name}
+          </h3>
+        </Link>
+
+        <p className="mb-3 line-clamp-2 text-sm text-gray-600">
+          {product.description}
+        </p>
+
+        <div className="flex items-center justify-between">
+          <span className="text-xl font-bold text-green-600">
+            ${product.price.toFixed(2)}
+          </span>
+
+          <Button
+            size="sm"
+            className="flex items-center gap-2"
+            onClick={(e) => {
+              e.preventDefault();
+              addToCart(product);
+            }}
+          >
+            <ShoppingCart className="h-4 w-4" />
+            Add to Cart
+          </Button>
+        </div>
+
+        {showCategory && product.categoryId && (
+          <div className="mt-3 border-t border-gray-100 pt-3">
+            <Link
+              href={`/categories/${product.categoryId}`}
+              className="text-xs text-blue-600 transition-colors hover:text-blue-800"
+            >
+              View Category →
+            </Link>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+```
+
+### 3. `product-listing.tsx`
+
+```tsx
+import { Product } from "./use-cart-store";
+import { ProductCard } from "./product-card";
+
+interface ProductListingProps {
+  products: Product[];
+  showCategory?: boolean;
+}
+
+export function ProductListing({
+  products,
+  showCategory = false,
+}: ProductListingProps) {
+  return (
+    <div className="mb-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {products.map((product) => (
+        <ProductCard
+          key={product.id}
+          product={product}
+          showCategory={showCategory}
+        />
+      ))}
+    </div>
+  );
+}
+```
+
+### 4. `cart.tsx`
+
+```tsx
+"use client";
+
+import { useState } from "react";
+import { ShoppingCart, X, Plus, Minus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useCartStore } from "./use-cart-store";
+
+export function Cart() {
+  const {
+    items,
+    incrementQuantity,
+    decrementQuantity,
+    removeFromCart,
+    getCartTotalPrice,
+    clearCart,
+  } = useCartStore();
+
+  const [isOpen, setIsOpen] = useState(false);
+  const totalItems = useCartStore((state) => state.getCartTotalItems());
+  const totalPrice = getCartTotalPrice();
+
+  const handleCheckout = () => {
+    alert(`Proceeding to checkout with total: $${totalPrice.toFixed(2)}`);
+    // Here you would integrate with PesaPal or other payment gateway
+  };
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50">
+      {/* Cart Toggle Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="relative rounded-full bg-blue-600 p-4 text-white shadow-lg transition-colors hover:bg-blue-700"
+      >
+        <ShoppingCart className="h-6 w-6" />
+        {totalItems > 0 && (
+          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+            {totalItems}
+          </span>
+        )}
+      </button>
+
+      {/* Cart Panel */}
+      {isOpen && (
+        <div className="absolute bottom-16 right-0 flex max-h-96 w-80 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl">
+          <div className="flex items-center justify-between border-b border-gray-200 p-4">
+            <h3 className="text-lg font-semibold">
+              Your Cart ({totalItems} items)
+            </h3>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4">
+            {items.length === 0 ? (
+              <p className="py-8 text-center text-gray-500">
+                Your cart is empty
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between border-b pb-3"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="h-12 w-12 rounded object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src =
+                            "https://via.placeholder.com/100x100?text=Product";
+                        }}
+                      />
+                      <div>
+                        <h4 className="line-clamp-1 text-sm font-medium">
+                          {item.name}
+                        </h4>
+                        <p className="font-semibold text-green-600">
+                          ${item.price.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => decrementQuantity(item.id)}
+                        className="rounded-full bg-gray-100 p-1 hover:bg-gray-200"
+                      >
+                        <Minus className="h-3 w-3" />
+                      </button>
+
+                      <span className="text-sm font-medium">
+                        {item.quantity}
+                      </span>
+
+                      <button
+                        onClick={() => incrementQuantity(item.id)}
+                        className="rounded-full bg-gray-100 p-1 hover:bg-gray-200"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </button>
+
+                      <button
+                        onClick={() => removeFromCart(item.id)}
+                        className="ml-2 p-1 text-red-500 hover:text-red-700"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {items.length > 0 && (
+            <div className="border-t border-gray-200 p-4">
+              <div className="mb-4 flex items-center justify-between">
+                <span className="font-semibold">Total:</span>
+                <span className="text-xl font-bold text-green-600">
+                  ${totalPrice.toFixed(2)}
+                </span>
+              </div>
+
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={clearCart}
+                >
+                  Clear Cart
+                </Button>
+                <Button
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                  onClick={handleCheckout}
+                >
+                  Pay Now
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### 5. `zustand-cart.tsx` (Main Component)
+
+```tsx
+import { ProductListing } from "./product-listing";
+import { Cart } from "./cart";
+import { Product } from "./use-cart-store";
+
+// Sample product data with Unsplash images
+const sampleProducts: Product[] = [
+  {
+    id: "1",
+    name: "Premium Headphones",
+    description:
+      "Noise-cancelling wireless headphones with exceptional sound quality and comfort.",
+    price: 199.99,
+    image:
+      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    categoryId: "electronics",
+  },
+  {
+    id: "2",
+    name: "Smart Watch Series 5",
+    description:
+      "Advanced smartwatch with health monitoring, GPS, and long battery life.",
+    price: 249.99,
+    image:
+      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    categoryId: "electronics",
+  },
+  {
+    id: "3",
+    name: "Designer Backpack",
+    description:
+      "Durable and stylish backpack with multiple compartments and laptop sleeve.",
+    price: 89.99,
+    image:
+      "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+    categoryId: "fashion",
+  },
+];
+
+interface PesaPalCartProps {
+  products?: Product[];
+  showCategory?: boolean;
+}
+
+export function PesaPalCart({
+  products = sampleProducts,
+  showCategory = false,
+}: PesaPalCartProps) {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h2 className="mb-8 text-center text-3xl font-bold">Featured Products</h2>
+
+      <ProductListing products={products} showCategory={showCategory} />
+
+      <Cart />
+    </div>
+  );
+}
+```
+
+### 6. `index.ts` (Barrel File)
+
+```tsx
+export { PesaPalCart } from "./zustand-cart";
+export { ProductCard } from "./product-card";
+export { ProductListing } from "./product-listing";
+export { Cart } from "./cart";
+export { useCartStore } from "./use-cart-store";
+export type { Product, CartItem } from "./use-cart-store";
+```
+
+This implementation provides a complete, reusable e-commerce cart component with Zustand state management, individual sub-components, and comprehensive documentation.

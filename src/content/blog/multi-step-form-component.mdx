@@ -1,0 +1,46 @@
+---
+title: Multi Step Form Component
+description: A complete multi step form component built with zustand and shadcn forms.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwfHg7ZyUBCDLwfiQb7ypA8NqdmaR9OJs6ego2E
+category: components
+createdAt: 2025-09-18
+updatedAt: 2025-09-18
+---
+
+{/* <ComponentPreview name="zustand-cart-demo" notProse={false} codeCollapsible /> */}
+
+## Installation
+
+<CodeTabs className="gap-0">
+
+<TabsList>
+  <TabsTriggerShadcnCLI />
+  {/* <TabsTrigger value="manual">Manual</TabsTrigger> */}
+</TabsList>
+
+<TabsContent value="cli" className="[&>figure]:last:mb-0">
+
+```bash
+pnpm dlx shadcn@latest add https://jb.desishub.com/r/multi-step-form.json
+```
+
+</TabsContent>
+
+</CodeTabs>
+
+## Usage
+
+```tsx
+import { MultiStepForm } from "@/components/multi-step-form";
+```
+
+```tsx
+// In your page component
+export default function Page() {
+  return (
+    <div className="container mx-auto">
+      <MultiStepForm />
+    </div>
+  );
+}
+```

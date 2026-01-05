@@ -1,0 +1,1059 @@
+---
+title: "Complete Guide to JWT Authentication in Go with Gin Framework"
+description: "Learn how to implement secure JWT authentication in Go using Gin and GORM. This comprehensive guide covers user registration, login with both cookie and token-based authentication, protected routes with middleware, password hashing with bcrypt, and React client integration with React Query. Includes complete code examples, project structure, HTTPie testing commands, and production-ready best practices."
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwfWPGRieaB2GAq6wtmJQHUsIV8TRSxaFDvP1eO
+category: programming
+createdAt: 2025-10-02
+updatedAt: 2025-10-02
+---
+
+# Complete Guide: JWT Authentication in Go with Gin Framework
+
+## Table of Contents
+
+1. [Project Overview](#project-overview)
+2. [Project Structure](#project-structure)
+3. [Prerequisites](#prerequisites)
+4. [Step-by-Step Implementation](#step-by-step-implementation)
+5. [Testing with HTTPie](#testing-with-httpie)
+6. [React Client Integration](#react-client-integration)
+
+---
+
+## Project Overview
+
+This guide demonstrates how to implement JWT (JSON Web Token) authentication in a Go application using the Gin framework. The implementation supports both **cookie-based authentication** (recommended for web apps) and **token-based authentication** (recommended for mobile apps and APIs).
+
+### Key Features
+
+- User registration with password hashing
+- JWT token generation and validation
+- Cookie-based and token-based authentication
+- Protected routes middleware
+- Role-based user model (USER/ADMIN)
+
+---
+
+### Prerequisites
+
+- You need to know the Basics of Golang
+- You also need to know to the basics of Gin and how to setup a simple API using Gin
+- You can start by reading the Basics and API Documentation here
+  [Visit docs](https://jb.desishub.com/blog/golang-basics-to-api-development)
+
+---
+
+## Project Structure
+
+```
+go-jwt/
+├── controllers/
+│   ├── user_controller.go      # Authentication handlers
+│   └── category_controller.go  # Example protected resource
+├── dtos/
+│   ├── global_dto.go           # Common response structures
+│   └── user_dto.go             # User request/response DTOs
+├── initializers/
+│   ├── database.go             # Database connection
+│   └── loadEnvVariables.go     # Environment config
+├── middleware/
+│   └── require_auth.go         # Authentication middleware
+├── migrate/
+│   └── migrate.go              # Database migrations
+├── models/
+│   └── user.go                 # User model
+├── .env                        # Environment variables
+├── main.go                     # Application entry point
+├── go.mod                      # Go modules
+└── go.sum                      # Dependencies checksum
+```
+
+---
+
+## Prerequisites
+
+### Required Packages
+
+```bash
+# Initialize Go module
+go mod init github.com/yourusername/go-jwt
+
+# Install dependencies
+go get github.com/gin-gonic/gin
+go get gorm.io/gorm
+go get gorm.io/driver/postgres
+go get github.com/golang-jwt/jwt/v5
+go get golang.org/x/crypto/bcrypt
+go get github.com/joho/godotenv
+```
+
+---
+
+## Step-by-Step Implementation
+
+### Step 1: Environment Configuration
+
+Create a `.env` file in your project root:
+
+```dotenv
+PORT=3000
+DATABASE_URL="host=your-host user=your-user password=your-password dbname=your-db port=5432 sslmode=require"
+SECRET_KEY='your-secret-key-here'
+```
+
+Generate a secure secret key:
+
+```bash
+openssl rand -base64 32
+```
+
+### Step 2: Database Initialization
+
+**File: `initializers/loadEnvVariables.go`**
+
+```go
+package initializers
+
+import (
+	"log"
+	"github.com/joho/godotenv"
+)
+
+func LoadEnvVariables() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+}
+```
+
+**File: `initializers/database.go`**
+
+```go
+package initializers
+
+import (
+	"fmt"
+	"log"
+	"os"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+)
+
+var DB *gorm.DB
+
+func ConnectToDB() {
+	var err error
+	dsn := os.Getenv("DATABASE_URL")
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+	if err != nil {
+		log.Fatal("Failed to connect to the DB:", err)
+	}
+
+	fmt.Println("Successfully connected to database!")
+}
+```
+
+### Step 3: User Model
+
+**File: `models/user.go`**
+
+```go
+package models
+
+import "gorm.io/gorm"
+
+const (
+	RoleUser  = "USER"
+	RoleAdmin = "ADMIN"
+)
+
+type User struct {
+	gorm.Model
+	Email    string `gorm:"unique"`
+	Password string
+	Role     string `gorm:"default:USER;not null"`
+}
+
+func (u *User) IsAdmin() bool {
+	return u.Role == RoleAdmin
+}
+```
+
+### Step 4: DTOs (Data Transfer Objects)
+
+**File: `dtos/global_dto.go`**
+
+```go
+package dtos
+
+type SuccessResponse struct {
+	Success bool        `json:"success"`
+	Data    interface{} `json:"data,omitempty"`
+	Message string      `json:"message,omitempty"`
+}
+
+type ErrorResponse struct {
+	Success bool   `json:"success"`
+	Error   string `json:"error"`
+}
+
+type IDResponse struct {
+	ID uint `json:"id"`
+}
+
+type TokenResponse struct {
+	Token string `json:"token"`
+}
+```
+
+**File: `dtos/user_dto.go`**
+
+```go
+package dtos
+
+type CreateUserRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+}
+
+type LoginUserRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+}
+```
+
+### Step 5: User Controller (Authentication Logic)
+
+**File: `controllers/user_controller.go`**
+
+```go
+package controllers
+
+import (
+	"errors"
+	"net/http"
+	"os"
+	"strings"
+	"time"
+
+	"github.com/MUKE-coder/go-jwt/dtos"
+	"github.com/MUKE-coder/go-jwt/initializers"
+	"github.com/MUKE-coder/go-jwt/models"
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
+)
+
+// SignUp creates a new user account
+func SignUp(c *gin.Context) {
+	var req dtos.CreateUserRequest
+
+	// Validate request body
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Invalid input: " + err.Error(),
+		})
+		return
+	}
+
+	// Hash the password
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), 10)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Failed to hash password",
+		})
+		return
+	}
+
+	// Create the user
+	user := models.User{
+		Email:    req.Email,
+		Password: string(hash),
+		Role:     models.RoleUser,
+	}
+
+	if err := initializers.DB.Create(&user).Error; err != nil {
+		// Check for duplicate email
+		if strings.Contains(err.Error(), "duplicate") || strings.Contains(err.Error(), "unique") {
+			c.JSON(http.StatusConflict, dtos.ErrorResponse{
+				Success: false,
+				Error:   "User with this email already exists",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Failed to create user",
+		})
+		return
+	}
+
+	// Return user ID
+	c.JSON(http.StatusCreated, dtos.SuccessResponse{
+		Success: true,
+		Data:    dtos.IDResponse{ID: user.ID},
+	})
+}
+
+// LoginWithToken returns JWT token in response body (for mobile apps)
+func LoginWithToken(c *gin.Context) {
+	var req dtos.LoginUserRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Invalid input: " + err.Error(),
+		})
+		return
+	}
+
+	// Find user by email
+	var user models.User
+	result := initializers.DB.Where("email = ?", req.Email).First(&user)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+				Success: false,
+				Error:   "Invalid email or password",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Something went wrong",
+		})
+		return
+	}
+
+	// Verify password
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Invalid email or password",
+		})
+		return
+	}
+
+	// Generate JWT token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": user.ID,
+		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
+	})
+
+	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET_KEY")))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Failed to create token",
+		})
+		return
+	}
+
+	// Return token in response body
+	c.JSON(http.StatusOK, dtos.SuccessResponse{
+		Success: true,
+		Data:    dtos.TokenResponse{Token: tokenString},
+	})
+}
+
+// LoginWithCookie sets JWT token in HTTP-only cookie (for web apps)
+func LoginWithCookie(c *gin.Context) {
+	var req dtos.LoginUserRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Invalid input: " + err.Error(),
+		})
+		return
+	}
+
+	var user models.User
+	result := initializers.DB.Where("email = ?", req.Email).First(&user)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+				Success: false,
+				Error:   "Invalid email or password",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Something went wrong",
+		})
+		return
+	}
+
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Invalid email or password",
+		})
+		return
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": user.ID,
+		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
+	})
+
+	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET_KEY")))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Failed to create token",
+		})
+		return
+	}
+
+	// Set cookie with security flags
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie(
+		"Authorization",      // name
+		tokenString,          // value
+		3600 * 24 * 30,      // maxAge (30 days)
+		"/",                  // path
+		"",                   // domain
+		false,                // secure (false for HTTP, true for HTTPS)
+		true,                 // httpOnly
+	)
+
+	c.JSON(http.StatusOK, dtos.SuccessResponse{
+		Success: true,
+		Data:    map[string]string{"message": "Login successful"},
+	})
+}
+
+// Validate returns the authenticated user's information
+func Validate(c *gin.Context) {
+	user, _ := c.Get("user")
+	c.JSON(http.StatusOK, dtos.SuccessResponse{
+		Success: true,
+		Data:    user,
+	})
+}
+```
+
+### Step 6: Authentication Middleware
+
+**File: `middleware/require_auth.go`**
+
+```go
+package middleware
+
+import (
+	"fmt"
+	"net/http"
+	"os"
+	"strings"
+	"time"
+
+	"github.com/MUKE-coder/go-jwt/dtos"
+	"github.com/MUKE-coder/go-jwt/initializers"
+	"github.com/MUKE-coder/go-jwt/models"
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
+)
+
+// RequireAuthWithToken validates JWT from Authorization header
+func RequireAuthWithToken(c *gin.Context) {
+	authHeader := c.GetHeader("Authorization")
+
+	if authHeader == "" {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Unauthorized - No token provided",
+		})
+		c.Abort()
+		return
+	}
+
+	// Extract token from "Bearer <token>"
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+
+	if tokenString == authHeader {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Unauthorized - Invalid token format",
+		})
+		c.Abort()
+		return
+	}
+
+	// Parse and validate token
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(os.Getenv("SECRET_KEY")), nil
+	})
+
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Unauthorized - Invalid token",
+		})
+		c.Abort()
+		return
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		// Check expiration
+		if float64(time.Now().Unix()) > claims["exp"].(float64) {
+			c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+				Success: false,
+				Error:   "Unauthorized - Token expired",
+			})
+			c.Abort()
+			return
+		}
+
+		// Find user
+		var user models.User
+		initializers.DB.First(&user, claims["sub"])
+
+		if user.ID == 0 {
+			c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+				Success: false,
+				Error:   "Unauthorized - User not found",
+			})
+			c.Abort()
+			return
+		}
+
+		// Attach user to context
+		c.Set("user", user)
+		c.Next()
+	} else {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Unauthorized - Invalid token claims",
+		})
+		c.Abort()
+		return
+	}
+}
+
+// RequireAuthWithCookie validates JWT from cookie
+func RequireAuthWithCookie(c *gin.Context) {
+	tokenString, err := c.Cookie("Authorization")
+
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Unauthorized - No token provided",
+		})
+		c.Abort()
+		return
+	}
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(os.Getenv("SECRET_KEY")), nil
+	})
+
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Unauthorized - Invalid token",
+		})
+		c.Abort()
+		return
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		if float64(time.Now().Unix()) > claims["exp"].(float64) {
+			c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+				Success: false,
+				Error:   "Unauthorized - Token expired",
+			})
+			c.Abort()
+			return
+		}
+
+		var user models.User
+		initializers.DB.First(&user, claims["sub"])
+
+		if user.ID == 0 {
+			c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+				Success: false,
+				Error:   "Unauthorized - User not found",
+			})
+			c.Abort()
+			return
+		}
+
+		c.Set("user", user)
+		c.Next()
+	} else {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Unauthorized - Invalid token claims",
+		})
+		c.Abort()
+		return
+	}
+}
+```
+
+### Step 7: Database Migration
+
+**File: `migrate/migrate.go`**
+
+```go
+package main
+
+import (
+	"github.com/MUKE-coder/go-jwt/initializers"
+	"github.com/MUKE-coder/go-jwt/models"
+)
+
+func init() {
+	initializers.LoadEnvVariables()
+	initializers.ConnectToDB()
+}
+
+func main() {
+	initializers.DB.AutoMigrate(&models.User{})
+}
+```
+
+Run migration:
+
+```bash
+go run migrate/migrate.go
+```
+
+### Step 8: Main Application
+
+**File: `main.go`**
+
+```go
+package main
+
+import (
+	"github.com/MUKE-coder/go-jwt/controllers"
+	"github.com/MUKE-coder/go-jwt/initializers"
+	"github.com/MUKE-coder/go-jwt/middleware"
+	"github.com/gin-gonic/gin"
+)
+
+func init() {
+	initializers.LoadEnvVariables()
+	initializers.ConnectToDB()
+}
+
+func main() {
+	router := gin.Default()
+
+	v1 := router.Group("/api/v1")
+	{
+		users := v1.Group("/users")
+		{
+			// Public routes
+			users.POST("", controllers.SignUp)
+			users.POST("/login", controllers.LoginWithToken)
+
+			// Protected route
+			users.GET("/validate", middleware.RequireAuthWithToken, controllers.Validate)
+		}
+	}
+
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status":  "ok",
+			"message": "Server is running",
+		})
+	})
+
+	router.Run(":3000")
+}
+```
+
+---
+
+## Testing with HTTPie
+
+### 1. Sign Up
+
+```bash
+http POST :3000/api/v1/users \
+  email=user@example.com \
+  password=password123
+```
+
+### 2. Login (Token-based)
+
+```bash
+# Create a session for automatic cookie handling
+http --session=myapp POST :3000/api/v1/users/login \
+  email=user@example.com \
+  password=password123
+```
+
+### 3. Access Protected Route
+
+```bash
+# Using session (automatically sends token)
+http --session=myapp GET :3000/api/v1/users/validate
+
+# Or manually with Authorization header
+http GET :3000/api/v1/users/validate \
+  Authorization:"Bearer YOUR_TOKEN_HERE"
+```
+
+---
+
+## React Client Integration
+
+### Setup React Query
+
+```bash
+npm install @tanstack/react-query axios
+```
+
+### API Client Setup
+
+**File: `src/lib/api.js`**
+
+```javascript
+const API_BASE_URL = "http://localhost:3000/api/v1";
+
+// Sign Up
+export const signUp = async (userData) => {
+  const response = await fetch(`${API_BASE_URL}/users`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(userData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Sign up failed");
+  }
+
+  return response.json();
+};
+
+// Login
+export const login = async (credentials) => {
+  const response = await fetch(`${API_BASE_URL}/users/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(credentials),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Login failed");
+  }
+
+  const data = await response.json();
+
+  // Store token in localStorage
+  if (data.success && data.data.token) {
+    localStorage.setItem("authToken", data.data.token);
+  }
+
+  return data;
+};
+
+// Validate User (Protected Route)
+export const validateUser = async () => {
+  const token = localStorage.getItem("authToken");
+
+  if (!token) {
+    throw new Error("No authentication token found");
+  }
+
+  const response = await fetch(`${API_BASE_URL}/users/validate`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    // Clear invalid token
+    localStorage.removeItem("authToken");
+    const error = await response.json();
+    throw new Error(error.error || "Validation failed");
+  }
+
+  return response.json();
+};
+
+// Logout
+export const logout = () => {
+  localStorage.removeItem("authToken");
+};
+```
+
+### React Query Hooks
+
+**File: `src/hooks/useAuth.js`**
+
+```javascript
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { signUp, login, validateUser, logout } from "../lib/api";
+
+// Sign Up Hook
+export const useSignUp = () => {
+  return useMutation({
+    mutationFn: signUp,
+    onSuccess: (data) => {
+      console.log("User created:", data);
+    },
+    onError: (error) => {
+      console.error("Sign up error:", error.message);
+    },
+  });
+};
+
+// Login Hook
+export const useLogin = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: login,
+    onSuccess: (data) => {
+      // Invalidate and refetch user data
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+    },
+    onError: (error) => {
+      console.error("Login error:", error.message);
+    },
+  });
+};
+
+// Validate User Hook
+export const useUser = () => {
+  return useQuery({
+    queryKey: ["user"],
+    queryFn: validateUser,
+    retry: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+// Logout Hook
+export const useLogout = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: logout,
+    onSuccess: () => {
+      // Clear all queries
+      queryClient.clear();
+    },
+  });
+};
+```
+
+### Component Examples
+
+**File: `src/components/SignUpForm.jsx`**
+
+```javascript
+import { useState } from "react";
+import { useSignUp } from "../hooks/useAuth";
+
+export default function SignUpForm() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const signUpMutation = useSignUp();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    signUpMutation.mutate({ email, password });
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <h2>Sign Up</h2>
+
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+      />
+
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+      />
+
+      <button type="submit" disabled={signUpMutation.isPending}>
+        {signUpMutation.isPending ? "Signing up..." : "Sign Up"}
+      </button>
+
+      {signUpMutation.isError && (
+        <p className="error">{signUpMutation.error.message}</p>
+      )}
+
+      {signUpMutation.isSuccess && (
+        <p className="success">Account created successfully!</p>
+      )}
+    </form>
+  );
+}
+```
+
+**File: `src/components/LoginForm.jsx`**
+
+```javascript
+import { useState } from "react";
+import { useLogin } from "../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+
+export default function LoginForm() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const loginMutation = useLogin();
+  const navigate = useNavigate();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    loginMutation.mutate(
+      { email, password },
+      {
+        onSuccess: () => {
+          navigate("/dashboard");
+        },
+      }
+    );
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <h2>Login</h2>
+
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+      />
+
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+      />
+
+      <button type="submit" disabled={loginMutation.isPending}>
+        {loginMutation.isPending ? "Logging in..." : "Login"}
+      </button>
+
+      {loginMutation.isError && (
+        <p className="error">{loginMutation.error.message}</p>
+      )}
+    </form>
+  );
+}
+```
+
+**File: `src/components/Dashboard.jsx`**
+
+```javascript
+import { useUser, useLogout } from "../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+
+export default function Dashboard() {
+  const { data, isLoading, isError } = useUser();
+  const logoutMutation = useLogout();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        navigate("/login");
+      },
+    });
+  };
+
+  if (isLoading) return <div>Loading...</div>;
+
+  if (isError) {
+    navigate("/login");
+    return null;
+  }
+
+  return (
+    <div>
+      <h2>Dashboard</h2>
+      <p>Welcome, {data?.data?.Email}!</p>
+      <p>Role: {data?.data?.Role}</p>
+      <button onClick={handleLogout}>Logout</button>
+    </div>
+  );
+}
+```
+
+**File: `src/App.jsx`**
+
+```javascript
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import SignUpForm from "./components/SignUpForm";
+import LoginForm from "./components/LoginForm";
+import Dashboard from "./components/Dashboard";
+
+const queryClient = new QueryClient();
+
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/signup" element={<SignUpForm />} />
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
+}
+```
+
+---
+
+## Security Considerations
+
+1. **HTTPS in Production**: Always set `secure: true` in cookie settings when using HTTPS
+2. **CORS Configuration**: Add proper CORS middleware for frontend integration
+3. **Token Expiration**: Implement refresh tokens for long-lived sessions
+4. **Password Requirements**: Enforce strong password policies
+5. **Rate Limiting**: Add rate limiting to prevent brute-force attacks
+6. **Environment Variables**: Never commit `.env` files to version control
+
+---
+
+## Conclusion
+
+This authentication system provides a solid foundation for securing your Go API. You can extend it with features like email verification, password reset, refresh tokens, and role-based access control as needed.

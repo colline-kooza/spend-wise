@@ -1,0 +1,2468 @@
+---
+title: Complete Guide to API Performance Testing with k6
+description: A comprehensive step-by-step guide to performance testing REST APIs using k6, covering load testing, stress testing, spike testing, and soak testing with real-world examples for e-commerce, school management, and authentication systems.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwfDhu0Fk2zpw0c36JH7sOCd8NogZbL2RWiu4yQ
+category: tutorial
+createdAt: 2025-12-05
+updatedAt: 2025-12-05
+---
+
+# Complete Guide to API Performance Testing with k6
+
+## Table of Contents
+
+1. [Introduction to Performance Testing](#introduction)
+2. [Understanding Grafana and k6](#understanding-k6)
+3. [How k6 Works](#how-k6-works)
+4. [Performance Testing Goals](#testing-goals)
+5. [Case Study 1: E-commerce API](#ecommerce-api)
+6. [Case Study 2: School Management System API](#school-api)
+7. [Case Study 3: Authentication API](#auth-api)
+8. [Infrastructure Considerations](#infrastructure)
+9. [Load Balancing with Cloudflare](#load-balancing)
+10. [Alternative Testing Tools](#alternatives)
+
+---
+
+## 1. Introduction to Performance Testing `{#introduction}`
+
+### What is Performance Testing?
+
+Performance testing is a type of non-functional testing that evaluates how a system performs under various workload conditions. While functional tests (unit tests, integration tests) verify that your application works correctly, performance tests ensure your application can handle real-world usage patterns efficiently.
+
+### Why is Performance Testing Important?
+
+1. **Prevents Production Disasters**: Imagine launching a product and having your payment system crash when thousands of users try to make purchases simultaneously. Performance testing helps you avoid catastrophic failures that result in revenue loss and reputation damage.
+
+2. **Identifies Bottlenecks Early**: Find performance issues during development rather than after deployment when fixing them is more expensive and disruptive.
+
+3. **Capacity Planning**: Understand how much infrastructure you need to handle expected traffic, helping you optimize costs.
+
+4. **User Experience**: Slow response times lead to user frustration and abandonment. Studies show that a 1-second delay in page load time can result in 7% fewer conversions.
+
+5. **SLA Compliance**: Many businesses have Service Level Agreements (SLAs) that guarantee specific response times and uptime percentages.
+
+6. **Confidence in Scalability**: Know that your system can grow with your business without requiring complete rewrites.
+
+---
+
+## 2. Understanding Grafana and k6 `{#understanding-k6}`
+
+### What is Grafana?
+
+Grafana is an open-source analytics and monitoring platform that allows you to visualize, query, and understand metrics from various data sources. It's widely used for:
+
+- Infrastructure monitoring
+- Application performance monitoring
+- Business analytics
+- Creating dashboards with real-time data visualization
+
+### What is Grafana k6?
+
+k6 is an open-source load testing tool developed by Grafana Labs (formerly Load Impact). It's specifically designed for testing the performance of APIs, microservices, and websites. Key features include:
+
+- **Developer-friendly**: Write tests in JavaScript (ES6+)
+- **Performance-focused**: Written in Go for efficient resource usage
+- **CLI-based**: Run tests from the command line
+- **Cloud integration**: Optional cloud service for distributed testing
+- **Versatile**: Supports HTTP, WebSockets, gRPC, and browser automation
+
+### Why k6?
+
+1. **Simplicity**: Minimal code required to create sophisticated tests
+2. **Scriptable**: Full JavaScript support for complex scenarios
+3. **Accurate metrics**: Precise measurements of response times and throughput
+4. **CI/CD Integration**: Easy to integrate into automated pipelines
+5. **Free and Open Source**: No licensing costs for the core tool
+6. **Active Community**: Regular updates and extensive documentation
+
+---
+
+## 3. How k6 Works `{#how-k6-works}`
+
+### Core Concepts
+
+#### Virtual Users (VUs)
+
+Virtual Users represent concurrent users making requests to your API. Each VU runs your test script independently and repeatedly until the test duration expires.
+
+```javascript
+export const options = {
+  vus: 10, // 10 concurrent users
+  duration: "30s", // Run for 30 seconds
+};
+```
+
+#### Stages
+
+Stages allow you to gradually increase or decrease load over time, simulating realistic traffic patterns.
+
+```javascript
+export const options = {
+  stages: [
+    { duration: "2m", target: 100 }, // Ramp up to 100 users over 2 minutes
+    { duration: "5m", target: 100 }, // Stay at 100 users for 5 minutes
+    { duration: "2m", target: 0 }, // Ramp down to 0 users over 2 minutes
+  ],
+};
+```
+
+#### Thresholds
+
+Thresholds define pass/fail criteria for your tests.
+
+```javascript
+export const options = {
+  thresholds: {
+    http_req_duration: ["p(95)<500"], // 95% of requests must complete under 500ms
+    http_req_failed: ["rate<0.01"], // Less than 1% of requests can fail
+    checks: ["rate>0.95"], // 95% of checks must pass
+  },
+};
+```
+
+#### Example 1 : Simple Test
+
+```tsx
+import { check, sleep } from "k6";
+import http from "k6/http";
+
+export const options = {
+  vus: 1,
+  duration: "10s",
+};
+export default () => {
+  http.get("http://localhost:8000/api/products");
+};
+```
+
+#### Example Two
+
+```tsx
+import { check, sleep } from "k6";
+import http from "k6/http";
+// SCENARIO TWO : STANDARD LOAD TEST with stages normally takes 30minutes
+export const options = {
+  stages: [
+    {
+      duration: "5m",
+      target: 200, //ramp up
+      duration: "20m",
+      target: 200, //stable
+      duration: "5m",
+      target: 0, //ramp down to 0 users
+    },
+  ],
+  thresholds: {
+    http_req_duration: ["p(99)<1000"], // More realistic: 1 second
+    http_req_failed: ["rate<0.1"], // Less than 10% errors
+    checks: ["rate>0.95"], // 95%+ checks pass
+  },
+};
+export default () => {
+  const res = http.get("http://localhost:8000/api/products");
+  check(res, {
+    "status is 200": (r) => r.status === 200, // Fixed: number not string
+    "response has body": (r) => r.body.length > 0,
+  });
+  sleep(1);
+};
+```
+
+### Understanding k6 Metrics
+
+When you run a k6 test, you'll see various metrics:
+
+#### HTTP Metrics
+
+- **http_req_duration**: Total time for the request (sending, waiting, receiving)
+- **http_req_blocked**: Time spent blocked before initiating request
+- **http_req_connecting**: Time spent establishing TCP connection
+- **http_req_sending**: Time spent sending data
+- **http_req_waiting**: Time spent waiting for response (TTFB - Time To First Byte)
+- **http_req_receiving**: Time spent receiving response data
+- **http_req_failed**: Rate of failed requests
+- **http_reqs**: Total number of HTTP requests
+
+#### Performance Metrics
+
+- **iteration_duration**: Time to complete one iteration of the test
+- **iterations**: Number of times VUs executed the script
+- **vus**: Current number of active virtual users
+- **vus_max**: Maximum number of virtual users allocated
+
+#### Network Metrics
+
+- **data_received**: Amount of data received
+- **data_sent**: Amount of data sent
+
+#### Percentiles (p90, p95, p99)
+
+These show the response time at different percentiles:
+
+- **p(90)**: 90% of requests completed faster than this time
+- **p(95)**: 95% of requests completed faster than this time
+- **p(99)**: 99% of requests completed faster than this time
+
+The p(99) is particularly important as it represents the experience of your slowest users.
+
+### Installation
+
+**Option 1: Using Windows Package Manager (winget)**
+This is the recommended method if you have a modern version of Windows and PowerShell or Command Prompt.
+Open your terminal (PowerShell or Command Prompt).
+Run the installation command:
+powershell
+
+```bash
+winget install k6
+```
+
+Verify the installation by checking the version:
+powershell
+
+```bash
+k6 version
+```
+
+**Option 2: Using Chocolatey**
+Chocolatey is a popular open-source package manager for Windows.
+Install Chocolatey (if you don't have it):
+Open PowerShell as Administrator (right-click PowerShell in the Start menu and select "Run as administrator").
+Run the following command to install Chocolatey:
+powershell
+
+```bash
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+```
+
+Close and reopen PowerShell for the changes to take effect.
+Install k6:
+Open your terminal (standard user privileges are fine now).
+Run the installation command:
+
+```bash
+choco install k6
+```
+
+Verify the installation by checking the version:
+
+```bash
+k6 version
+```
+
+### The k6 Test Lifecycle
+
+```javascript
+// 1. Init stage - runs once per VU (load modules, read files)
+import http from "k6/http";
+import { check, sleep } from "k6";
+
+// 2. Setup stage - runs once before test (optional)
+export function setup() {
+  // Prepare test data
+  return { token: "auth-token" };
+}
+
+// 3. VU stage - runs repeatedly for each VU
+export default function (data) {
+  const response = http.get("https://api.example.com", {
+    headers: { Authorization: `Bearer ${data.token}` },
+  });
+
+  check(response, {
+    "status is 200": (r) => r.status === 200,
+  });
+
+  sleep(1);
+}
+
+// 4. Teardown stage - runs once after test (optional)
+export function teardown(data) {
+  // Cleanup
+}
+```
+
+---
+
+## 4. Performance Testing Goals `{#testing-goals}`
+
+### What Are We Looking For?
+
+#### 1. **Response Time Metrics**
+
+- Average response time
+- Median response time (p50)
+- 95th percentile (p95) - what most users experience
+- 99th percentile (p99) - worst-case scenarios
+- Maximum response time
+
+**Target**: Most APIs should respond within 200-500ms for p95.
+
+#### 2. **Throughput**
+
+- Requests per second (RPS) the system can handle
+- Maximum concurrent users supported
+
+**Target**: Depends on your expected traffic. E-commerce might need 1000+ RPS during sales.
+
+#### 3. **Error Rate**
+
+- Percentage of failed requests
+- Types of errors (4xx vs 5xx)
+- Error patterns under load
+
+**Target**: Less than 0.1% error rate under normal load, less than 1% under stress.
+
+#### 4. **Resource Utilization**
+
+- CPU usage
+- Memory consumption
+- Database connections
+- Disk I/O
+- Network bandwidth
+
+**Target**: CPU should stay below 70% under normal load to handle spikes.
+
+#### 5. **Stability Over Time**
+
+- Memory leaks
+- Connection pool exhaustion
+- Gradual performance degradation
+
+**Target**: Performance should remain consistent over extended periods.
+
+#### 6. **Recovery Behavior**
+
+- How quickly the system recovers after load decreases
+- Whether connection pools are released properly
+- Circuit breaker effectiveness
+
+#### 7. **Database Performance**
+
+- Query execution times
+- Connection pool usage
+- Deadlocks or long-running transactions
+- Cache hit rates
+
+#### 8. **Scalability**
+
+- Linear scalability (2x servers = 2x capacity?)
+- Bottlenecks that prevent scaling
+- Coordination overhead
+
+#### 9. **Breaking Points**
+
+- Maximum load before system fails
+- Graceful degradation vs catastrophic failure
+- Point where adding more load decreases throughput
+
+#### 10. **Third-Party Dependencies**
+
+- Impact of external API failures
+- Timeout configurations
+- Retry logic effectiveness
+
+---
+
+## 5. Case Study 1: E-commerce API `{#ecommerce-api}`
+
+### Understanding E-commerce Traffic Patterns
+
+E-commerce platforms experience:
+
+- **Peak traffic during sales events** (Black Friday, flash sales)
+- **Variable load throughout the day** (higher during lunch and evening)
+- **Seasonal spikes** (holiday shopping)
+- **Cart abandonment patterns** (users browsing but not buying)
+- **Checkout critical path** (payment processing cannot fail)
+
+### High-Traffic Endpoints
+
+1. **Product Search/Listing** (Highest traffic)
+   - Users browsing products constantly
+   - Complex database queries with filters, sorting, pagination
+2. **Product Details** (High traffic)
+   - Every clicked product
+   - Often cached but still high volume
+3. **Cart Operations** (Medium-high traffic)
+   - Add to cart, update quantity, remove items
+   - Session management required
+4. **Checkout/Payment** (Critical, medium traffic)
+   - Lower volume but MUST work reliably
+   - High-value transactions
+5. **User Authentication** (Medium traffic)
+   - Login, registration
+   - Token generation and validation
+
+### Test Strategy
+
+#### Test 1: Load Test (Normal Shopping Day)
+
+**Purpose**: Ensure the system handles typical daily traffic smoothly.
+
+```javascript
+import http from "k6/http";
+import { check, sleep } from "k6";
+import { SharedArray } from "k6/data";
+
+// Shared test data
+const products = new SharedArray("products", function () {
+  return Array.from({ length: 100 }, (_, i) => ({
+    id: i + 1,
+    category: ["electronics", "clothing", "books"][i % 3],
+  }));
+});
+
+const users = new SharedArray("users", function () {
+  return Array.from({ length: 50 }, (_, i) => ({
+    email: `user${i}@example.com`,
+    password: "Password123!",
+  }));
+});
+
+export const options = {
+  stages: [
+    { duration: "5m", target: 200 }, // Ramp up to 200 users (morning traffic)
+    { duration: "20m", target: 200 }, // Maintain 200 users (steady daytime traffic)
+    { duration: "5m", target: 0 }, // Ramp down
+  ],
+  thresholds: {
+    http_req_duration: ["p(95)<500", "p(99)<1000"], // 95% under 500ms, 99% under 1s
+    http_req_failed: ["rate<0.01"], // Less than 1% errors
+    "http_req_duration{endpoint:search}": ["p(95)<800"], // Search can be slower
+    "http_req_duration{endpoint:checkout}": ["p(99)<2000"], // Checkout critical
+  },
+};
+
+const BASE_URL = "http://localhost:8000/api";
+let authToken = "";
+
+export function setup() {
+  // Create test user and get auth token
+  const loginRes = http.post(
+    `${BASE_URL}/auth/login`,
+    JSON.stringify({
+      email: "testuser@example.com",
+      password: "Password123!",
+    }),
+    {
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+
+  return { token: loginRes.json("token") };
+}
+
+export default function (data) {
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${data.token}`,
+  };
+
+  // Simulate realistic user journey
+
+  // 1. Browse products (60% of users do this)
+  if (Math.random() < 0.6) {
+    browseProducts(headers);
+  }
+
+  // 2. View specific product (40% of browsers)
+  if (Math.random() < 0.4) {
+    viewProduct(headers);
+  }
+
+  // 3. Add to cart (20% of product viewers)
+  if (Math.random() < 0.2) {
+    addToCart(headers);
+  }
+
+  // 4. Complete checkout (10% of cart users - realistic conversion rate)
+  if (Math.random() < 0.1) {
+    checkout(headers);
+  }
+
+  sleep(Math.random() * 3 + 2); // Random sleep 2-5 seconds between actions
+}
+
+function browseProducts(headers) {
+  const category = ["electronics", "clothing", "books"][
+    Math.floor(Math.random() * 3)
+  ];
+  const page = Math.floor(Math.random() * 5) + 1;
+
+  const res = http.get(
+    `${BASE_URL}/products?category=${category}&page=${page}&limit=20`,
+    { headers, tags: { endpoint: "search" } }
+  );
+
+  check(res, {
+    "product search status 200": (r) => r.status === 200,
+    "has products": (r) => JSON.parse(r.body).products.length > 0,
+  });
+}
+
+function viewProduct(headers) {
+  const product = products[Math.floor(Math.random() * products.length)];
+
+  const res = http.get(`${BASE_URL}/products/${product.id}`, {
+    headers,
+    tags: { endpoint: "product-detail" },
+  });
+
+  check(res, {
+    "product detail status 200": (r) => r.status === 200,
+    "has product data": (r) => JSON.parse(r.body).id === product.id,
+  });
+}
+
+function addToCart(headers) {
+  const product = products[Math.floor(Math.random() * products.length)];
+
+  const res = http.post(
+    `${BASE_URL}/cart/add`,
+    JSON.stringify({
+      productId: product.id,
+      quantity: Math.floor(Math.random() * 3) + 1,
+    }),
+    {
+      headers,
+      tags: { endpoint: "cart" },
+    }
+  );
+
+  check(res, {
+    "add to cart status 200": (r) => r.status === 200 || r.status === 201,
+  });
+}
+
+function checkout(headers) {
+  // Get cart
+  const cartRes = http.get(`${BASE_URL}/cart`, { headers });
+
+  if (cartRes.status !== 200) return;
+
+  // Create order
+  const orderRes = http.post(
+    `${BASE_URL}/orders`,
+    JSON.stringify({
+      paymentMethod: "credit_card",
+      shippingAddress: {
+        street: "123 Test St",
+        city: "Test City",
+        country: "US",
+        zipCode: "12345",
+      },
+    }),
+    {
+      headers,
+      tags: { endpoint: "checkout" },
+    }
+  );
+
+  check(orderRes, {
+    "checkout status 200/201": (r) => r.status === 200 || r.status === 201,
+    "order created": (r) => JSON.parse(r.body).orderId !== undefined,
+  });
+}
+```
+
+**Expected Results**:
+
+- p(95) < 500ms for most endpoints
+- p(99) < 1000ms
+- Error rate < 0.1%
+- Steady CPU usage around 40-60%
+
+---
+
+#### Test 2: Stress Test (Black Friday Sale)
+
+**Purpose**: Push the system beyond normal capacity to find breaking points.
+
+```javascript
+import http from "k6/http";
+import { check, sleep } from "k6";
+
+export const options = {
+  stages: [
+    { duration: "2m", target: 100 }, // Warm up
+    { duration: "5m", target: 100 }, // Normal load
+    { duration: "2m", target: 200 }, // Increase to 2x normal
+    { duration: "5m", target: 200 }, // Sustain 2x
+    { duration: "2m", target: 500 }, // Push to 5x normal
+    { duration: "5m", target: 500 }, // Sustain 5x
+    { duration: "2m", target: 1000 }, // Push to 10x normal
+    { duration: "5m", target: 1000 }, // Sustain 10x
+    { duration: "5m", target: 0 }, // Ramp down and observe recovery
+  ],
+  thresholds: {
+    // More lenient thresholds for stress test
+    http_req_duration: ["p(95)<2000"], // 2 seconds acceptable under stress
+    http_req_failed: ["rate<0.05"], // Up to 5% errors acceptable
+    "http_req_duration{endpoint:checkout}": ["p(99)<5000"], // Checkout must not fail completely
+  },
+};
+
+const BASE_URL = "http://localhost:8000/api";
+
+export default function () {
+  // Focus on high-traffic endpoints during sales
+
+  // Flash sale product page (this gets hammered)
+  const saleRes = http.get(`${BASE_URL}/products/flash-sale`, {
+    tags: { endpoint: "flash-sale" },
+  });
+
+  check(saleRes, {
+    "flash sale accessible": (r) => r.status === 200,
+  });
+
+  // Quick add to cart (users racing to buy)
+  if (Math.random() < 0.7) {
+    // 70% try to add to cart
+    const addRes = http.post(
+      `${BASE_URL}/cart/add`,
+      JSON.stringify({
+        productId: 12345, // Popular sale item
+        quantity: 1,
+      }),
+      {
+        headers: { "Content-Type": "application/json" },
+        tags: { endpoint: "cart" },
+      }
+    );
+
+    check(addRes, {
+      "cart add successful or rate limited": (r) =>
+        r.status === 200 || r.status === 201 || r.status === 429,
+    });
+  }
+
+  sleep(0.5); // Aggressive timing during sales
+}
+```
+
+**What to Monitor**:
+
+- At what VU count does response time degrade significantly?
+- Does the system fail gracefully (return 503) or crash?
+- After ramping down, does performance return to normal?
+- Database connection pool exhaustion?
+- Memory leaks?
+
+---
+
+#### Test 3: Spike Test (Influencer Product Drop)
+
+**Purpose**: Handle sudden traffic surge when an influencer promotes a product.
+
+```javascript
+import http from "k6/http";
+import { check, sleep } from "k6";
+
+export const options = {
+  stages: [
+    { duration: "1m", target: 50 }, // Normal traffic
+    { duration: "10s", target: 2000 }, // SUDDEN SPIKE - influencer posts
+    { duration: "3m", target: 2000 }, // Sustained spike
+    { duration: "1m", target: 50 }, // Return to normal
+    { duration: "1m", target: 0 }, // Wind down
+  ],
+  thresholds: {
+    http_req_duration: ["p(90)<3000"], // During spike, 90% under 3s is acceptable
+    http_req_failed: ["rate<0.10"], // Up to 10% errors during spike
+  },
+};
+
+const BASE_URL = "http://localhost:8000/api";
+const VIRAL_PRODUCT_ID = 9999; // The influencer-promoted product
+
+export default function () {
+  // Everyone goes to the same product page
+  const productRes = http.get(`${BASE_URL}/products/${VIRAL_PRODUCT_ID}`, {
+    tags: { endpoint: "viral-product" },
+  });
+
+  check(productRes, {
+    "product page loads": (r) => r.status === 200 || r.status === 503,
+  });
+
+  // Many try to add to cart immediately
+  if (Math.random() < 0.8) {
+    http.post(
+      `${BASE_URL}/cart/add`,
+      JSON.stringify({
+        productId: VIRAL_PRODUCT_ID,
+        quantity: 1,
+      }),
+      {
+        headers: { "Content-Type": "application/json" },
+        tags: { endpoint: "cart" },
+      }
+    );
+  }
+
+  sleep(Math.random() * 2); // 0-2 seconds between requests
+}
+```
+
+**Key Observations**:
+
+- Does your CDN/cache help with product page requests?
+- Do you have rate limiting to prevent abuse?
+- Does the database handle concurrent writes to cart?
+- Do you queue checkout requests?
+
+---
+
+#### Test 4: Soak Test (Cyber Monday - 8 Hour Sale)
+
+**Purpose**: Ensure no memory leaks or gradual degradation during extended high load.
+
+```javascript
+import http from "k6/http";
+import { check, sleep } from "k6";
+
+export const options = {
+  stages: [
+    { duration: "5m", target: 300 }, // Ramp up to sale traffic
+    { duration: "8h", target: 300 }, // Maintain for entire sale period
+    { duration: "10m", target: 0 }, // Ramp down
+  ],
+  thresholds: {
+    http_req_duration: ["p(95)<1000"], // Performance should stay consistent
+    http_req_failed: ["rate<0.01"],
+  },
+};
+
+const BASE_URL = "http://localhost:8000/api";
+
+export default function () {
+  // Varied shopping behaviors over long period
+
+  // Search
+  http.get(`${BASE_URL}/products?q=electronics&page=1`);
+  sleep(2);
+
+  // View products
+  const productId = Math.floor(Math.random() * 1000) + 1;
+  http.get(`${BASE_URL}/products/${productId}`);
+  sleep(3);
+
+  // Add to cart occasionally
+  if (Math.random() < 0.3) {
+    http.post(
+      `${BASE_URL}/cart/add`,
+      JSON.stringify({
+        productId: productId,
+        quantity: 1,
+      }),
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+    sleep(2);
+  }
+
+  sleep(5); // Realistic user think time
+}
+```
+
+**Monitor During 8-Hour Test**:
+
+- Memory usage trending upward? (Memory leak)
+- Response times gradually increasing?
+- Database connection count growing?
+- Disk space for logs filling up?
+- File descriptor leaks?
+
+---
+
+### Server Recommendations for E-commerce API
+
+#### Small Store (< 100 orders/day)
+
+- **Server**: 2 vCPU, 4GB RAM
+- **Database**: 2 vCPU, 4GB RAM
+- **Expected**: 50-100 concurrent users
+- **Cost**: ~$40-60/month (DigitalOcean, Linode)
+
+#### Medium Store (100-1000 orders/day)
+
+- **Server**: 4 vCPU, 8GB RAM (2-3 instances behind load balancer)
+- **Database**: 4 vCPU, 8GB RAM (with read replicas)
+- **Cache**: Redis 2GB
+- **Expected**: 500-1000 concurrent users
+- **Cost**: ~$200-300/month
+
+#### Large Store (1000+ orders/day)
+
+- **Servers**: 8 vCPU, 16GB RAM (5-10 instances)
+- **Database**: 16 vCPU, 64GB RAM (clustered with replicas)
+- **Cache**: Redis Cluster 16GB
+- **CDN**: Cloudflare or AWS CloudFront
+- **Expected**: 2000-5000+ concurrent users
+- **Cost**: ~$1000-3000/month
+
+---
+
+## 6. Case Study 2: School Management System API `{#school-api}`
+
+### Understanding School Management Traffic
+
+School systems have **predictable patterns**:
+
+- **Peak times**: Start of semester (registration), exam periods (grade checking), Monday mornings
+- **Seasonal load**: Heavy at semester start, lighter during breaks
+- **User types**: Students, teachers, administrators (different usage patterns)
+- **Critical periods**: Grade submission deadlines, enrollment periods
+
+### High-Traffic Endpoints
+
+1. **Grade Portal** (Peak during grade release)
+   - Students checking grades simultaneously
+   - Teacher grade submission
+2. **Course Registration** (Extreme peak at registration opening)
+   - Race condition for limited seats
+   - High write operations
+3. **Timetable/Schedule** (High at semester start)
+   - Read-heavy
+   - Good candidate for caching
+4. **Attendance Tracking** (Daily peaks)
+   - Teachers marking attendance
+   - Time-sensitive operations
+5. **Announcements/Notifications** (Variable)
+   - School-wide broadcasts
+
+### Test Strategy
+
+#### Test 1: Load Test (Normal School Day)
+
+```javascript
+import http from "k6/http";
+import { check, sleep } from "k6";
+import { SharedArray } from "k6/data";
+
+const studentIds = new SharedArray("students", function () {
+  return Array.from(
+    { length: 5000 },
+    (_, i) => `STU${String(i + 1).padStart(5, "0")}`
+  );
+});
+
+const teacherIds = new SharedArray("teachers", function () {
+  return Array.from(
+    { length: 200 },
+    (_, i) => `TCH${String(i + 1).padStart(4, "0")}`
+  );
+});
+
+export const options = {
+  stages: [
+    { duration: "2m", target: 50 }, // Early morning
+    { duration: "3m", target: 300 }, // Class starting peak (8-9 AM)
+    { duration: "15m", target: 300 }, // Morning classes
+    { duration: "2m", target: 150 }, // Lunch dip
+    { duration: "10m", target: 200 }, // Afternoon classes
+    { duration: "5m", target: 0 }, // School closes
+  ],
+  thresholds: {
+    http_req_duration: ["p(95)<800"],
+    http_req_failed: ["rate<0.01"],
+    "http_req_duration{endpoint:grades}": ["p(99)<1500"], // Grades critical but can be slower
+  },
+};
+
+const BASE_URL = "http://localhost:8000/api";
+
+export default function () {
+  const isStudent = Math.random() < 0.8; // 80% students, 20% teachers/staff
+
+  if (isStudent) {
+    studentBehavior();
+  } else {
+    teacherBehavior();
+  }
+
+  sleep(Math.random() * 10 + 5); // 5-15 seconds between actions
+}
+
+function studentBehavior() {
+  const studentId = studentIds[Math.floor(Math.random() * studentIds.length)];
+
+  // Student login
+  const loginRes = http.post(
+    `${BASE_URL}/auth/login`,
+    JSON.stringify({
+      username: studentId,
+      password: "student123",
+      role: "student",
+    }),
+    {
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+
+  if (loginRes.status !== 200) return;
+
+  const token = loginRes.json("token");
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+
+  // Check timetable (common action)
+  const timetableRes = http.get(`${BASE_URL}/students/${studentId}/timetable`, {
+    headers,
+    tags: { endpoint: "timetable" },
+  });
+
+  check(timetableRes, {
+    "timetable loaded": (r) => r.status === 200,
+  });
+
+  // Check grades (frequent during grading periods)
+  if (Math.random() < 0.4) {
+    const gradesRes = http.get(`${BASE_URL}/students/${studentId}/grades`, {
+      headers,
+      tags: { endpoint: "grades" },
+    });
+
+    check(gradesRes, {
+      "grades loaded": (r) => r.status === 200,
+    });
+  }
+
+  // Check announcements
+  if (Math.random() < 0.3) {
+    http.get(`${BASE_URL}/announcements`, {
+      headers,
+      tags: { endpoint: "announcements" },
+    });
+  }
+}
+
+function teacherBehavior() {
+  const teacherId = teacherIds[Math.floor(Math.random() * teacherIds.length)];
+
+  const loginRes = http.post(
+    `${BASE_URL}/auth/login`,
+    JSON.stringify({
+      username: teacherId,
+      password: "teacher123",
+      role: "teacher",
+    }),
+    {
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+
+  if (loginRes.status !== 200) return;
+
+  const token = loginRes.json("token");
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+
+  // View class roster
+  const classRes = http.get(`${BASE_URL}/teachers/${teacherId}/classes`, {
+    headers,
+    tags: { endpoint: "class-roster" },
+  });
+
+  // Mark attendance (critical operation)
+  if (Math.random() < 0.6) {
+    const classes = classRes.json("classes");
+    if (classes && classes.length > 0) {
+      const classId = classes[0].id;
+
+      http.post(
+        `${BASE_URL}/attendance`,
+        JSON.stringify({
+          classId: classId,
+          date: new Date().toISOString().split("T")[0],
+          attendance: [
+            { studentId: studentIds[0], status: "present" },
+            { studentId: studentIds[1], status: "present" },
+            { studentId: studentIds[2], status: "absent" },
+          ],
+        }),
+        {
+          headers,
+          tags: { endpoint: "attendance" },
+        }
+      );
+    }
+  }
+}
+```
+
+---
+
+#### Test 2: Spike Test (Course Registration Opens)
+
+This is THE most critical test for a school system. When course registration opens, thousands of students try to register simultaneously, and seat availability is limited.
+
+```javascript
+import http from "k6/http";
+import { check, sleep } from "k6";
+import { Counter } from "k6/metrics";
+
+const successfulRegistrations = new Counter("successful_registrations");
+const failedDueToFullCourse = new Counter("full_course_failures");
+const systemErrors = new Counter("system_errors");
+
+export const options = {
+  stages: [
+    { duration: "30s", target: 100 }, // Students logging in before registration opens
+    { duration: "5s", target: 3000 }, // REGISTRATION OPENS - massive spike
+    { duration: "10m", target: 3000 }, // Sustained high load as students keep trying
+    { duration: "5m", target: 500 }, // Most spots filled, activity decreases
+    { duration: "2m", target: 0 },
+  ],
+  thresholds: {
+    http_req_duration: ["p(90)<5000"], // During this chaos, 5s is acceptable
+    successful_registrations: ["count>100"], // At least some students should succeed
+    system_errors: ["count<50"], // System errors (not full courses) should be minimal
+  },
+};
+
+const BASE_URL = "http://localhost:8000/api";
+const POPULAR_COURSES = [101, 102, 103, 104, 105]; // Limited seat courses
+
+export default function () {
+  const studentId = `STU${String(Math.floor(Math.random() * 5000) + 1).padStart(5, "0")}`;
+
+  // Login
+  const loginRes = http.post(
+    `${BASE_URL}/auth/login`,
+    JSON.stringify({
+      username: studentId,
+      password: "student123",
+    }),
+    {
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+
+  if (loginRes.status !== 200) {
+    systemErrors.add(1);
+    return;
+  }
+
+  const token = loginRes.json("token");
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+
+  // Try to register for popular courses
+  const courseId =
+    POPULAR_COURSES[Math.floor(Math.random() * POPULAR_COURSES.length)];
+
+  const registerRes = http.post(
+    `${BASE_URL}/registrations`,
+    JSON.stringify({
+      studentId: studentId,
+      courseId: courseId,
+      semester: "Fall2024",
+    }),
+    {
+      headers,
+      tags: { endpoint: "course-registration" },
+    }
+  );
+
+  check(registerRes, {
+    "registration processed": (r) =>
+      r.status === 201 || r.status === 409 || r.status === 422,
+  });
+
+  if (registerRes.status === 201) {
+    successfulRegistrations.add(1);
+  } else if (registerRes.status === 409 || registerRes.status === 422) {
+    // 409 Conflict (course full) or 422 (prerequisites not met) are expected
+    failedDueToFullCourse.add(1);
+  } else {
+    // Other errors are system problems
+    systemErrors.add(1);
+  }
+
+  // Students keep refreshing/retrying
+  sleep(Math.random() * 2);
+
+  // Try alternate course
+  const alternateCourse =
+    POPULAR_COURSES[Math.floor(Math.random() * POPULAR_COURSES.length)];
+  http.post(
+    `${BASE_URL}/registrations`,
+    JSON.stringify({
+      studentId: studentId,
+      courseId: alternateCourse,
+      semester: "Fall2024",
+    }),
+    {
+      headers,
+      tags: { endpoint: "course-registration" },
+    }
+  );
+
+  sleep(Math.random() * 3);
+}
+```
+
+**Critical Considerations**:
+
+- **Race conditions**: Multiple students registering for last seat
+- **Database locking**: Prevent overselling course seats
+- **Queue system**: Consider implementing a registration queue
+- **Fairness**: First-come-first-served or lottery system?
+- **Rollback**: What if student registration fails midway?
+
+---
+
+#### Test 3: Soak Test (Semester Long Stability)
+
+```javascript
+import http from "k6/http";
+import { check, sleep } from "k6";
+
+export const options = {
+  stages: [
+    { duration: "10m", target: 200 }, // Ramp up
+    { duration: "12h", target: 200 }, // Maintain for half a day (simulate full day in 12h)
+    { duration: "10m", target: 0 },
+  ],
+  thresholds: {
+    http_req_duration: ["p(95)<1000"],
+    http_req_failed: ["rate<0.01"],
+  },
+};
+
+const BASE_URL = "http://localhost:8000/api";
+
+export default function () {
+  // Mix of all user behaviors over long period
+
+  // Students checking various resources
+  const endpoints = [
+    "/api/students/STU00123/timetable",
+    "/api/students/STU00123/grades",
+    "/api/courses",
+    "/api/announcements",
+    "/api/library/resources",
+  ];
+
+  const randomEndpoint =
+    endpoints[Math.floor(Math.random() * endpoints.length)];
+  http.get(`${BASE_URL}${randomEndpoint}`);
+
+  sleep(Math.random() * 20 + 10); // 10-30 seconds between requests
+}
+```
+
+**What to Watch**:
+
+- Database connection leaks
+- Session management (are old sessions cleaned up?)
+- Log file growth
+- Cache memory usage
+
+---
+
+### Server Recommendations for School Management System
+
+#### Small School (< 1,000 students)
+
+- **Server**: 2 vCPU, 4GB RAM
+- **Database**: 2 vCPU, 4GB RAM
+- **Expected**: 50-200 concurrent users (peak during registration)
+- **Cost**: ~$40-60/month
+
+#### Medium School (1,000-5,000 students)
+
+- **Server**: 4 vCPU, 8GB RAM (2 instances)
+- **Database**: 4 vCPU, 8GB RAM
+- **Cache**: Redis 2GB
+- **Expected**: 500-1,500 concurrent users (peak)
+- **Cost**: ~$150-250/month
+
+#### Large University (10,000+ students)
+
+- **Servers**: 8 vCPU, 16GB RAM (5+ instances)
+- **Database**: 16 vCPU, 32GB RAM (with read replicas)
+- **Cache**: Redis Cluster 8GB
+- **Expected**: 3,000-5,000+ concurrent users (peak)
+- **Cost**: ~$800-1,500/month
+
+**Note**: School systems should over-provision for registration periods even if it means paying for unused capacity most of the time. Registration failures cause significant administrative burden.
+
+---
+
+## 7. Case Study 3: Authentication API `{#auth-api}`
+
+### Understanding Authentication Traffic
+
+Authentication services are **critical infrastructure**:
+
+- **Every user request may require token validation**
+- **Login spikes** at workday start (8-9 AM)
+- **Password reset spikes** (users forget passwords Monday mornings)
+- **Token refresh** operations throughout the day
+- **Security critical**: Must handle attacks (brute force, credential stuffing)
+
+### High-Traffic Endpoints
+
+1. **Token Validation/Verification** (Highest - every API call may hit this)
+   - Happens on every authenticated request
+   - Must be extremely fast `(<50ms)`
+   - Good candidate for caching
+2. **Login** (High during peak hours)
+   - CPU intensive (password hashing)
+   - Prone to brute force attacks
+   - Rate limiting essential
+3. **Token Refresh** (Medium-high)
+   - Happens periodically for active users
+   - Should be fast
+4. **Password Reset** (Low volume but critical)
+
+   - Email sending involved
+   - Should queue for reliability
+
+5. **Registration** (Variable)
+   - Lower frequency but complex validation
+
+### Test Strategy
+
+#### Test 1: Load Test (Normal Business Day)
+
+```javascript
+import http from "k6/http";
+import { check, sleep } from "k6";
+import { SharedArray } from "k6/data";
+import { Counter, Trend } from "k6/metrics";
+
+const loginDuration = new Trend("login_duration");
+const tokenValidationDuration = new Trend("token_validation_duration");
+const failedLogins = new Counter("failed_login_attempts");
+
+const users = new SharedArray("users", function () {
+  return Array.from({ length: 1000 }, (_, i) => ({
+    email: `user${i}@company.com`,
+    password: "SecurePass123!",
+  }));
+});
+
+export const options = {
+  stages: [
+    { duration: "2m", target: 50 }, // Early morning logins
+    { duration: "3m", target: 500 }, // 8-9 AM login rush
+    { duration: "15m", target: 300 }, // Sustained morning activity
+    { duration: "10m", target: 200 }, // Afternoon
+    { duration: "5m", target: 0 },
+  ],
+  thresholds: {
+    // Authentication MUST be fast
+    login_duration: ["p(95)<1000"], // Login under 1s for 95%
+    token_validation_duration: ["p(99)<100"], // Token validation under 100ms
+    http_req_failed: ["rate<0.001"], // Less than 0.1% errors
+    failed_login_attempts: ["count<100"], // Expect some failed logins
+  },
+};
+
+const BASE_URL = "http://localhost:8000/api/auth";
+
+export default function () {
+  const user = users[Math.floor(Math.random() * users.length)];
+
+  // Simulate login
+  const loginStart = Date.now();
+  const loginRes = http.post(
+    `${BASE_URL}/login`,
+    JSON.stringify({
+      email: user.email,
+      password: user.password,
+    }),
+    {
+      headers: { "Content-Type": "application/json" },
+      tags: { endpoint: "login" },
+    }
+  );
+  loginDuration.add(Date.now() - loginStart);
+
+  const loginCheck = check(loginRes, {
+    "login status 200": (r) => r.status === 200,
+    "has access token": (r) => r.json("accessToken") !== undefined,
+    "has refresh token": (r) => r.json("refreshToken") !== undefined,
+  });
+
+  if (!loginCheck) {
+    failedLogins.add(1);
+    sleep(2);
+    return;
+  }
+
+  const accessToken = loginRes.json("accessToken");
+  const refreshToken = loginRes.json("refreshToken");
+
+  // Simulate user activity with token validation
+  for (let i = 0; i < 10; i++) {
+    const validateStart = Date.now();
+    const validateRes = http.get(`${BASE_URL}/validate`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      tags: { endpoint: "validate" },
+    });
+    tokenValidationDuration.add(Date.now() - validateStart);
+
+    check(validateRes, {
+      "token valid": (r) => r.status === 200,
+    });
+
+    sleep(5); // Simulate time between API calls
+  }
+
+  // Token refresh (happens every 15 minutes typically)
+  if (Math.random() < 0.3) {
+    const refreshRes = http.post(
+      `${BASE_URL}/refresh`,
+      JSON.stringify({
+        refreshToken: refreshToken,
+      }),
+      {
+        headers: { "Content-Type": "application/json" },
+        tags: { endpoint: "refresh" },
+      }
+    );
+
+    check(refreshRes, {
+      "token refreshed": (r) => r.status === 200,
+      "new access token": (r) => r.json("accessToken") !== undefined,
+    });
+  }
+
+  // Logout
+  http.post(
+    `${BASE_URL}/logout`,
+    JSON.stringify({
+      refreshToken: refreshToken,
+    }),
+    {
+      headers: { "Content-Type": "application/json" },
+      tags: { endpoint: "logout" },
+    }
+  );
+
+  sleep(Math.random() * 10 + 5);
+}
+```
+
+---
+
+#### Test 2: Brute Force Attack Simulation
+
+Authentication systems must handle malicious traffic. This test ensures your rate limiting works.
+
+```javascript
+import http from "k6/http";
+import { check, sleep } from "k6";
+import { Counter } from "k6/metrics";
+
+const rateLimitedRequests = new Counter("rate_limited");
+const successfulAttacks = new Counter("successful_brute_force");
+
+export const options = {
+  scenarios: {
+    // Simulate multiple attackers trying different accounts
+    brute_force: {
+      executor: "constant-vus",
+      vus: 50,
+      duration: "5m",
+    },
+  },
+  thresholds: {
+    rate_limited: ["count>1000"], // Should block many attempts
+    successful_brute_force: ["count<5"], // Should have minimal successes
+    "http_req_duration{endpoint:login}": ["p(99)<2000"], // Even under attack, should respond
+  },
+};
+
+const BASE_URL = "http://localhost:8000/api/auth";
+const commonPasswords = [
+  "password",
+  "123456",
+  "password123",
+  "qwerty",
+  "admin",
+  "letmein",
+  "welcome",
+  "12345678",
+];
+
+export default function () {
+  // Attacker trying different email/password combinations
+  const targetEmail = `victim${Math.floor(Math.random() * 100)}@company.com`;
+  const guessPassword =
+    commonPasswords[Math.floor(Math.random() * commonPasswords.length)];
+
+  const res = http.post(
+    `${BASE_URL}/login`,
+    JSON.stringify({
+      email: targetEmail,
+      password: guessPassword,
+    }),
+    {
+      headers: { "Content-Type": "application/json" },
+      tags: { endpoint: "login" },
+    }
+  );
+
+  if (res.status === 429) {
+    // Rate limited - good!
+    rateLimitedRequests.add(1);
+  } else if (res.status === 200) {
+    // Successful brute force - bad!
+    successfulAttacks.add(1);
+  }
+
+  check(res, {
+    "rate limiting active": (r) => r.status === 429 || r.status === 401,
+  });
+
+  sleep(0.1); // Aggressive attacker timing
+}
+```
+
+**Rate Limiting Strategy**:
+
+```javascript
+// Example rate limiting (not k6 code, but what your API should have)
+const rateLimit = {
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 attempts per window per IP
+  skipSuccessfulRequests: true, // Don't count successful logins
+  handler: (req, res) => {
+    res.status(429).json({
+      error: "Too many login attempts. Please try again later.",
+      retryAfter: 900, // seconds
+    });
+  },
+};
+```
+
+---
+
+#### Test 3: Token Validation Under Load (Micro-benchmark)
+
+Since token validation happens on EVERY authenticated request across ALL services, it must be extremely fast.
+
+```javascript
+import http from "k6/http";
+import { check } from "k6";
+import { Trend } from "k6/metrics";
+
+const validationLatency = new Trend("validation_latency_ms");
+
+export const options = {
+  scenarios: {
+    constant_load: {
+      executor: "constant-arrival-rate",
+      rate: 1000, // 1000 validations per second
+      timeUnit: "1s",
+      duration: "2m",
+      preAllocatedVUs: 50,
+      maxVUs: 100,
+    },
+  },
+  thresholds: {
+    validation_latency_ms: [
+      "p(50)<20", // Median under 20ms
+      "p(95)<50", // 95th percentile under 50ms
+      "p(99)<100", // 99th percentile under 100ms
+    ],
+  },
+};
+
+const BASE_URL = "http://localhost:8000/api/auth";
+
+export function setup() {
+  // Get a valid token
+  const loginRes = http.post(
+    `${BASE_URL}/login`,
+    JSON.stringify({
+      email: "testuser@company.com",
+      password: "SecurePass123!",
+    }),
+    {
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+
+  return { token: loginRes.json("accessToken") };
+}
+
+export default function (data) {
+  const start = Date.now();
+
+  const res = http.get(`${BASE_URL}/validate`, {
+    headers: {
+      Authorization: `Bearer ${data.token}`,
+    },
+  });
+
+  const duration = Date.now() - start;
+  validationLatency.add(duration);
+
+  check(res, {
+    "validation successful": (r) => r.status === 200,
+    "under 50ms": () => duration < 50,
+  });
+}
+```
+
+**Optimization Strategies**:
+
+- Cache decoded tokens (with TTL)
+- Use fast JWT libraries
+- Consider Redis for token blacklist (logout/revoke)
+- Use asymmetric keys (RS256) for distributed systems
+
+---
+
+#### Test 4: Password Reset Email Queue
+
+```javascript
+import http from "k6/http";
+import { check, sleep } from "k6";
+
+export const options = {
+  stages: [
+    { duration: "1m", target: 100 }, // Many users requesting password reset
+    { duration: "3m", target: 100 },
+    { duration: "1m", target: 0 },
+  ],
+  thresholds: {
+    http_req_duration: ["p(95)<2000"], // Should accept request quickly even if email sends later
+    http_req_failed: ["rate<0.01"],
+  },
+};
+
+const BASE_URL = "http://localhost:8000/api/auth";
+
+export default function () {
+  const email = `user${Math.floor(Math.random() * 1000)}@company.com`;
+
+  const res = http.post(
+    `${BASE_URL}/password-reset/request`,
+    JSON.stringify({
+      email: email,
+    }),
+    {
+      headers: { "Content-Type": "application/json" },
+      tags: { endpoint: "password-reset" },
+    }
+  );
+
+  check(res, {
+    "request accepted": (r) => r.status === 200 || r.status === 202,
+  });
+
+  sleep(5);
+}
+```
+
+**Queue Implementation** (conceptual):
+Your auth service should queue email sending to handle spikes without blocking responses.
+
+---
+
+### Server Recommendations for Authentication API
+
+#### Microservice Auth (< 10,000 users)
+
+- **Server**: 2 vCPU, 2GB RAM (2 instances for redundancy)
+- **Database**: 2 vCPU, 4GB RAM
+- **Redis**: 1GB (for token caching)
+- **Expected**: 100-500 req/s token validation, 10-50 logins/s
+- **Cost**: ~$80-120/month
+
+#### Mid-Size SaaS (10,000-100,000 users)
+
+- **Servers**: 4 vCPU, 4GB RAM (3-4 instances)
+- **Database**: 4 vCPU, 8GB RAM
+- **Redis Cluster**: 4GB
+- **Expected**: 1,000-5,000 req/s validation, 100-500 logins/s
+- **Cost**: ~$300-500/month
+
+#### Large Enterprise (100,000+ users)
+
+- **Servers**: 8 vCPU, 8GB RAM (10+ instances across regions)
+- **Database**: Distributed/replicated
+- **Redis Cluster**: 16GB
+- **CDN**: For static assets
+- **Expected**: 10,000+ req/s validation, 1,000+ logins/s
+- **Cost**: ~$2,000-5,000/month
+
+---
+
+## 8. Infrastructure Considerations `{#infrastructure}`
+
+### When to Scale Horizontally
+
+#### Signs You Need Load Balancing
+
+1. **CPU consistently above 70%** under normal load
+2. **Response times degrading** during peak hours
+3. **Single server can't handle traffic spikes**
+4. **Need zero-downtime deployments**
+5. **Geographic distribution** needed for lower latency
+
+### Load Balancing Strategies
+
+#### Nginx Load Balancer
+
+```nginx
+# /etc/nginx/nginx.conf
+
+upstream api_backend {
+    # Load balancing method
+    least_conn;  # Or: ip_hash, round_robin (default)
+
+    # Backend servers
+    server api1.example.com:8000 weight=3 max_fails=3 fail_timeout=30s;
+    server api2.example.com:8000 weight=3 max_fails=3 fail_timeout=30s;
+    server api3.example.com:8000 weight=2 max_fails=3 fail_timeout=30s;
+
+    # Backup server (only used if all others fail)
+    server api-backup.example.com:8000 backup;
+
+    # Health check
+    keepalive 32;
+}
+
+server {
+    listen 80;
+    server_name api.example.com;
+
+    location / {
+        proxy_pass http://api_backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        # Timeouts
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+
+        # Health check path
+        proxy_next_upstream error timeout http_500 http_502 http_503;
+    }
+
+    # Health check endpoint
+    location /health {
+        access_log off;
+        return 200 "healthy\n";
+        add_header Content-Type text/plain;
+    }
+}
+```
+
+#### Testing Load Balanced Setup
+
+```javascript
+import http from "k6/http";
+import { check } from "k6";
+import { Counter } from "k6/metrics";
+
+const serverDistribution = new Counter("server_hits");
+
+export const options = {
+  vus: 100,
+  duration: "5m",
+};
+
+const BASE_URL = "http://load-balancer.example.com";
+
+export default function () {
+  const res = http.get(`${BASE_URL}/api/products`);
+
+  // Track which backend server handled request
+  const server = res.headers["X-Served-By"] || "unknown";
+  serverDistribution.add(1, { server: server });
+
+  check(res, {
+    "status 200": (r) => r.status === 200,
+    "served by backend": (r) => r.headers["X-Served-By"] !== undefined,
+  });
+}
+```
+
+**What to Verify**:
+
+- Requests distributed evenly across backends
+- Failed server automatically removed from pool
+- No dropped requests during server failures
+- Session persistence works (if needed)
+
+---
+
+### Kubernetes Auto-Scaling
+
+For cloud-native deployments, Kubernetes can automatically scale your application based on metrics.
+
+```yaml
+# k8s-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-api
+spec:
+  replicas: 3 # Minimum replicas
+  selector:
+    matchLabels:
+      app: ecommerce-api
+  template:
+    metadata:
+      labels:
+        app: ecommerce-api
+    spec:
+      containers:
+        - name: api
+          image: your-registry/ecommerce-api:latest
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ecommerce-api-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ecommerce-api
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300 # Wait 5 min before scaling down
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0 # Scale up immediately
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 30
+```
+
+#### Testing Auto-Scaling
+
+```javascript
+import http from "k6/http";
+import { sleep } from "k6";
+
+export const options = {
+  stages: [
+    { duration: "2m", target: 100 }, // Trigger initial scale
+    { duration: "5m", target: 500 }, // Force more scaling
+    { duration: "5m", target: 1000 }, // Max out scaling
+    { duration: "10m", target: 100 }, // Test scale down
+  ],
+};
+
+const BASE_URL = "http://api.k8s.example.com";
+
+export default function () {
+  http.get(`${BASE_URL}/api/products`);
+  sleep(1);
+}
+```
+
+**Monitor During Test**:
+
+```bash
+# Watch pods scaling
+kubectl get hpa ecommerce-api-hpa --watch
+
+# Watch pod count
+kubectl get pods -l app=ecommerce-api --watch
+
+# Check metrics
+kubectl top pods -l app=ecommerce-api
+```
+
+---
+
+## 9. Load Balancing with Cloudflare `{#load-balancing}`
+
+### Understanding Cloudflare Load Balancing
+
+Cloudflare Load Balancing operates at the **DNS level** (for DNS-only mode) or at the **application level** (when proxied through Cloudflare). It provides:
+
+- **Global load distribution** across data centers
+- **Health monitoring** of your origin servers
+- **Automatic failover** when servers go down
+- **Geographic steering** (route users to nearest server)
+- **Session affinity** (sticky sessions)
+- **Custom routing rules** based on request attributes
+
+### Setting Up Cloudflare Load Balancer
+
+#### Step 1: Choose Configuration Mode
+
+**Proxied Mode (Orange Cloud)**:
+
+- Traffic routes through Cloudflare's edge network
+- Get DDoS protection, caching, WAF
+- Cloudflare can modify requests/responses
+- Recommended for most use cases
+
+**DNS-Only Mode (Gray Cloud)**:
+
+- Cloudflare only provides DNS resolution
+- No caching or additional security
+- Lower latency but fewer features
+- Use for non-HTTP protocols
+
+#### Step 2: Create Origin Pools
+
+An **origin pool** is a group of servers that can handle requests. You typically create pools based on:
+
+- Geographic regions (US pool, EU pool, Asia pool)
+- Functionality (primary pool, backup pool)
+- Server capacity (high-performance pool, standard pool)
+
+```javascript
+// Conceptual pool structure
+const pools = [
+  {
+    name: "us-east-primary",
+    origins: [
+      { address: "api1.us-east.example.com", weight: 1, enabled: true },
+      { address: "api2.us-east.example.com", weight: 1, enabled: true },
+      { address: "api3.us-east.example.com", weight: 0.5, enabled: true }, // Lower capacity
+    ],
+    healthMonitor: "api-health-check",
+    notificationEmail: "ops@example.com",
+  },
+  {
+    name: "us-west-backup",
+    origins: [
+      { address: "api1.us-west.example.com", weight: 1, enabled: true },
+      { address: "api2.us-west.example.com", weight: 1, enabled: true },
+    ],
+    healthMonitor: "api-health-check",
+  },
+];
+```
+
+**Best Practices for Pools**:
+
+- Always have at least 2 pools (primary + backup/fallback)
+- Use weights to distribute load based on server capacity
+- Keep pools within the same geographic region for consistency
+- Name pools clearly (region-purpose format)
+
+#### Step 3: Configure Health Monitors
+
+Health monitors regularly check if your servers are responding correctly.
+
+```javascript
+const healthMonitor = {
+  type: "HTTPS",
+  path: "/health",
+  port: 443,
+  method: "GET",
+  interval: 60, // Check every 60 seconds
+  timeout: 5, // 5 second timeout
+  retries: 2, // Try twice before marking unhealthy
+  expectedCodes: "200",
+  expectedBody: "", // Optional: check response contains specific text
+  followRedirects: false,
+  allowInsecure: false, // Require valid SSL
+  headers: {
+    "User-Agent": "Cloudflare-Health-Check",
+    Host: "api.example.com",
+  },
+};
+```
+
+**Your API Health Endpoint Should Return**:
+
+```javascript
+// GET /health
+{
+  "status": "healthy",
+  "timestamp": "2024-12-05T10:30:00Z",
+  "version": "1.2.3",
+  "checks": {
+    "database": "healthy",
+    "redis": "healthy",
+    "disk_space": "healthy"
+  }
+}
+```
+
+#### Step 4: Select Traffic Steering Method
+
+**Off (Failover)**:
+
+- Routes to pools in order (primary → backup)
+- Only uses next pool if previous is unhealthy
+- Simple and predictable
+
+**Random Steering**:
+
+- Randomly selects healthy pool
+- Simple load distribution
+- Good for homogeneous servers
+
+**Geo Steering**:
+
+- Routes based on user's geographic location
+- Lowest latency for users
+- Requires regional pools
+
+```javascript
+const geoSteering = {
+  method: "geo",
+  rules: [
+    { region: "North America", pool: "us-east-primary" },
+    { region: "Europe", pool: "eu-primary" },
+    { region: "Asia", pool: "asia-primary" },
+    { default: "us-east-primary" }, // Fallback for other regions
+  ],
+};
+```
+
+**Dynamic Steering (Enterprise)**:
+
+- Routes based on pool health and latency
+- Automatically adapts to conditions
+- Best performance but more complex
+
+**Proximity Steering (Enterprise)**:
+
+- Routes to geographically closest healthy pool
+- Better than Geo Steering for global distribution
+
+#### Step 5: Create Custom Rules
+
+Custom rules allow fine-grained control over routing.
+
+```javascript
+const customRules = [
+  {
+    name: "Mobile users to optimized pool",
+    condition: "http.user_agent contains 'Mobile'",
+    action: {
+      pool: "mobile-optimized-pool",
+    },
+    priority: 1,
+  },
+  {
+    name: "API v2 to new servers",
+    condition: "http.request.uri.path starts_with '/api/v2'",
+    action: {
+      pool: "v2-api-pool",
+    },
+    priority: 2,
+  },
+  {
+    name: "Premium customers to dedicated pool",
+    condition: "http.cookie contains 'premium=true'",
+    action: {
+      pool: "premium-pool",
+    },
+    priority: 3,
+  },
+  {
+    name: "High traffic countries rate limit",
+    condition: "ip.geoip.country in {'US', 'CA', 'GB'}",
+    action: {
+      pool: "high-capacity-pool",
+      rateLimit: 1000, // requests per minute
+    },
+    priority: 4,
+  },
+];
+```
+
+**Available Conditions**:
+
+- IP address/country
+- HTTP headers (User-Agent, Referer, etc.)
+- Request URI/path
+- Cookies
+- Query parameters
+- Request method (GET, POST, etc.)
+
+### Testing Cloudflare Load Balancer
+
+```javascript
+import http from "k6/http";
+import { check, sleep } from "k6";
+import { Counter } from "k6/metrics";
+
+const poolHits = new Counter("pool_hits");
+const healthCheckFailures = new Counter("health_check_failures");
+
+export const options = {
+  stages: [
+    { duration: "5m", target: 500 },
+    { duration: "10m", target: 1000 },
+    { duration: "5m", target: 0 },
+  ],
+  thresholds: {
+    http_req_duration: ["p(95)<1000"],
+    http_req_failed: ["rate<0.01"],
+  },
+};
+
+const BASE_URL = "https://api.example.com"; // Cloudflare-managed domain
+
+export default function () {
+  const res = http.get(`${BASE_URL}/api/products`, {
+    headers: {
+      "User-Agent": "k6-load-test",
+    },
+  });
+
+  check(res, {
+    "status 200": (r) => r.status === 200,
+    "has CF-Ray header": (r) => r.headers["Cf-Ray"] !== undefined,
+  });
+
+  // Track which Cloudflare data center handled request
+  const cfDataCenter = res.headers["Cf-Ray"]?.split("-")[1] || "unknown";
+  poolHits.add(1, { datacenter: cfDataCenter });
+
+  // Verify response actually came from your origin (not error page)
+  if (res.body && !res.body.includes("expected content")) {
+    healthCheckFailures.add(1);
+  }
+
+  sleep(1);
+}
+```
+
+### Simulating Origin Failure
+
+To test failover, you can intentionally take down one origin during the test:
+
+```javascript
+import http from "k6/http";
+import { check } from "k6";
+
+export const options = {
+  stages: [
+    { duration: "2m", target: 100 }, // Normal operation
+    { duration: "1m", target: 100 }, // Stable (manually kill origin here)
+    { duration: "5m", target: 100 }, // Test failover
+    { duration: "2m", target: 100 }, // Restore origin
+    { duration: "5m", target: 100 }, // Test recovery
+  ],
+  thresholds: {
+    http_req_failed: ["rate<0.05"], // Allow 5% errors during failover
+  },
+};
+
+export default function () {
+  const res = http.get("https://api.example.com/health");
+
+  check(res, {
+    "failover working": (r) => r.status === 200,
+    "response within 2s": (r) => r.timings.duration < 2000,
+  });
+}
+```
+
+**What to Monitor**:
+
+1. **During failure**: Requests should continue with minimal errors
+2. **Failover time**: Should be automatic within health check interval
+3. **After recovery**: Traffic should return to primary pool
+4. **No dropped requests**: All requests should get responses
+
+### Cloudflare Load Balancing + k6 Best Practices
+
+1. **Test from multiple regions**: Verify geo-steering works correctly
+
+   ```bash
+   # Run k6 from different cloud regions
+   k6 cloud run --region us-east test.js
+   k6 cloud run --region eu-west test.js
+   k6 cloud run --region ap-south test.js
+   ```
+
+2. **Monitor Cloudflare Analytics**: Check the Cloudflare dashboard during tests for:
+
+   - Pool health status
+   - Request distribution across pools
+   - Failover events
+   - Geographic traffic patterns
+
+3. **Test session affinity**: If enabled, verify users stick to same origin
+
+   ```javascript
+   import http from "k6/http";
+   import { check } from "k6";
+
+   export default function () {
+     const res1 = http.get("https://api.example.com/session/create");
+     const sessionCookie = res1.cookies["session"][0].value;
+
+     // Make multiple requests with same cookie
+     for (let i = 0; i < 10; i++) {
+       const res = http.get("https://api.example.com/session/data", {
+         cookies: { session: sessionCookie },
+       });
+
+       check(res, {
+         "same origin server": (r) => {
+           // Verify CF-Ray data center stays same
+           return (
+             r.headers["Cf-Ray"].split("-")[1] ===
+             res1.headers["Cf-Ray"].split("-")[1]
+           );
+         },
+       });
+     }
+   }
+   ```
+
+4. **Test during origin deployments**: Ensure zero-downtime deployments work
+   - Deploy new version to half the origins
+   - Run load test
+   - If successful, deploy to remaining origins
+
+---
+
+### When to Use Cloudflare Load Balancing vs Nginx
+
+| Scenario                | Cloudflare                      | Nginx                             |
+| ----------------------- | ------------------------------- | --------------------------------- |
+| **Global distribution** | ✅ Excellent                    | ❌ Need to manage yourself        |
+| **DDoS protection**     | ✅ Included                     | ❌ Separate solution needed       |
+| **Geographic routing**  | ✅ Built-in                     | ❌ Complex setup                  |
+| **Cost**                | 💰 $5/month + $0.50/query       | ✅ Free (self-hosted)             |
+| **Control**             | ⚠️ Limited                      | ✅ Full control                   |
+| **Setup complexity**    | ✅ Simple                       | ⚠️ Moderate                       |
+| **Health checks**       | ✅ Built-in                     | ⚠️ Need to configure              |
+| **Session affinity**    | ✅ Built-in                     | ✅ Available                      |
+| **SSL/TLS offloading**  | ✅ Automatic                    | ⚠️ Manual setup                   |
+| **Best for**            | Public-facing APIs, global apps | Internal services, specific needs |
+
+**Recommendation**:
+
+- Use **Cloudflare** for public-facing APIs that need global reach and DDoS protection
+- Use **Nginx** for internal microservices or when you need full control over routing logic
+- Use **both**: Cloudflare at edge → Nginx for internal load balancing
+
+---
+
+## 10. Alternative Testing Tools `{#alternatives}`
+
+### Postman Load Testing
+
+Postman recently added load testing capabilities directly in the UI.
+
+**Pros**:
+
+- Familiar interface for API developers
+- No code required
+- Built-in collection management
+- Cloud-based execution
+
+**Cons**:
+
+- Limited to 500 VUs on free tier
+- Less flexible than scripted tests
+- No CI/CD integration on free tier
+
+**When to use**: Quick tests during development, teams already using Postman
+
+#### Example Postman Test
+
+1. **Create Collection**: Organize your API requests
+2. **Configure Performance Test**:
+
+   - Virtual Users: 20
+   - Test Duration: 1 minute
+   - Load Profile: Fixed or Ramp-up
+
+3. **View Metrics**:
+   - Total requests
+   - Average response time
+   - Throughput (requests/second)
+   - Error rate percentage
+
+**Limitations**:
+
+- Can't customize test logic as easily
+- No shared arrays or complex scenarios
+- Limited threshold configuration
+
+---
+
+### Apache JMeter
+
+Veteran load testing tool with GUI.
+
+**Pros**:
+
+- Mature and battle-tested
+- Extensive protocol support (HTTP, JDBC, FTP, SOAP)
+- Rich plugin ecosystem
+- Detailed reporting
+
+**Cons**:
+
+- Resource-intensive (Java-based)
+- Steeper learning curve
+- XML-based configuration
+- Harder to version control
+
+**Example Test Plan**:
+
+```xml
+<!-- Very simplified JMeter test plan -->
+<jmeterTestPlan>
+  <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup">
+    <stringProp name="ThreadGroup.num_threads">100</stringProp>
+    <stringProp name="ThreadGroup.ramp_time">60</stringProp>
+    <stringProp name="ThreadGroup.duration">300</stringProp>
+  </ThreadGroup>
+  <HTTPSamplerProxy>
+    <stringProp name="HTTPSampler.domain">api.example.com</stringProp>
+    <stringProp name="HTTPSampler.path">/products</stringProp>
+    <stringProp name="HTTPSampler.method">GET</stringProp>
+  </HTTPSamplerProxy>
+</jmeterTestPlan>
+```
+
+**When to use**: Enterprise environments with existing JMeter investment
+
+---
+
+### Locust
+
+Python-based load testing with web UI.
+
+**Pros**:
+
+- Pure Python code
+- Easy to write for Python developers
+- Web-based UI for monitoring
+- Distributed load generation
+
+**Cons**:
+
+- Slower than k6 (Python vs Go)
+- Requires Python knowledge
+- Less efficient resource usage
+
+**Example Test**:
+
+```python
+from locust import HttpUser, task, between
+
+class EcommerceUser(HttpUser):
+    wait_time = between(1, 5)
+
+    @task(3)
+    def browse_products(self):
+        self.client.get("/api/products")
+
+    @task(1)
+    def view_product(self):
+        product_id = random.randint(1, 100)
+        self.client.get(f"/api/products/{product_id}")
+
+    @task(1)
+    def add_to_cart(self):
+        self.client.post("/api/cart/add", json={
+            "productId": 123,
+            "quantity": 1
+        })
+```
+
+**When to use**: Python shops, teams that prefer Python over JavaScript
+
+---
+
+### Artillery
+
+Node.js-based load testing.
+
+**Pros**:
+
+- YAML configuration
+- JavaScript for complex scenarios
+- Good for socket.io/WebSocket testing
+- CI/CD friendly
+
+**Cons**:
+
+- Less performant than k6
+- Smaller community
+- Node.js single-threaded limitations
+
+**Example Test**:
+
+```yaml
+config:
+  target: "http://localhost:8000"
+  phases:
+    - duration: 60
+      arrivalRate: 20
+      name: Warm up
+    - duration: 300
+      arrivalRate: 100
+      name: Sustained load
+scenarios:
+  - name: "Browse and purchase"
+    flow:
+      - get:
+          url: "/api/products"
+      - think: 2
+      - get:
+          url: "/api/products/{{ $randomNumber(1, 100) }}"
+      - think: 3
+      - post:
+          url: "/api/cart/add"
+          json:
+            productId: "{{ $randomNumber(1, 100) }}"
+            quantity: 1
+```
+
+**When to use**: Node.js developers, WebSocket-heavy applications
+
+---
+
+### Gatling
+
+Scala-based load testing.
+
+**Pros**:
+
+- Excellent reporting/charts
+- Efficient resource usage
+- Good for complex scenarios
+- Strong Java ecosystem integration
+
+**Cons**:
+
+- Requires Scala/Java knowledge
+- Complex setup
+- Less friendly for non-JVM developers
+
+**When to use**: JVM shops, teams comfortable with Scala
+
+---
+
+### Comparison Matrix
+
+| Tool          | Language   | Performance | Ease of Use | CI/CD      | Cloud      | Best For                      |
+| ------------- | ---------- | ----------- | ----------- | ---------- | ---------- | ----------------------------- |
+| **k6**        | JavaScript | ⭐⭐⭐⭐⭐  | ⭐⭐⭐⭐⭐  | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐   | General API testing           |
+| **Postman**   | GUI        | ⭐⭐⭐      | ⭐⭐⭐⭐⭐  | ⭐⭐⭐     | ⭐⭐⭐⭐⭐ | Quick tests, API developers   |
+| **JMeter**    | Java/XML   | ⭐⭐⭐      | ⭐⭐        | ⭐⭐⭐     | ⭐⭐       | Enterprise, complex protocols |
+| **Locust**    | Python     | ⭐⭐⭐      | ⭐⭐⭐⭐    | ⭐⭐⭐⭐   | ⭐⭐⭐     | Python teams                  |
+| **Artillery** | YAML/JS    | ⭐⭐⭐      | ⭐⭐⭐⭐    | ⭐⭐⭐⭐⭐ | ⭐⭐⭐     | WebSocket, Node.js            |
+| **Gatling**   | Scala      | ⭐⭐⭐⭐    | ⭐⭐        | ⭐⭐⭐⭐   | ⭐⭐⭐     | JVM ecosystem                 |
+
+---
+
+## Conclusion & Best Practices
+
+### Performance Testing Checklist
+
+✅ **Before Testing**:
+
+- [ ] Define performance goals (response time, throughput, error rate)
+- [ ] Identify critical user journeys
+- [ ] Set up monitoring (CPU, memory, database metrics)
+- [ ] Use production-like environment
+- [ ] Prepare realistic test data
+
+✅ **During Testing**:
+
+- [ ] Monitor server resources in real-time
+- [ ] Watch for memory leaks
+- [ ] Check database performance
+- [ ] Verify error rates
+- [ ] Document any anomalies
+
+✅ **After Testing**:
+
+- [ ] Analyze results against thresholds
+- [ ] Identify bottlenecks
+- [ ] Create performance improvement plan
+- [ ] Document findings
+- [ ] Integrate tests into CI/CD
+
+### When to Run Each Test Type
+
+| Test Type       | Frequency           | Duration   | Purpose                   |
+| --------------- | ------------------- | ---------- | ------------------------- |
+| **Load Test**   | Every deployment    | 20-30 min  | Ensure normal performance |
+| **Stress Test** | Weekly/Monthly      | 30-60 min  | Find breaking points      |
+| **Spike Test**  | Before major events | 10-15 min  | Handle sudden traffic     |
+| **Soak Test**   | Monthly/Quarterly   | 4-24 hours | Find memory leaks         |
+
+### Final Recommendations
+
+1. **Start Small**: Begin with load tests, then progress to stress/spike tests
+2. **Automate Early**: Integrate into CI/CD from day one
+3. **Monitor Everything**: Can't improve what you don't measure
+4. **Test Regularly**: Performance degrades over time with new features
+5. **Document Results**: Track performance trends across releases
+6. **Test Third Parties**: External APIs can be your bottleneck
+7. **Consider Geography**: Test from regions where your users are
+8. **Plan for Scale**: Design for 10x your current traffic
+9. **Load Balance Early**: Don't wait until you're overwhelmed
+10. **Keep Learning**: Performance optimization is an ongoing journey
+
+---
+
+This comprehensive guide should give you everything you need to implement effective performance testing for your APIs. Remember: **the best time to find performance issues is before your users do!**

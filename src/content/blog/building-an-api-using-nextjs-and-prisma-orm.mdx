@@ -1,0 +1,477 @@
+---
+title: Building an API using Next.js App Router, Prisma ORM and Neon PostgreSQL
+description: A comprehensive guide to building CRUD APIs with Next.js 14 App Router, Prisma ORM, and Neon PostgreSQL database.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwfzuu7dWklTeyn0fq9gWKtVvhX5FjYNu18oJ4m
+category: tutorial
+createdAt: 2025-08-20
+updatedAt: 2025-08-20
+---
+
+Building robust APIs is a crucial part of modern web development. In this comprehensive guide, we'll explore how to create a complete CRUD API using Next.js App Router, Prisma ORM, and Neon PostgreSQL. We'll build a products API with five essential endpoints for managing product data.
+
+## What We'll Build
+
+By the end of this tutorial, you'll have a fully functional API with the following endpoints:
+
+- `GET /api/products` - Get all products
+- `GET /api/products/[id]` - Get a single product
+- `POST /api/products` - Create a new product
+- `PUT /api/products/[id]` - Update an existing product
+- `DELETE /api/products/[id]` - Delete a product
+
+## Prerequisites
+
+Before we start, make sure you have:
+
+- Node.js 18+ installed
+- A Neon PostgreSQL account (free tier available)
+- Basic knowledge of Next.js and TypeScript
+
+## Step 1: Project Setup
+
+First, let's create a new Next.js project with TypeScript support:
+
+```bash
+npx create-next-app@latest my-api-project
+cd my-api-project
+```
+
+Install the required dependencies:
+
+```bash
+npm install prisma @prisma/client
+npm install -D prisma
+```
+
+## Step 2: Setting up Neon PostgreSQL
+
+Create a new database on [Neon](https://neon.tech):
+
+1. Sign up for a Neon account
+2. Create a new project
+3. Copy your connection string
+
+Create a `.env` file in your project root:
+
+```env
+# Database
+DATABASE_URL="your_neon_connection_string_here"
+```
+
+## Step 3: Initialize Prisma
+
+Initialize Prisma in your project:
+
+```bash
+npx prisma init
+```
+
+This creates a `prisma` directory with a `schema.prisma` file. Update it with our product model:
+
+```prisma title="prisma/schema.prisma" showLineNumbers
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  category    String
+  inStock     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("products")
+}
+```
+
+Generate the Prisma client and run your first migration:
+
+```bash
+npx prisma migrate dev --name init
+npx prisma generate
+```
+
+## Step 4: Create Database Utility
+
+Create a database utility file to handle Prisma client instantiation:
+
+```typescript title="lib/db.ts" showLineNumbers
+import { PrismaClient } from "@prisma/client";
+
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+export const db = globalForPrisma.prisma ?? new PrismaClient();
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
+```
+
+## Step 5: Building the API Endpoints
+
+Now let's create our CRUD endpoints using Next.js App Router.
+
+### Get All Products Endpoint
+
+Create the main products route:
+
+```typescript title="app/api/products/route.ts" showLineNumbers
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { z } from "zod";
+
+// GET /api/products - Get all products
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get("category");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const skip = (page - 1) * limit;
+
+    const whereClause = category ? { category } : {};
+
+    const [products, total] = await Promise.all([
+      db.product.findMany({
+        where: whereClause,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+      }),
+      db.product.count({ where: whereClause }),
+    ]);
+
+    return NextResponse.json({
+      products,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch products" },
+      { status: 500 }
+    );
+  }
+}
+
+// POST /api/products - Create a new product
+const createProductSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+  price: z.number().positive("Price must be positive"),
+  category: z.string().min(1, "Category is required"),
+  inStock: z.boolean().optional(),
+});
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+
+    // Validate the request body
+    const validatedData = createProductSchema.parse(body);
+
+    const product = await db.product.create({
+      data: validatedData,
+    });
+
+    return NextResponse.json(product, { status: 201 });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Validation failed", details: error.errors },
+        { status: 400 }
+      );
+    }
+
+    console.error("Error creating product:", error);
+    return NextResponse.json(
+      { error: "Failed to create product" },
+      { status: 500 }
+    );
+  }
+}
+```
+
+### Single Product Endpoints
+
+Create the dynamic route for individual products:
+
+```typescript title="app/api/products/[id]/route.ts" showLineNumbers
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { z } from "zod";
+
+// GET /api/products/[id] - Get a single product
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const product = await db.product.findUnique({
+      where: { id: params.id },
+    });
+
+    if (!product) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(product);
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch product" },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT /api/products/[id] - Update a product
+const updateProductSchema = z.object({
+  name: z.string().min(1).optional(),
+  description: z.string().optional(),
+  price: z.number().positive().optional(),
+  category: z.string().min(1).optional(),
+  inStock: z.boolean().optional(),
+});
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const body = await request.json();
+
+    // Validate the request body
+    const validatedData = updateProductSchema.parse(body);
+
+    // Check if product exists
+    const existingProduct = await db.product.findUnique({
+      where: { id: params.id },
+    });
+
+    if (!existingProduct) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    const updatedProduct = await db.product.update({
+      where: { id: params.id },
+      data: validatedData,
+    });
+
+    return NextResponse.json(updatedProduct);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Validation failed", details: error.errors },
+        { status: 400 }
+      );
+    }
+
+    console.error("Error updating product:", error);
+    return NextResponse.json(
+      { error: "Failed to update product" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE /api/products/[id] - Delete a product
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // Check if product exists
+    const existingProduct = await db.product.findUnique({
+      where: { id: params.id },
+    });
+
+    if (!existingProduct) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    await db.product.delete({
+      where: { id: params.id },
+    });
+
+    return NextResponse.json(
+      { message: "Product deleted successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    return NextResponse.json(
+      { error: "Failed to delete product" },
+      { status: 500 }
+    );
+  }
+}
+```
+
+## Step 6: Add Input Validation
+
+Install Zod for robust input validation:
+
+```bash
+npm install zod
+```
+
+We've already incorporated Zod validation in our route handlers above. This ensures data integrity and provides clear error messages for invalid inputs.
+
+## Step 7: Testing Your API
+
+Let's test our endpoints using curl or a tool like Postman:
+
+### Create a Product
+
+```bash
+curl -X POST http://localhost:3000/api/products \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Wireless Headphones",
+    "description": "High-quality wireless headphones with noise cancellation",
+    "price": 199.99,
+    "category": "Electronics",
+    "inStock": true
+  }'
+```
+
+### Get All Products
+
+```bash
+curl http://localhost:3000/api/products
+```
+
+### Get Single Product
+
+```bash
+curl http://localhost:3000/api/products/[product-id]
+```
+
+### Update a Product
+
+```bash
+curl -X PUT http://localhost:3000/api/products/[product-id] \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Updated Wireless Headphones",
+    "price": 179.99
+  }'
+```
+
+### Delete a Product
+
+```bash
+curl -X DELETE http://localhost:3000/api/products/[product-id]
+```
+
+## Step 8: Error Handling and Best Practices
+
+Our API includes several important features:
+
+- **Validation**: Using Zod schemas to validate input data
+- **Error Handling**: Comprehensive error handling with appropriate HTTP status codes
+- **Pagination**: Support for paginated results in the GET all products endpoint
+- **Filtering**: Basic category filtering capability
+- **Database Connection Management**: Proper Prisma client instantiation
+
+## Step 9: Adding Database Seed (Optional)
+
+Create a seed script to populate your database with sample data:
+
+```typescript title="prisma/seed.ts" showLineNumbers
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+async function main() {
+  const products = await prisma.product.createMany({
+    data: [
+      {
+        name: "Laptop Pro",
+        description: "High-performance laptop for professionals",
+        price: 1299.99,
+        category: "Electronics",
+        inStock: true,
+      },
+      {
+        name: "Coffee Mug",
+        description: "Ceramic coffee mug with company logo",
+        price: 12.99,
+        category: "Kitchen",
+        inStock: true,
+      },
+      {
+        name: "Wireless Mouse",
+        description: "Ergonomic wireless mouse",
+        price: 29.99,
+        category: "Electronics",
+        inStock: false,
+      },
+    ],
+  });
+
+  console.log("Seeded products:", products);
+}
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
+```
+
+Add the seed script to your `package.json`:
+
+```json
+{
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}
+```
+
+Run the seed:
+
+```bash
+npx prisma db seed
+```
+
+## Conclusion
+
+You've successfully built a complete CRUD API using Next.js App Router, Prisma ORM, and Neon PostgreSQL! This setup provides:
+
+- **Type Safety**: Full TypeScript support with Prisma
+- **Modern Architecture**: Using Next.js App Router for better performance
+- **Robust Validation**: Input validation with Zod
+- **Scalable Database**: Cloud PostgreSQL with Neon
+- **Production Ready**: Error handling, pagination, and filtering
+
+## Next Steps
+
+To further enhance your API, consider adding:
+
+- Authentication and authorization
+- Rate limiting
+- API documentation with OpenAPI/Swagger
+- Caching with Redis
+- Logging and monitoring
+- Unit and integration tests
+
+The combination of Next.js, Prisma, and Neon provides an excellent foundation for building modern, scalable APIs that can grow with your application needs.

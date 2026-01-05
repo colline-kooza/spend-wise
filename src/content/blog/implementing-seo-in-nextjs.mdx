@@ -1,0 +1,1636 @@
+---
+title: Complete Guide to SEO in Next.js - The Developer's Handbook
+description: Master SEO in Next.js with the latest Metadata API, structured data, Core Web Vitals optimization, and advanced techniques for better search rankings.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwfWqx3RPaB2GAq6wtmJQHUsIV8TRSxaFDvP1eO
+category: tutorial
+createdAt: 2025-08-20
+updatedAt: 2025-08-20
+---
+
+Search Engine Optimization (SEO) is crucial for driving organic traffic to your website. With Next.js 15's powerful built-in features, you have everything you need to create highly optimized, search-engine-friendly applications. This comprehensive guide will teach you how to implement SEO best practices in Next.js, from basic metadata management to advanced optimization techniques.
+
+## Why SEO Matters in Next.js
+
+Next.js 15 introduced a revolutionary way to handle SEO through the Metadata API, with built-in optimizations for Core Web Vitals and automatic meta tag generation. Modern search engines prioritize websites that provide excellent user experience, making SEO optimization essential for:
+
+- **Increased Visibility**: Higher search engine rankings drive more organic traffic
+- **Better User Experience**: Fast-loading, well-structured pages keep visitors engaged
+- **Improved Conversions**: Better UX and visibility lead to higher conversion rates
+- **Competitive Advantage**: Optimized sites outperform slower competitors
+
+## Understanding SEO Fundamentals
+
+### What is SEO?
+
+SEO is the process of optimizing your website to rank higher in search engine results pages (SERPs) for relevant keywords. Search engines like Google use various factors to rank websites:
+
+- **Keyword Relevance**: How well your content matches user search queries
+- **Page Authority**: The credibility and trustworthiness of your website
+- **User Experience**: Page speed, mobile-friendliness, and Core Web Vitals
+- **Content Quality**: Comprehensive, valuable, and original content
+
+### How Search Engines Work
+
+Search engines crawl, index, and rank web pages based on hundreds of factors. The title tag is one of the most important SEO elements as it's what users see in search results and helps search engines understand your page content.
+
+## Setting Up Global SEO Configuration
+
+### Step 1: Create a Site Configuration
+
+Start by creating a centralized configuration for your site's metadata:
+
+```typescript title="config/site.ts" showLineNumbers
+export const siteConfig = {
+  name: "Your App Name",
+  title: "Your App Title - Best Solution for X",
+  url: "https://yourapp.com",
+  ogImage: "https://yourapp.com/og-image.jpg",
+  description:
+    "A comprehensive description of your application that includes relevant keywords and value proposition.",
+  keywords: [
+    "primary keyword",
+    "secondary keyword",
+    "long-tail keyword",
+    "industry terms",
+    "solution keywords",
+  ],
+  links: {
+    twitter: "https://twitter.com/yourhandle",
+    github: "https://github.com/yourusername",
+    linkedin: "https://linkedin.com/company/yourcompany",
+  },
+  creator: "Your Name",
+  authors: [
+    {
+      name: "Your Name",
+      url: "https://yourwebsite.com",
+    },
+  ],
+};
+
+export type SiteConfig = typeof siteConfig;
+```
+
+### Step 2: Implement Global Layout Metadata
+
+Next.js 15's Metadata API provides type safety, automatic optimization, and dynamic generation capabilities. Update your root layout with comprehensive metadata:
+
+```typescript title="app/layout.tsx" showLineNumbers
+import type { Metadata } from "next";
+import { siteConfig } from "@/config/site";
+
+export const metadata: Metadata = {
+  title: {
+    default: siteConfig.title,
+    template: `%s - ${siteConfig.name}`,
+  },
+  metadataBase: new URL(siteConfig.url),
+  description: siteConfig.description,
+  keywords: siteConfig.keywords,
+  authors: siteConfig.authors,
+  creator: siteConfig.creator,
+
+  // Canonical URLs and language alternatives
+  alternates: {
+    canonical: "/",
+    languages: {
+      "en-US": "/en-US",
+      "es-ES": "/es-ES",
+    },
+  },
+
+  // Open Graph metadata for social sharing
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteConfig.url,
+    title: siteConfig.name,
+    description: siteConfig.description,
+    siteName: siteConfig.name,
+    images: [
+      {
+        url: siteConfig.ogImage,
+        width: 1200,
+        height: 630,
+        alt: siteConfig.name,
+      },
+    ],
+  },
+
+  // Twitter Card metadata
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.name,
+    description: siteConfig.description,
+    images: [siteConfig.ogImage],
+    creator: "@yourhandle",
+  },
+
+  // App icons and manifest
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon-16x16.png",
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: `${siteConfig.url}/site.webmanifest`,
+
+  // Additional metadata
+  category: "technology",
+  classification: "Business",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+### Step 3: Add Favicon and App Icons
+
+Generate a complete favicon package using [favicon.io](https://favicon.io/) and place the files in your `public` directory:
+
+```
+public/
+├── favicon.ico
+├── favicon-16x16.png
+├── favicon-32x32.png
+├── apple-touch-icon.png
+├── android-chrome-192x192.png
+├── android-chrome-512x512.png
+└── site.webmanifest
+```
+
+## Page-Level SEO Implementation
+
+### Static Pages Metadata
+
+For static pages, export a metadata object:
+
+```typescript title="app/about/page.tsx" showLineNumbers
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "About Us",
+  description: "Learn about our mission, values, and the team behind our innovative solutions.",
+  alternates: {
+    canonical: "/about",
+  },
+  openGraph: {
+    title: "About Us - Your App Name",
+    description: "Learn about our mission, values, and the team behind our innovative solutions.",
+    url: "/about",
+  },
+};
+
+export default function AboutPage() {
+  return (
+    <main>
+      <h1>About Us</h1>
+      {/* Page content */}
+    </main>
+  );
+}
+```
+
+### Dynamic Pages with generateMetadata
+
+The generateMetadata function enables dynamic metadata generation based on route parameters and external data:
+
+```typescript title="app/blog/[slug]/page.tsx" showLineNumbers
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+
+interface Props {
+  params: { slug: string };
+}
+
+// Generate dynamic metadata
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  try {
+    const post = await getBlogPost(params.slug);
+
+    if (!post) {
+      return {
+        title: "Post Not Found",
+      };
+    }
+
+    return {
+      title: post.title,
+      description: post.excerpt,
+      alternates: {
+        canonical: `/blog/${params.slug}`,
+      },
+      openGraph: {
+        title: post.title,
+        description: post.excerpt,
+        type: "article",
+        publishedTime: post.publishedAt,
+        modifiedTime: post.updatedAt,
+        authors: [post.author.name],
+        images: [
+          {
+            url: post.featuredImage,
+            width: 1200,
+            height: 630,
+            alt: post.title,
+          },
+        ],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: post.title,
+        description: post.excerpt,
+        images: [post.featuredImage],
+      },
+    };
+  } catch (error) {
+    return {
+      title: "Error Loading Post",
+    };
+  }
+}
+
+// Generate static params for SSG
+export async function generateStaticParams() {
+  const posts = await getAllBlogPosts();
+
+  return posts.map((post) => ({
+    slug: post.slug,
+  }));
+}
+
+export default async function BlogPost({ params }: Props) {
+  const post = await getBlogPost(params.slug);
+
+  if (!post) {
+    notFound();
+  }
+
+  return (
+    <article>
+      <h1>{post.title}</h1>
+      <p>{post.content}</p>
+    </article>
+  );
+}
+
+async function getBlogPost(slug: string) {
+  // Fetch post data from your CMS/API
+  const response = await fetch(`${process.env.API_URL}/posts/${slug}`);
+  if (!response.ok) return null;
+  return response.json();
+}
+
+async function getAllBlogPosts() {
+  // Fetch all posts for static generation
+  const response = await fetch(`${process.env.API_URL}/posts`);
+  return response.json();
+}
+```
+
+## Implementing Structured Data with JSON-LD
+
+JSON-LD is a format for structured data that helps search engines understand your content better and can increase click-through rates by up to 30%.
+
+### Basic JSON-LD Implementation
+
+```typescript title="components/structured-data.tsx" showLineNumbers
+import Script from "next/script";
+
+interface StructuredDataProps {
+  data: object;
+}
+
+export function StructuredData({ data }: StructuredDataProps) {
+  return (
+    <Script
+      id="structured-data"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify(data).replace(/</g, '\\u003c'),
+      }}
+    />
+  );
+}
+```
+
+### Organization Schema for Layout
+
+```typescript title="app/layout.tsx" showLineNumbers {8-22}
+import { StructuredData } from "@/components/structured-data";
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Your Company Name",
+    url: "https://yourcompany.com",
+    logo: "https://yourcompany.com/logo.png",
+    description: "Your company description",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "123 Business St",
+      addressLocality: "City",
+      addressRegion: "State",
+      postalCode: "12345",
+      addressCountry: "US"
+    },
+    sameAs: [
+      "https://twitter.com/yourcompany",
+      "https://linkedin.com/company/yourcompany"
+    ]
+  };
+
+  return (
+    <html lang="en">
+      <body>
+        <StructuredData data={organizationSchema} />
+        {children}
+      </body>
+    </html>
+  );
+}
+```
+
+### Product Schema Example
+
+```typescript title="app/products/[id]/page.tsx" showLineNumbers
+import { StructuredData } from "@/components/structured-data";
+
+export default async function ProductPage({ params }: { params: { id: string } }) {
+  const product = await getProduct(params.id);
+
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: product.images,
+    brand: {
+      "@type": "Brand",
+      name: product.brand
+    },
+    offers: {
+      "@type": "Offer",
+      price: product.price,
+      priceCurrency: "USD",
+      availability: product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      seller: {
+        "@type": "Organization",
+        name: "Your Store Name"
+      }
+    },
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: product.rating,
+      reviewCount: product.reviewCount
+    }
+  };
+
+  return (
+    <main>
+      <StructuredData data={productSchema} />
+      <h1>{product.name}</h1>
+      {/* Product content */}
+    </main>
+  );
+}
+```
+
+### Article Schema for Blog Posts
+
+```typescript title="app/blog/[slug]/page.tsx" showLineNumbers {10-31}
+export default async function BlogPost({ params }: Props) {
+  const post = await getBlogPost(params.slug);
+
+  if (!post) notFound();
+
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.excerpt,
+    image: post.featuredImage,
+    datePublished: post.publishedAt,
+    dateModified: post.updatedAt,
+    author: {
+      "@type": "Person",
+      name: post.author.name,
+      url: post.author.website
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Your Blog Name",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://yoursite.com/logo.png"
+      }
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `https://yoursite.com/blog/${params.slug}`
+    }
+  };
+
+  return (
+    <article>
+      <StructuredData data={articleSchema} />
+      <h1>{post.title}</h1>
+      <p>{post.content}</p>
+    </article>
+  );
+}
+```
+
+## Optimizing Core Web Vitals
+
+Core Web Vitals are crucial metrics that measure loading, interactivity, and visual stability, directly impacting SEO rankings.
+
+### Image Optimization
+
+Use Next.js Image component for automatic optimization:
+
+```typescript title="components/optimized-image.tsx" showLineNumbers
+import Image from "next/image";
+
+interface OptimizedImageProps {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  priority?: boolean;
+  className?: string;
+}
+
+export function OptimizedImage({
+  src,
+  alt,
+  width,
+  height,
+  priority = false,
+  className
+}: OptimizedImageProps) {
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      width={width}
+      height={height}
+      priority={priority} // Use for LCP images
+      placeholder="blur"
+      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
+      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+      className={className}
+    />
+  );
+}
+```
+
+### Font Optimization
+
+```typescript title="app/layout.tsx" showLineNumbers {1-8}
+import { Inter, Playfair_Display } from "next/font/google";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-playfair",
+});
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
+      <body className="font-sans">{children}</body>
+    </html>
+  );
+}
+```
+
+### Code Splitting and Dynamic Imports
+
+```typescript title="components/heavy-component.tsx" showLineNumbers
+import dynamic from "next/dynamic";
+import { Suspense } from "react";
+
+// Lazy load heavy components
+const ChartComponent = dynamic(() => import("./chart-component"), {
+  ssr: false,
+  loading: () => <div>Loading chart...</div>
+});
+
+const VideoPlayer = dynamic(() => import("./video-player"), {
+  ssr: false,
+  loading: () => <div className="h-64 bg-gray-200 animate-pulse rounded-lg" />
+});
+
+export function HeavyComponent() {
+  return (
+    <div>
+      <h2>Interactive Dashboard</h2>
+      <Suspense fallback={<div>Loading...</div>}>
+        <ChartComponent />
+        <VideoPlayer />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+### Third-Party Script Optimization
+
+```typescript title="app/layout.tsx" showLineNumbers
+import Script from "next/script";
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        {children}
+
+        {/* Load analytics after page interactive */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'GA_MEASUREMENT_ID');
+          `}
+        </Script>
+
+        {/* Load non-critical scripts with worker strategy */}
+        <Script
+          src="https://example.com/non-critical-script.js"
+          strategy="worker"
+        />
+      </body>
+    </html>
+  );
+}
+```
+
+## Creating Sitemaps
+
+### Static Sitemap
+
+```typescript title="app/sitemap.ts" showLineNumbers
+import { MetadataRoute } from "next";
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  const baseUrl = "https://yoursite.com";
+
+  return [
+    {
+      url: baseUrl,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 1,
+    },
+    {
+      url: `${baseUrl}/about`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/contact`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
+  ];
+}
+```
+
+### Dynamic Sitemap
+
+```typescript title="app/sitemap.ts" showLineNumbers
+import { MetadataRoute } from "next";
+
+export default async function sitemap(): MetadataRoute.Sitemap {
+  const baseUrl = "https://yoursite.com";
+
+  // Fetch dynamic data
+  const posts = await getAllBlogPosts();
+  const products = await getAllProducts();
+
+  // Generate post URLs
+  const postUrls = posts.map((post) => ({
+    url: `${baseUrl}/blog/${post.slug}`,
+    lastModified: new Date(post.updatedAt),
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
+  }));
+
+  // Generate product URLs
+  const productUrls = products.map((product) => ({
+    url: `${baseUrl}/products/${product.slug}`,
+    lastModified: new Date(product.updatedAt),
+    changeFrequency: "daily" as const,
+    priority: 0.8,
+  }));
+
+  // Static pages
+  const staticPages = [
+    {
+      url: baseUrl,
+      lastModified: new Date(),
+      changeFrequency: "yearly" as const,
+      priority: 1,
+    },
+    {
+      url: `${baseUrl}/about`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    },
+  ];
+
+  return [...staticPages, ...postUrls, ...productUrls];
+}
+
+async function getAllBlogPosts() {
+  // Implement your data fetching logic
+  const response = await fetch(`${process.env.API_URL}/posts`);
+  return response.json();
+}
+
+async function getAllProducts() {
+  // Implement your data fetching logic
+  const response = await fetch(`${process.env.API_URL}/products`);
+  return response.json();
+}
+```
+
+## Robots.txt Configuration
+
+```typescript title="app/robots.ts" showLineNumbers
+import { MetadataRoute } from "next";
+
+export default function robots(): MetadataRoute.Robots {
+  const baseUrl = "https://yoursite.com";
+
+  return {
+    rules: [
+      {
+        userAgent: "*",
+        allow: ["/", "/blog", "/products", "/about"],
+        disallow: ["/api", "/admin", "/private"],
+      },
+      {
+        userAgent: "Googlebot",
+        allow: ["/", "/blog", "/products"],
+        disallow: ["/api", "/admin"],
+      },
+    ],
+    sitemap: `${baseUrl}/sitemap.xml`,
+    host: baseUrl,
+  };
+}
+```
+
+## Social Media Optimization
+
+### Open Graph Images
+
+Create dynamic Open Graph images:
+
+```typescript title="app/blog/[slug]/opengraph-image.tsx" showLineNumbers
+import { ImageResponse } from "next/og";
+
+export const runtime = "edge";
+
+export default async function Image({ params }: { params: { slug: string } }) {
+  const post = await getBlogPost(params.slug);
+
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          height: "100%",
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#1e293b",
+          fontSize: 32,
+          fontWeight: 600,
+        }}
+      >
+        <div
+          style={{
+            marginBottom: 40,
+            color: "#f1f5f9",
+            textAlign: "center",
+            maxWidth: "80%",
+            lineHeight: 1.2,
+          }}
+        >
+          {post.title}
+        </div>
+        <div
+          style={{
+            color: "#64748b",
+            fontSize: 24,
+          }}
+        >
+          Your Blog Name
+        </div>
+      </div>
+    ),
+    {
+      width: 1200,
+      height: 630,
+    }
+  );
+}
+```
+
+### Twitter Images
+
+```typescript title="app/blog/[slug]/twitter-image.tsx" showLineNumbers
+import { ImageResponse } from "next/og";
+
+export const runtime = "edge";
+
+export default async function TwitterImage({ params }: { params: { slug: string } }) {
+  const post = await getBlogPost(params.slug);
+
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          height: "100%",
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#0f172a",
+        }}
+      >
+        <h1 style={{ color: "white", fontSize: 48, textAlign: "center" }}>
+          {post.title}
+        </h1>
+      </div>
+    ),
+    {
+      width: 1200,
+      height: 600,
+    }
+  );
+}
+```
+
+## Monitoring and Analytics
+
+### Core Web Vitals Tracking
+
+```typescript title="app/layout.tsx" showLineNumbers
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        {children}
+        <Analytics />
+        <SpeedInsights />
+      </body>
+    </html>
+  );
+}
+```
+
+### Custom Web Vitals Reporting
+
+```typescript title="app/_app.tsx" showLineNumbers
+import { NextWebVitalsMetric } from "next/app";
+
+export function reportWebVitals(metric: NextWebVitalsMetric) {
+  // Log to console in development
+  if (process.env.NODE_ENV === "development") {
+    console.log(metric);
+  }
+
+  // Send to analytics service
+  if (typeof window !== "undefined") {
+    // Example: Send to Google Analytics
+    gtag("event", metric.name, {
+      custom_map: { metric_id: "cw_vitals" },
+      value: Math.round(
+        metric.name === "CLS" ? metric.value * 1000 : metric.value
+      ),
+      event_category: "Web Vitals",
+      event_label: metric.id,
+      non_interaction: true,
+    });
+
+    // Example: Send to custom analytics
+    fetch("/api/analytics/web-vitals", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(metric),
+    });
+  }
+}
+```
+
+## Advanced SEO Techniques
+
+### Internationalization (i18n)
+
+```typescript title="middleware.ts" showLineNumbers
+import { NextRequest, NextResponse } from "next/server";
+
+const locales = ["en", "es", "fr", "de"];
+const defaultLocale = "en";
+
+export function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const pathnameIsMissingLocale = locales.every(
+    (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
+  );
+
+  // Redirect if there is no locale
+  if (pathnameIsMissingLocale) {
+    const locale = getLocale(request);
+    return NextResponse.redirect(
+      new URL(`/${locale}/${pathname}`, request.url)
+    );
+  }
+}
+
+function getLocale(request: NextRequest) {
+  // Check user preference, cookies, or headers
+  return defaultLocale;
+}
+
+export const config = {
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+};
+```
+
+### Schema.org Types with TypeScript
+
+Install the `schema-dts` package for type safety:
+
+```bash
+npm install -D schema-dts
+```
+
+```typescript title="lib/structured-data.ts" showLineNumbers
+import { WithContext, Organization, Product, Article } from "schema-dts";
+
+export function createOrganizationSchema(): WithContext<Organization> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Your Company",
+    url: "https://yourcompany.com",
+    logo: "https://yourcompany.com/logo.png",
+    sameAs: [
+      "https://twitter.com/yourcompany",
+      "https://linkedin.com/company/yourcompany",
+    ],
+  };
+}
+
+export function createProductSchema(product: any): WithContext<Product> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: product.images,
+    offers: {
+      "@type": "Offer",
+      price: product.price.toString(),
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+    },
+  };
+}
+
+export function createArticleSchema(article: any): WithContext<Article> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.title,
+    description: article.excerpt,
+    image: article.featuredImage,
+    datePublished: article.publishedAt,
+    dateModified: article.updatedAt,
+    author: {
+      "@type": "Person",
+      name: article.author.name,
+    },
+  };
+}
+```
+
+## SEO Testing and Validation
+
+### Testing Tools
+
+Use these tools to validate your SEO implementation:
+
+1. **Google Search Console**: Monitor search performance and indexing
+2. **Google Rich Results Test**: Validate structured data
+3. **Lighthouse**: Audit performance and SEO
+4. **PageSpeed Insights**: Check Core Web Vitals
+5. **Social Share Preview**: Test social media previews
+
+### Local SEO Testing
+
+```typescript title="scripts/seo-test.ts" showLineNumbers
+import { JSDOM } from "jsdom";
+import fetch from "node-fetch";
+
+async function testPageSEO(url: string) {
+  try {
+    const response = await fetch(url);
+    const html = await response.text();
+    const dom = new JSDOM(html);
+    const document = dom.window.document;
+
+    // Test basic SEO elements
+    const title = document.querySelector("title")?.textContent;
+    const description = document
+      .querySelector('meta[name="description"]')
+      ?.getAttribute("content");
+    const canonical = document
+      .querySelector('link[rel="canonical"]')
+      ?.getAttribute("href");
+    const ogTitle = document
+      .querySelector('meta[property="og:title"]')
+      ?.getAttribute("content");
+    const structuredData = document.querySelector(
+      'script[type="application/ld+json"]'
+    )?.textContent;
+
+    console.log("SEO Audit Results:");
+    console.log("Title:", title || "❌ Missing");
+    console.log("Description:", description || "❌ Missing");
+    console.log("Canonical URL:", canonical || "❌ Missing");
+    console.log("OG Title:", ogTitle || "❌ Missing");
+    console.log(
+      "Structured Data:",
+      structuredData ? "✅ Present" : "❌ Missing"
+    );
+
+    // Validate title length
+    if (title && title.length > 60) {
+      console.warn("⚠️ Title too long (>60 characters)");
+    }
+
+    // Validate description length
+    if (description && description.length > 160) {
+      console.warn("⚠️ Description too long (>160 characters)");
+    }
+  } catch (error) {
+    console.error("SEO test failed:", error);
+  }
+}
+
+// Run test
+testPageSEO("http://localhost:3000/blog/example-post");
+```
+
+### Automated SEO Testing with Jest
+
+```typescript title="__tests__/seo.test.ts" showLineNumbers
+import { render } from "@testing-library/react";
+import HomePage from "@/app/page";
+import { JSDOM } from "jsdom";
+
+describe("SEO Tests", () => {
+  test("should have proper meta tags", () => {
+    const { container } = render(<HomePage />);
+
+    // Test title
+    const title = container.querySelector("title");
+    expect(title).toBeTruthy();
+    expect(title?.textContent).toMatch(/Your App Name/);
+
+    // Test meta description
+    const description = container.querySelector('meta[name="description"]');
+    expect(description).toBeTruthy();
+    expect(description?.getAttribute("content")).toBeTruthy();
+  });
+
+  test("should have structured data", () => {
+    const { container } = render(<HomePage />);
+
+    const structuredData = container.querySelector('script[type="application/ld+json"]');
+    expect(structuredData).toBeTruthy();
+
+    const jsonData = JSON.parse(structuredData?.textContent || "{}");
+    expect(jsonData["@context"]).toBe("https://schema.org");
+    expect(jsonData["@type"]).toBeTruthy();
+  });
+
+  test("should have proper Open Graph tags", () => {
+    const { container } = render(<HomePage />);
+
+    const ogTitle = container.querySelector('meta[property="og:title"]');
+    const ogDescription = container.querySelector('meta[property="og:description"]');
+    const ogImage = container.querySelector('meta[property="og:image"]');
+
+    expect(ogTitle).toBeTruthy();
+    expect(ogDescription).toBeTruthy();
+    expect(ogImage).toBeTruthy();
+  });
+});
+```
+
+## Performance Optimization Checklist
+
+### Core Web Vitals Optimization
+
+Core Web Vitals are crucial metrics that measure loading, interactivity, and visual stability, directly impacting SEO rankings. Next.js provides built-in optimizations for these metrics.
+
+#### Largest Contentful Paint (LCP) - Target: < 2.5s
+
+```typescript title="components/lcp-optimized-hero.tsx" showLineNumbers
+import Image from "next/image";
+import { Inter } from "next/font/google";
+
+const inter = Inter({ subsets: ["latin"], display: "swap" });
+
+export function HeroSection() {
+  return (
+    <section className={`${inter.className} relative h-screen flex items-center`}>
+      {/* Preload critical image */}
+      <Image
+        src="/hero-image.jpg"
+        alt="Hero image"
+        fill
+        priority // Critical for LCP
+        quality={85}
+        sizes="100vw"
+        className="object-cover"
+      />
+
+      <div className="relative z-10 max-w-4xl mx-auto px-6">
+        <h1 className="text-5xl font-bold text-white mb-4">
+          Your Compelling Headline
+        </h1>
+        <p className="text-xl text-gray-100">
+          Your value proposition that loads fast
+        </p>
+      </div>
+    </section>
+  );
+}
+```
+
+#### Interaction to Next Paint (INP) - Target: < 200ms
+
+```typescript title="hooks/useOptimizedInteraction.ts" showLineNumbers
+import { useCallback, useTransition, startTransition } from "react";
+
+export function useOptimizedInteraction() {
+  const [isPending, startTransition] = useTransition();
+
+  const handleClick = useCallback((callback: () => void) => {
+    // Use React 18's startTransition for non-urgent updates
+    startTransition(() => {
+      callback();
+    });
+  }, []);
+
+  const handleAsyncAction = useCallback(async (action: () => Promise<void>) => {
+    // Debounce async actions
+    const timeoutId = setTimeout(async () => {
+      await action();
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  return { handleClick, handleAsyncAction, isPending };
+}
+```
+
+#### Cumulative Layout Shift (CLS) - Target: < 0.1
+
+```typescript title="components/layout-stable-card.tsx" showLineNumbers
+import Image from "next/image";
+
+interface StableCardProps {
+  title: string;
+  content: string;
+  imageUrl: string;
+  imageAlt: string;
+}
+
+export function StableCard({ title, content, imageUrl, imageAlt }: StableCardProps) {
+  return (
+    <article className="bg-white rounded-lg shadow-md overflow-hidden">
+      {/* Fixed aspect ratio container prevents CLS */}
+      <div className="relative aspect-video">
+        <Image
+          src={imageUrl}
+          alt={imageAlt}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className="object-cover"
+          placeholder="blur"
+          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/..."
+        />
+      </div>
+
+      {/* Fixed height containers prevent layout shift */}
+      <div className="p-6">
+        <h3 className="text-xl font-semibold mb-2 line-clamp-2 min-h-[3.5rem]">
+          {title}
+        </h3>
+        <p className="text-gray-600 line-clamp-3 min-h-[4.5rem]">
+          {content}
+        </p>
+      </div>
+    </article>
+  );
+}
+```
+
+## Local Business SEO
+
+### Google My Business Integration
+
+For local businesses, implement local SEO structured data:
+
+```typescript title="components/local-business-schema.tsx" showLineNumbers
+import { StructuredData } from "./structured-data";
+
+interface LocalBusinessProps {
+  name: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+  };
+  phone: string;
+  hours: Array<{
+    dayOfWeek: string;
+    opens: string;
+    closes: string;
+  }>;
+  rating?: {
+    value: number;
+    count: number;
+  };
+}
+
+export function LocalBusinessSchema({
+  name,
+  address,
+  phone,
+  hours,
+  rating
+}: LocalBusinessProps) {
+  const localBusinessSchema = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: address.street,
+      addressLocality: address.city,
+      addressRegion: address.state,
+      postalCode: address.postalCode,
+      addressCountry: address.country
+    },
+    telephone: phone,
+    openingHoursSpecification: hours.map(hour => ({
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: hour.dayOfWeek,
+      opens: hour.opens,
+      closes: hour.closes
+    })),
+    ...(rating && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: rating.value,
+        reviewCount: rating.count
+      }
+    })
+  };
+
+  return <StructuredData data={localBusinessSchema} />;
+}
+```
+
+## E-commerce SEO
+
+### Product Schema for E-commerce
+
+```typescript title="components/ecommerce-product-schema.tsx" showLineNumbers
+interface ProductSchemaProps {
+  product: {
+    name: string;
+    description: string;
+    image: string[];
+    price: number;
+    currency: string;
+    availability: "InStock" | "OutOfStock" | "PreOrder";
+    brand: string;
+    category: string;
+    sku: string;
+    reviews?: {
+      rating: number;
+      count: number;
+      reviews: Array<{
+        author: string;
+        rating: number;
+        text: string;
+        date: string;
+      }>;
+    };
+  };
+}
+
+export function EcommerceProductSchema({ product }: ProductSchemaProps) {
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: product.image,
+    brand: {
+      "@type": "Brand",
+      name: product.brand
+    },
+    category: product.category,
+    sku: product.sku,
+    offers: {
+      "@type": "Offer",
+      price: product.price.toFixed(2),
+      priceCurrency: product.currency,
+      availability: `https://schema.org/${product.availability}`,
+      seller: {
+        "@type": "Organization",
+        name: "Your Store Name"
+      }
+    },
+    ...(product.reviews && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: product.reviews.rating,
+        reviewCount: product.reviews.count
+      },
+      review: product.reviews.reviews.map(review => ({
+        "@type": "Review",
+        author: {
+          "@type": "Person",
+          name: review.author
+        },
+        reviewRating: {
+          "@type": "Rating",
+          ratingValue: review.rating
+        },
+        reviewBody: review.text,
+        datePublished: review.date
+      }))
+    })
+  };
+
+  return <StructuredData data={productSchema} />;
+}
+```
+
+## Blog SEO Best Practices
+
+### Blog Post Template with Full SEO
+
+```typescript title="app/blog/[slug]/page.tsx" showLineNumbers
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { StructuredData } from "@/components/structured-data";
+import { EcommerceProductSchema } from "@/components/ecommerce-product-schema";
+
+interface BlogPostProps {
+  params: { slug: string };
+}
+
+export async function generateMetadata({ params }: BlogPostProps): Promise<Metadata> {
+  const post = await getBlogPost(params.slug);
+
+  if (!post) return { title: "Post Not Found" };
+
+  return {
+    title: post.seoTitle || post.title,
+    description: post.seoDescription || post.excerpt,
+    keywords: post.tags,
+    authors: [{ name: post.author.name, url: post.author.website }],
+    alternates: {
+      canonical: `/blog/${params.slug}`,
+    },
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      type: "article",
+      publishedTime: post.publishedAt,
+      modifiedTime: post.updatedAt,
+      authors: [post.author.name],
+      tags: post.tags,
+      images: [
+        {
+          url: post.featuredImage,
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.excerpt,
+      images: [post.featuredImage],
+    },
+  };
+}
+
+export default async function BlogPost({ params }: BlogPostProps) {
+  const post = await getBlogPost(params.slug);
+
+  if (!post) notFound();
+
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.excerpt,
+    image: post.featuredImage,
+    datePublished: post.publishedAt,
+    dateModified: post.updatedAt,
+    author: {
+      "@type": "Person",
+      name: post.author.name,
+      url: post.author.website,
+      image: post.author.avatar
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Your Blog Name",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://yoursite.com/logo.png"
+      }
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `https://yoursite.com/blog/${params.slug}`
+    },
+    keywords: post.tags.join(", "),
+    wordCount: post.content.split(" ").length,
+    articleSection: post.category,
+    ...(post.readingTime && {
+      timeRequired: `PT${post.readingTime}M`
+    })
+  };
+
+  return (
+    <article className="max-w-4xl mx-auto px-6 py-12">
+      <StructuredData data={articleSchema} />
+
+      {/* Breadcrumb for better navigation */}
+      <nav className="mb-8">
+        <ol className="flex space-x-2 text-sm text-gray-600">
+          <li><a href="/">Home</a></li>
+          <li>/</li>
+          <li><a href="/blog">Blog</a></li>
+          <li>/</li>
+          <li className="text-gray-900">{post.title}</li>
+        </ol>
+      </nav>
+
+      <header className="mb-12">
+        <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
+        <div className="flex items-center space-x-4 text-gray-600 mb-6">
+          <time dateTime={post.publishedAt}>
+            {new Date(post.publishedAt).toLocaleDateString()}
+          </time>
+          <span>•</span>
+          <span>{post.readingTime} min read</span>
+          <span>•</span>
+          <address className="not-italic">
+            By <a href={post.author.website} className="text-blue-600">
+              {post.author.name}
+            </a>
+          </address>
+        </div>
+
+        {post.featuredImage && (
+          <img
+            src={post.featuredImage}
+            alt={post.title}
+            className="w-full h-64 object-cover rounded-lg"
+          />
+        )}
+      </header>
+
+      <div
+        className="prose prose-lg max-w-none"
+        dangerouslySetInnerHTML={{ __html: post.content }}
+      />
+
+      {/* Tags */}
+      <footer className="mt-12 pt-8 border-t">
+        <div className="flex flex-wrap gap-2">
+          {post.tags.map((tag: string) => (
+            <a
+              key={tag}
+              href={`/blog/tag/${tag}`}
+              className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200"
+            >
+              #{tag}
+            </a>
+          ))}
+        </div>
+      </footer>
+    </article>
+  );
+}
+```
+
+## SEO Monitoring and Continuous Improvement
+
+### Performance Budget
+
+```javascript title="lighthouse.config.js" showLineNumbers
+module.exports = {
+  extends: "lighthouse:default",
+  settings: {
+    budgets: [
+      {
+        path: "/*",
+        timings: [
+          { metric: "first-contentful-paint", budget: 2000 },
+          { metric: "largest-contentful-paint", budget: 2500 },
+          { metric: "interactive", budget: 3000 },
+        ],
+        resourceSizes: [
+          { resourceType: "script", budget: 300 },
+          { resourceType: "image", budget: 500 },
+          { resourceType: "stylesheet", budget: 100 },
+        ],
+        resourceCounts: [{ resourceType: "third-party", budget: 10 }],
+      },
+    ],
+  },
+};
+```
+
+### GitHub Actions for SEO Monitoring
+
+```yaml title=".github/workflows/seo-audit.yml" showLineNumbers
+name: SEO Audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Start application
+        run: npm start &
+
+      - name: Wait for server
+        run: npx wait-on http://localhost:3000
+
+      - name: Run Lighthouse CI
+        run: |
+          npm install -g @lhci/cli@0.12.x
+          lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+```
+
+## Quick SEO Tips
+
+### Essential SEO Checklist
+
+- ✅ **Use Next.js Image component** for automatic optimization
+- ✅ **Implement proper heading hierarchy** (H1 → H2 → H3)
+- ✅ **Add alt attributes** to all images for accessibility
+- ✅ **Use semantic HTML** for better content structure
+- ✅ **Optimize for mobile-first** responsive design
+- ✅ **Implement breadcrumb navigation** for better UX
+- ✅ **Use descriptive URLs** with keywords
+- ✅ **Add internal linking** to related content
+- ✅ **Optimize page loading speed** with code splitting
+- ✅ **Monitor Core Web Vitals** regularly
+
+### Common SEO Mistakes to Avoid
+
+- ❌ **Missing or duplicate meta descriptions**
+- ❌ **Long page titles** (over 60 characters)
+- ❌ **Missing structured data** for rich snippets
+- ❌ **Slow loading images** without optimization
+- ❌ **Missing canonical URLs** causing duplicate content
+- ❌ **Poor mobile experience** not mobile-optimized
+- ❌ **Missing XML sitemap** or robots.txt
+- ❌ **Broken internal links** and 404 errors
+- ❌ **Ignoring Core Web Vitals** performance metrics
+- ❌ **Not monitoring** SEO performance regularly
+
+## Conclusion
+
+Next.js 15 provides a revolutionary approach to SEO with its Metadata API, offering type safety, automatic optimization, and dynamic generation capabilities. By implementing the techniques covered in this guide, you'll create a highly optimized, search-engine-friendly application that provides excellent user experience and ranks well in search results.
+
+**Key Takeaways:**
+
+- **Start with solid foundations**: Proper metadata configuration and site structure
+- **Implement structured data**: Use JSON-LD for rich snippets and better search visibility
+- **Optimize for Core Web Vitals**: Focus on loading speed, interactivity, and visual stability
+- **Monitor and iterate**: Regularly test and improve your SEO performance
+- **Stay updated**: SEO best practices evolve, so keep learning and adapting
+
+Remember, SEO is a marathon, not a sprint. Implement these techniques gradually, monitor your results, and keep optimizing based on real data. With Next.js's powerful built-in features and the strategies outlined in this guide, you're well-equipped to build applications that both users and search engines will love.
+
+**Next Steps:**
+
+1. Audit your current Next.js application using the checklist provided
+2. Implement global metadata configuration with the site config approach
+3. Add structured data to your key pages using the examples shown
+4. Monitor your Core Web Vitals and optimize accordingly
+5. Set up tracking and monitoring to measure your SEO improvements
+
+For more advanced SEO strategies and the latest Next.js features, refer to the [official Next.js documentation](https://nextjs.org/docs) and stay updated with Google's Search Central guidelines.

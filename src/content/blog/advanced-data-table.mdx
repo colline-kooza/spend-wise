@@ -1,0 +1,2409 @@
+---
+title: Implementing Advanced Data table with Date filters
+description: This is a very advanced data table.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwfEgqmojqTvKwb91zky4YOuLWjn7Mq3hJCaUDr
+category: tutorial
+createdAt: 2025-09-22
+updatedAt: 2025-09-22
+---
+
+## Advanced Implementation of Data table with server date filters, export and others
+
+- We will be using a case study of a sales order page,
+
+### Create a Sales Order Page with Suspense Support
+
+```tsx
+import { Suspense } from "react";
+import { Metadata } from "next";
+import { FileText, TrendingUp, DollarSign } from "lucide-react";
+
+import SalesOrderList from "./components/SalesOrderList";
+
+export const metadata: Metadata = {
+  title: "Sales Orders Management",
+  description: "Manage sales orders, track payments and monitor order status",
+};
+
+// Enhanced Loading Spinner Component
+function LoadingSpinner({ className }: { className?: string }) {
+  return (
+    <div className="relative">
+      {/* Outer ring */}
+      <div
+        className={`animate-spin rounded-full border-4 border-blue-100 border-t-blue-600 dark:border-blue-900 dark:border-t-blue-400 ${className}`}
+      />
+      {/* Inner ring */}
+      <div
+        className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform animate-spin rounded-full border-2 border-cyan-100 border-b-cyan-500 dark:border-cyan-900 dark:border-b-cyan-400`}
+        style={{
+          width: "calc(100% - 16px)",
+          height: "calc(100% - 16px)",
+          animationDirection: "reverse",
+          animationDuration: "1.5s",
+        }}
+      />
+      {/* Center dot */}
+      <div className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 transform animate-pulse rounded-full bg-blue-600 dark:bg-blue-400" />
+    </div>
+  );
+}
+
+// Skeleton Card Component
+function SkeletonCard() {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="flex h-10 w-10 animate-pulse items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900">
+            <FileText className="h-5 w-5 text-blue-400 dark:text-blue-500" />
+          </div>
+          <div className="space-y-2">
+            <div className="h-4 w-32 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+            <div className="h-3 w-24 animate-pulse rounded bg-slate-100 dark:bg-slate-800"></div>
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="h-6 w-20 animate-pulse rounded-full bg-green-100 dark:bg-green-900"></div>
+          <div className="h-8 w-8 animate-pulse rounded bg-slate-100 dark:bg-slate-800"></div>
+        </div>
+      </div>
+
+      <div className="mb-4 grid grid-cols-3 gap-4">
+        <div className="space-y-1">
+          <div className="h-3 w-16 animate-pulse rounded bg-slate-100 dark:bg-slate-800"></div>
+          <div className="h-4 w-20 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+        </div>
+        <div className="space-y-1">
+          <div className="h-3 w-16 animate-pulse rounded bg-slate-100 dark:bg-slate-800"></div>
+          <div className="h-4 w-24 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+        </div>
+        <div className="space-y-1">
+          <div className="h-3 w-16 animate-pulse rounded bg-slate-100 dark:bg-slate-800"></div>
+          <div className="h-4 w-20 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between border-t border-slate-100 pt-4 dark:border-slate-700">
+        <div className="flex space-x-2">
+          <div className="h-8 w-16 animate-pulse rounded bg-blue-100 dark:bg-blue-900"></div>
+          <div className="h-8 w-16 animate-pulse rounded bg-slate-100 dark:bg-slate-800"></div>
+        </div>
+        <div className="h-4 w-24 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+      </div>
+    </div>
+  );
+}
+
+// Enhanced Loading Fallback
+function SalesOrdersLoadingFallback() {
+  return (
+    <div className="space-y-6">
+      {/* Header with animated elements */}
+      <div className="flex items-center justify-between">
+        <div className="space-y-3">
+          <div className="flex items-center space-x-3">
+            <div className="flex h-8 w-8 animate-pulse items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500">
+              <TrendingUp className="h-5 w-5 text-white" />
+            </div>
+            <div className="h-8 w-64 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+          </div>
+          <div className="h-4 w-96 animate-pulse rounded bg-slate-100 dark:bg-slate-800"></div>
+        </div>
+        <div className="flex space-x-3">
+          <div className="h-10 w-32 animate-pulse rounded-lg bg-blue-100 dark:bg-blue-900"></div>
+          <div className="h-10 w-24 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800"></div>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        {[
+          { icon: FileText, color: "blue" },
+          { icon: DollarSign, color: "green" },
+          { icon: TrendingUp, color: "cyan" },
+        ].map((stat, index) => (
+          <div
+            key={index}
+            className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800"
+          >
+            <div className="flex items-center justify-between">
+              <div className="space-y-3">
+                <div className="h-4 w-24 animate-pulse rounded bg-slate-100 dark:bg-slate-800"></div>
+                <div className="h-8 w-20 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+                <div className="h-3 w-32 animate-pulse rounded bg-slate-100 dark:bg-slate-800"></div>
+              </div>
+              <div
+                className={`h-12 w-12 bg-${stat.color}-100 dark:bg-${stat.color}-900 flex animate-pulse items-center justify-center rounded-lg`}
+              >
+                <stat.icon
+                  className={`h-6 w-6 text-${stat.color}-500 dark:text-${stat.color}-400`}
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filters and Search */}
+      <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <div className="flex-1">
+            <div className="h-10 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-700"></div>
+          </div>
+          <div className="flex space-x-2">
+            <div className="h-10 w-32 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-700"></div>
+            <div className="h-10 w-24 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-700"></div>
+            <div className="h-10 w-20 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-700"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Loading Message with Spinner */}
+      <div className="flex items-center justify-center py-12">
+        <div className="space-y-4 text-center">
+          <LoadingSpinner className="mx-auto h-12 w-12" />
+          <div className="space-y-2">
+            <p className="font-medium text-slate-600 dark:text-slate-400">
+              Loading sales orders...
+            </p>
+            <p className="text-sm text-slate-500 dark:text-slate-500">
+              Fetching your latest financial data
+            </p>
+          </div>
+          {/* Progress indicators */}
+          <div className="mt-4 flex justify-center space-x-1">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="h-2 w-2 animate-pulse rounded-full bg-blue-400"
+                style={{ animationDelay: `${i * 0.2}s` }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Skeleton Cards */}
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <SkeletonCard key={i} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function SalesOrdersPage() {
+  return (
+    <div className="container mx-auto py-6">
+      <Suspense fallback={<SalesOrdersLoadingFallback />}>
+        <SalesOrderList title="Sales Orders Management" />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+- Looking at the page , it requires a `SalesOrderList` component, so lets look at it
+
+### Sales Order List component
+
+```tsx
+"use client";
+
+import { useState, useMemo } from "react";
+import { format } from "date-fns";
+import * as XLSX from "xlsx";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import {
+  Plus,
+  Eye,
+  FileSpreadsheet,
+  TrendingUp,
+  DollarSign,
+  ShoppingCart,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+} from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+
+import { DateFilterOption, SalesOrderFilters } from "@/actions/sales-orders-v2";
+import { useSuspenseSalesOrders } from "@/hooks/useSalesOrdersV2";
+import SalesReportComponent, { useSalesReport } from "./SalesReportPDF";
+import { Column } from "@/components/ui/data-table";
+import DataTableV2 from "@/components/ui/data-table/data-table-v2";
+import TableActions from "@/components/ui/data-table/table-actions-v2";
+
+// Types
+interface SalesOrder {
+  id: string;
+  orderNumber: string;
+  orderDate: Date;
+  buyerType: "SALES_PERSON" | "SALES_AGENT";
+  buyerName: string;
+  targetTitle: string;
+  totalAmount: number;
+  amountPaid: number;
+  outstandingBalance: number;
+  paymentStatus: "PENDING" | "PARTIAL" | "PAID" | "OVERDUE";
+  status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
+  orderItems: Array<{
+    id: string;
+    productName: string;
+    numberPlate: string;
+    lineTotal: number;
+  }>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface SalesOrderListProps {
+  title: string;
+}
+
+type OrderTab = "all" | "outstanding" | "paid";
+
+export default function SalesOrderList({ title }: SalesOrderListProps) {
+  const router = useRouter();
+  const [isExporting, setIsExporting] = useState(false);
+  const [activeTab, setActiveTab] = useState<OrderTab>("all");
+
+  // Multi-select state
+  const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
+
+  // Date filter state (server-side)
+  const [dateFilter, setDateFilter] = useState<SalesOrderFilters>({
+    dateFilter: "last7days", // Default to last 7 days for performance
+  });
+
+  // Fetch sales orders with server-side date filtering
+  const { salesOrders, refetch } = useSuspenseSalesOrders(dateFilter);
+
+  // Initialize the sales report component
+  const { handlePrint, handleDownload } = useSalesReport({
+    orders: salesOrders,
+    currentFilter: dateFilter,
+  });
+
+  // Helper functions
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-UG", {
+      style: "currency",
+      currency: "UGX",
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const formatDate = (date: Date | string) => {
+    const dateObj = typeof date === "string" ? new Date(date) : date;
+    return format(dateObj, "MMM dd, yyyy");
+  };
+
+  const getPaymentStatusBadge = (
+    status: string,
+    outstandingBalance: number
+  ) => {
+    switch (status) {
+      case "PAID":
+        return <Badge className="bg-green-500 hover:bg-green-600">Paid</Badge>;
+      case "PARTIAL":
+        return <Badge variant="secondary">Partial</Badge>;
+      case "OVERDUE":
+        return <Badge variant="destructive">Overdue</Badge>;
+      default:
+        return <Badge variant="outline">Pending</Badge>;
+    }
+  };
+
+  const getOrderStatusBadge = (status: string) => {
+    switch (status) {
+      case "COMPLETED":
+        return (
+          <Badge className="bg-green-500 hover:bg-green-600">
+            <CheckCircle className="mr-1 h-3 w-3" />
+            Completed
+          </Badge>
+        );
+      case "CONFIRMED":
+        return (
+          <Badge className="bg-blue-500 hover:bg-blue-600">
+            <CheckCircle className="mr-1 h-3 w-3" />
+            Confirmed
+          </Badge>
+        );
+      case "CANCELLED":
+        return (
+          <Badge variant="destructive">
+            <XCircle className="mr-1 h-3 w-3" />
+            Cancelled
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="outline">
+            <Clock className="mr-1 h-3 w-3" />
+            Pending
+          </Badge>
+        );
+    }
+  };
+
+  const getBuyerTypeBadge = (buyerType: string) => {
+    return buyerType === "SALES_PERSON" ? (
+      <Badge variant="default">Sales Person</Badge>
+    ) : (
+      <Badge variant="secondary">Sales Agent</Badge>
+    );
+  };
+
+  // Filter orders by payment status (client-side tabs)
+  const filteredOrdersByTab = useMemo(() => {
+    switch (activeTab) {
+      case "outstanding":
+        return salesOrders.filter(
+          (order) =>
+            order.paymentStatus === "PENDING" ||
+            order.paymentStatus === "PARTIAL" ||
+            order.paymentStatus === "OVERDUE"
+        );
+      case "paid":
+        return salesOrders.filter((order) => order.paymentStatus === "PAID");
+      default:
+        return salesOrders;
+    }
+  }, [salesOrders, activeTab]);
+
+  // Multi-select functions
+  const handleSelectOrder = (orderId: string, checked: boolean) => {
+    const newSelected = new Set(selectedOrders);
+    if (checked) {
+      newSelected.add(orderId);
+    } else {
+      newSelected.delete(orderId);
+    }
+    setSelectedOrders(newSelected);
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = new Set(filteredOrdersByTab.map((order) => order.id));
+      setSelectedOrders(allIds);
+    } else {
+      setSelectedOrders(new Set());
+    }
+  };
+
+  const isAllSelected =
+    filteredOrdersByTab.length > 0 &&
+    filteredOrdersByTab.every((order) => selectedOrders.has(order.id));
+
+  const isIndeterminate = selectedOrders.size > 0 && !isAllSelected;
+
+  // Calculate selected orders stats
+  const selectedOrdersStats = useMemo(() => {
+    const selectedOrdersData = filteredOrdersByTab.filter((order) =>
+      selectedOrders.has(order.id)
+    );
+
+    const totalOutstanding = selectedOrdersData.reduce(
+      (sum, order) => sum + order.outstandingBalance,
+      0
+    );
+
+    const totalAmount = selectedOrdersData.reduce(
+      (sum, order) => sum + order.totalAmount,
+      0
+    );
+
+    return {
+      count: selectedOrdersData.length,
+      totalOutstanding,
+      totalAmount,
+    };
+  }, [selectedOrders, filteredOrdersByTab]);
+
+  // Clear selection when tab changes
+  useMemo(() => {
+    setSelectedOrders(new Set());
+  }, [activeTab]);
+
+  // Event handlers
+  const handleCreateOrder = () => {
+    router.push("/dashboard/sales-orders/create");
+  };
+
+  const handleViewOrder = (order: SalesOrder) => {
+    router.push(`/dashboard/sales-orders/${order.id}`);
+  };
+
+  const handleEditClick = (order: SalesOrder) => {
+    router.push(`/dashboard/sales-orders/${order.id}/update`);
+  };
+
+  // Handle server-side date filter change
+  const handleDateFilterChange = (
+    range: { from: Date; to: Date } | null,
+    option: DateFilterOption
+  ) => {
+    const newFilter: SalesOrderFilters = {
+      dateFilter: option,
+    };
+
+    if (option === "custom" && range) {
+      newFilter.dateRange = range;
+    }
+
+    setDateFilter(newFilter);
+    // Clear selection when filter changes
+    setSelectedOrders(new Set());
+  };
+
+  const handleExport = async (filteredOrders: SalesOrder[]) => {
+    setIsExporting(true);
+    try {
+      const exportData = filteredOrders.map((order) => ({
+        "Order Number": order.orderNumber,
+        "Order Date": formatDate(order.orderDate),
+        "Buyer Type": order.buyerType.replace("_", " "),
+        "Buyer Name": order.buyerName,
+        Target: order.targetTitle,
+        "Items Count": order.orderItems.length,
+        "Number Plates": order.orderItems
+          .map((item) => item.numberPlate)
+          .join(", "),
+        "Total Amount": formatCurrency(order.totalAmount),
+        "Amount Paid": formatCurrency(order.amountPaid),
+        Outstanding: formatCurrency(order.outstandingBalance),
+        "Payment Status": order.paymentStatus,
+        "Order Status": order.status,
+        Created: formatDate(order.createdAt),
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Sales Orders");
+
+      const fileName = `Sales_Orders_${activeTab}_${format(
+        new Date(),
+        "yyyy-MM-dd"
+      )}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+
+      toast.success("Export successful", {
+        description: `Sales orders exported to ${fileName}`,
+      });
+    } catch (error) {
+      toast.error("Export failed", {
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Export selected orders
+  const handleExportSelected = async () => {
+    const selectedOrdersData = filteredOrdersByTab.filter((order) =>
+      selectedOrders.has(order.id)
+    );
+
+    if (selectedOrdersData.length === 0) {
+      toast.error("No orders selected", {
+        description: "Please select orders to export",
+      });
+      return;
+    }
+
+    await handleExport(selectedOrdersData);
+  };
+
+  // Calculate statistics for all tabs
+  const stats = useMemo(() => {
+    const totalOrders = salesOrders.length;
+    const totalRevenue = salesOrders.reduce(
+      (sum, order) => sum + order.totalAmount,
+      0
+    );
+    const totalPaid = salesOrders.reduce(
+      (sum, order) => sum + order.amountPaid,
+      0
+    );
+    const totalOutstanding = salesOrders.reduce(
+      (sum, order) => sum + order.outstandingBalance,
+      0
+    );
+    const pendingOrders = salesOrders.filter(
+      (order) => order.status === "PENDING"
+    ).length;
+    const completedOrders = salesOrders.filter(
+      (order) => order.status === "COMPLETED"
+    ).length;
+    const outstandingOrders = salesOrders.filter(
+      (order) =>
+        order.paymentStatus === "PENDING" ||
+        order.paymentStatus === "PARTIAL" ||
+        order.paymentStatus === "OVERDUE"
+    ).length;
+    const paidOrders = salesOrders.filter(
+      (order) => order.paymentStatus === "PAID"
+    ).length;
+
+    return {
+      totalOrders,
+      totalRevenue,
+      totalPaid,
+      totalOutstanding,
+      pendingOrders,
+      completedOrders,
+      outstandingOrders,
+      paidOrders,
+    };
+  }, [salesOrders]);
+
+  // Define columns for the data table
+  const columns: Column<SalesOrder>[] = [
+    {
+      header: () => (
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            checked={isAllSelected}
+            // indeterminate={isIndeterminate}
+            onCheckedChange={handleSelectAll}
+            aria-label="Select all orders"
+          />
+          <span>Select</span>
+        </div>
+      ),
+      accessorKey: "id",
+      cell: (row) => (
+        <Checkbox
+          checked={selectedOrders.has(row.id)}
+          onCheckedChange={(checked) =>
+            handleSelectOrder(row.id, checked as boolean)
+          }
+          aria-label={`Select order ${row.orderNumber}`}
+        />
+      ),
+    },
+    {
+      header: "Order Details",
+      accessorKey: "orderNumber",
+      cell: (row) => (
+        <div className="min-w-[120px]">
+          <div className="text-sm font-semibold">{row.orderNumber}</div>
+          <div className="text-muted-foreground text-xs">
+            {formatDate(row.orderDate)}
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: "Buyer",
+      accessorKey: "buyerName",
+      cell: (row) => (
+        <div className="min-w-[140px]">
+          <div
+            className="max-w-[120px] truncate text-sm font-medium"
+            title={row.buyerName}
+          >
+            {row.buyerName}
+          </div>
+          <div className="mt-1">{getBuyerTypeBadge(row.buyerType)}</div>
+        </div>
+      ),
+    },
+    {
+      header: "Items",
+      accessorKey: "orderItems",
+      cell: (row) => (
+        <div className="min-w-[100px]">
+          <div className="text-sm font-medium">
+            {row.orderItems.length}{" "}
+            {row.orderItems.length === 1 ? "item" : "items"}
+          </div>
+          <div className="text-muted-foreground space-y-0.5 text-xs">
+            {row.orderItems.slice(0, 1).map((item, index) => (
+              <div
+                key={index}
+                className="max-w-[90px] truncate"
+                title={item.numberPlate}
+              >
+                {item.numberPlate}
+              </div>
+            ))}
+            {row.orderItems.length > 1 && (
+              <div className="text-xs font-medium text-blue-600">
+                +{row.orderItems.length - 1} more
+              </div>
+            )}
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: "Amount",
+      accessorKey: "totalAmount",
+      cell: (row) => (
+        <div className="min-w-[130px] text-right">
+          <div className="text-sm font-semibold">
+            {formatCurrency(row.totalAmount)}
+          </div>
+          <div className="text-xs text-green-600">
+            Paid: {formatCurrency(row.amountPaid)}
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: "Outstanding",
+      accessorKey: "outstandingBalance",
+      cell: (row) => (
+        <div className="min-w-[110px] text-right">
+          <div
+            className={`text-sm font-semibold ${
+              row.outstandingBalance > 0 ? "text-red-600" : "text-green-600"
+            }`}
+          >
+            {formatCurrency(row.outstandingBalance)}
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: "Payment Status",
+      accessorKey: "paymentStatus",
+      cell: (row) => (
+        <div className="min-w-[80px]">
+          {getPaymentStatusBadge(row.paymentStatus, row.outstandingBalance)}
+        </div>
+      ),
+    },
+    // {
+    //   header: "Order Status",
+    //   accessorKey: "status",
+    //   cell: (row) => (
+    //     <div className="min-w-[100px]">{getOrderStatusBadge(row.status)}</div>
+    //   ),
+    // },
+  ];
+
+  // Generate subtitle with stats for current tab
+  const getSubtitle = () => {
+    const currentData = filteredOrdersByTab;
+    const currentRevenue = currentData.reduce(
+      (sum, order) => sum + order.totalAmount,
+      0
+    );
+    const currentOutstanding = currentData.reduce(
+      (sum, order) => sum + order.outstandingBalance,
+      0
+    );
+
+    return `${currentData.length} orders | Total Revenue: ${formatCurrency(
+      currentRevenue
+    )} | Outstanding: ${formatCurrency(currentOutstanding)}`;
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Statistics Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+            <ShoppingCart className="text-muted-foreground h-4 w-4" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalOrders}</div>
+            <p className="text-muted-foreground text-xs">
+              {stats.pendingOrders} pending, {stats.completedOrders} completed
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <DollarSign className="text-muted-foreground h-4 w-4" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {formatCurrency(stats.totalRevenue)}
+            </div>
+            <p className="text-muted-foreground text-xs">From all orders</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Amount Collected
+            </CardTitle>
+            <TrendingUp className="text-muted-foreground h-4 w-4" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {formatCurrency(stats.totalPaid)}
+            </div>
+            <p className="text-muted-foreground text-xs">
+              {((stats.totalPaid / stats.totalRevenue) * 100 || 0).toFixed(1)}%
+              collected
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Outstanding Balance
+            </CardTitle>
+            <AlertCircle className="text-muted-foreground h-4 w-4" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {formatCurrency(stats.totalOutstanding)}
+            </div>
+            <p className="text-muted-foreground text-xs">Pending payments</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Selected Orders Stats */}
+      {selectedOrders.size > 0 && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+              <div className="flex items-center gap-4">
+                <div className="text-sm font-medium text-blue-900">
+                  {selectedOrdersStats.count} order
+                  {selectedOrdersStats.count !== 1 ? "s" : ""} selected
+                </div>
+                <div className="text-sm text-blue-700">
+                  Total Outstanding:{" "}
+                  <span className="font-semibold text-red-600">
+                    {formatCurrency(selectedOrdersStats.totalOutstanding)}
+                  </span>
+                </div>
+                <div className="text-sm text-blue-700">
+                  Total Value:{" "}
+                  <span className="font-semibold">
+                    {formatCurrency(selectedOrdersStats.totalAmount)}
+                  </span>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportSelected}
+                  className="bg-white"
+                >
+                  <FileSpreadsheet className="mr-1 h-4 w-4" />
+                  Export Selected
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedOrders(new Set())}
+                  className="bg-white"
+                >
+                  Clear Selection
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Orders Table with Tabs */}
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as OrderTab)}
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <TabsList className="grid w-fit grid-cols-3">
+            <TabsTrigger value="all">
+              All Orders ({stats.totalOrders})
+            </TabsTrigger>
+            <TabsTrigger value="outstanding">
+              Outstanding ({stats.outstandingOrders})
+            </TabsTrigger>
+            <TabsTrigger value="paid">Paid ({stats.paidOrders})</TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="all">
+          <DataTableV2<SalesOrder>
+            title={title}
+            subtitle={getSubtitle()}
+            data={filteredOrdersByTab}
+            columns={columns}
+            keyField="id"
+            isLoading={false}
+            onRefresh={refetch}
+            actions={{
+              onAdd: handleCreateOrder,
+              onExport: handleExport,
+              onPrint: handlePrint,
+              onDownload: handleDownload,
+            }}
+            filters={{
+              searchFields: ["orderNumber", "buyerName", "targetTitle"],
+              enableDateFilter: true,
+              onDateFilterChange: handleDateFilterChange,
+              currentDateFilter: dateFilter,
+            }}
+            renderRowActions={(item) => (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleViewOrder(item)}
+                  className="flex items-center gap-1"
+                >
+                  <Eye className="h-4 w-4" />
+                  View
+                </Button>
+                <TableActions.RowActions onEdit={() => handleEditClick(item)} />
+              </div>
+            )}
+          />
+        </TabsContent>
+
+        <TabsContent value="outstanding">
+          <DataTableV2<SalesOrder>
+            title="Outstanding Orders"
+            subtitle={getSubtitle()}
+            data={filteredOrdersByTab}
+            columns={columns}
+            keyField="id"
+            isLoading={false}
+            onRefresh={refetch}
+            actions={{
+              onAdd: handleCreateOrder,
+              onExport: handleExport,
+              onPrint: handlePrint,
+              onDownload: handleDownload,
+            }}
+            filters={{
+              searchFields: ["orderNumber", "buyerName", "targetTitle"],
+              enableDateFilter: true,
+              onDateFilterChange: handleDateFilterChange,
+              currentDateFilter: dateFilter,
+            }}
+            renderRowActions={(item) => (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleViewOrder(item)}
+                  className="flex items-center gap-1"
+                >
+                  <Eye className="h-4 w-4" />
+                  View
+                </Button>
+                <TableActions.RowActions onEdit={() => handleEditClick(item)} />
+              </div>
+            )}
+          />
+        </TabsContent>
+
+        <TabsContent value="paid">
+          <DataTableV2<SalesOrder>
+            title="Paid Orders"
+            subtitle={getSubtitle()}
+            data={filteredOrdersByTab}
+            columns={columns}
+            keyField="id"
+            isLoading={false}
+            onRefresh={refetch}
+            actions={{
+              onAdd: handleCreateOrder,
+              onExport: handleExport,
+              onPrint: handlePrint,
+              onDownload: handleDownload,
+            }}
+            filters={{
+              searchFields: ["orderNumber", "buyerName", "targetTitle"],
+              enableDateFilter: true,
+              onDateFilterChange: handleDateFilterChange,
+              currentDateFilter: dateFilter,
+            }}
+            renderRowActions={(item) => (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleViewOrder(item)}
+                  className="flex items-center gap-1"
+                >
+                  <Eye className="h-4 w-4" />
+                  View
+                </Button>
+                <TableActions.RowActions onEdit={() => handleEditClick(item)} />
+              </div>
+            )}
+          />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+```
+
+This is a very huge component but lets understand it
+
+- The component requires several components and package
+  so in your project you need to have installed like Shadcn, xlsx and Lucide icons. other
+
+```bash
+pnpm add xlsx
+pnpm dlx shadcn@latest add sonner
+```
+
+Now Lets Create other files that this component depends on
+
+### Sales order server action
+
+```tsx
+"use server";
+import { db } from "@/prisma/db";
+import {
+  startOfDay,
+  endOfDay,
+  subDays,
+  startOfMonth,
+  endOfMonth,
+  startOfYear,
+  endOfYear,
+} from "date-fns";
+
+export type DateFilterOption =
+  | "today"
+  | "last7days"
+  | "last30days"
+  | "thisMonth"
+  | "thisYear"
+  | "custom"
+  | "lifetime";
+
+export interface SalesOrderFilters {
+  dateFilter?: DateFilterOption;
+  dateRange?: {
+    from: Date;
+    to: Date;
+  };
+}
+
+/**
+ * Gets all sales orders with optional date filtering
+ */
+export async function getAllSalesOrders(filters?: SalesOrderFilters) {
+  try {
+    let whereClause: any = {};
+
+    // Apply date filters
+    if (filters?.dateFilter && filters.dateFilter !== "lifetime") {
+      const today = new Date();
+      let dateRange: { from: Date; to: Date };
+
+      switch (filters.dateFilter) {
+        case "today":
+          dateRange = {
+            from: startOfDay(today),
+            to: endOfDay(today),
+          };
+          break;
+        case "last7days":
+          dateRange = {
+            from: startOfDay(subDays(today, 6)),
+            to: endOfDay(today),
+          };
+          break;
+        case "last30days":
+          dateRange = {
+            from: startOfDay(subDays(today, 29)),
+            to: endOfDay(today),
+          };
+          break;
+        case "thisMonth":
+          dateRange = {
+            from: startOfMonth(today),
+            to: endOfMonth(today),
+          };
+          break;
+        case "thisYear":
+          dateRange = {
+            from: startOfYear(today),
+            to: endOfYear(today),
+          };
+          break;
+        case "custom":
+          if (filters.dateRange) {
+            dateRange = {
+              from: startOfDay(filters.dateRange.from),
+              to: endOfDay(filters.dateRange.to),
+            };
+          } else {
+            // Default to last 7 days if no custom range provided
+            dateRange = {
+              from: startOfDay(subDays(today, 6)),
+              to: endOfDay(today),
+            };
+          }
+          break;
+        default:
+          // Default to last 7 days
+          dateRange = {
+            from: startOfDay(subDays(today, 6)),
+            to: endOfDay(today),
+          };
+      }
+
+      whereClause.orderDate = {
+        gte: dateRange.from,
+        lte: dateRange.to,
+      };
+    } else if (!filters?.dateFilter || filters.dateFilter === "lifetime") {
+      // If no filter specified or lifetime, default to last 7 days for performance
+      if (!filters?.dateFilter) {
+        const today = new Date();
+        whereClause.orderDate = {
+          gte: startOfDay(subDays(today, 6)),
+          lte: endOfDay(today),
+        };
+      }
+      // If explicitly "lifetime", don't add date filter
+    }
+
+    const orders = await db.salesOrder.findMany({
+      where: whereClause,
+      include: {
+        orderItems: {
+          include: {
+            product: true,
+          },
+        },
+        payments: true,
+        salesPerson: true,
+        salesAgent: true,
+        target: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return {
+      success: true,
+      data: orders,
+    };
+  } catch (error) {
+    console.error("Error fetching sales orders:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to fetch sales orders",
+    };
+  }
+}
+```
+
+this file gives us `DateFilterOption`, `SalesOrderFilters`
+
+### Use sales order hook
+
+```tsx
+// hooks/useSalesOrderQueries.ts
+import { SalesOrderFilters } from "@/actions/sales-orders-v2";
+import { salesOrderAPIV2 } from "@/services/sales-order-service-v2";
+import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
+
+// Query Keys
+export const salesOrderKeys = {
+  all: ["salesOrders"] as const,
+  lists: () => [...salesOrderKeys.all, "list"] as const,
+  list: (filters?: SalesOrderFilters) =>
+    [...salesOrderKeys.lists(), filters] as const,
+  details: () => [...salesOrderKeys.all, "detail"] as const,
+  detail: (id: string) => [...salesOrderKeys.details(), id] as const,
+  byTarget: (targetId: string) =>
+    [...salesOrderKeys.all, "byTarget", targetId] as const,
+  byAgent: (agentId: string) =>
+    [...salesOrderKeys.all, "byAgent", agentId] as const,
+};
+
+// Main hook for sales orders with date filtering
+export function useSuspenseSalesOrders(filters?: SalesOrderFilters) {
+  const { data: salesOrders = [], refetch } = useSuspenseQuery({
+    queryKey: salesOrderKeys.list(filters),
+    queryFn: () => salesOrderAPIV2.getAll(filters),
+  });
+
+  return {
+    salesOrders,
+    refetch,
+  };
+}
+
+// Non-suspense version for optional loading states
+export function useSalesOrders(filters?: SalesOrderFilters) {
+  const {
+    data: salesOrders = [],
+    refetch,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: salesOrderKeys.list(filters),
+    queryFn: () => salesOrderAPIV2.getAll(filters),
+  });
+
+  return {
+    salesOrders,
+    refetch,
+    isLoading,
+    error,
+  };
+}
+```
+
+### Create sales order service , which gives us functions to use
+
+```tsx
+import {
+  getAllSalesOrders,
+  SalesOrderFilters,
+  DateFilterOption,
+} from "@/actions/sales-orders-v2";
+
+// Centralized API object for all sales order-related server actions
+export const salesOrderAPIV2 = {
+  // Fetch all sales orders with optional date filtering
+  getAll: async (filters?: SalesOrderFilters) => {
+    const response = await getAllSalesOrders(filters);
+    if (!response.success) {
+      throw new Error(response.error || "Failed to fetch sales orders");
+    }
+    return response.data;
+  },
+};
+
+// Export types for use in other files
+export type { SalesOrderFilters, DateFilterOption };
+```
+
+### Lets Create Use Sales Order Report
+
+This component requires PDFHeader and react/renderer package
+
+```bash
+pnpm i @react-pdf/renderer
+```
+
+And now create the SalesReportPDF
+
+```tsx
+"use client";
+
+import React from "react";
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+  pdf,
+} from "@react-pdf/renderer";
+import { format } from "date-fns";
+import { Download, Printer } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import PDFHeader from "./PDFHeader";
+import { DateFilterOption, SalesOrderFilters } from "@/actions/sales-orders-v2";
+
+// Types for the sales order data
+interface SalesOrderData {
+  id: string;
+  orderNumber: string;
+  orderDate: string | Date;
+  status: string;
+  paymentStatus: string;
+  buyerName: string;
+  buyerType: "SALES_PERSON" | "SALES_AGENT";
+  targetTitle: string;
+  totalAmount: number;
+  amountPaid: number;
+  outstandingBalance: number;
+  orderItems: Array<{
+    id: string;
+    productName: string;
+    numberPlate: string;
+    modelName: string;
+    unitPrice: number;
+    quantity: number;
+    lineTotal: number;
+    isPaid: boolean;
+  }>;
+}
+
+interface SalesReportData {
+  orders: SalesOrderData[];
+  period: {
+    filter: DateFilterOption;
+    dateRange?: {
+      from: Date;
+      to: Date;
+    };
+    label: string;
+  };
+  summary: {
+    totalOrders: number;
+    totalRevenue: number;
+    totalPaid: number;
+    totalOutstanding: number;
+    paidOrders: number;
+    outstandingOrders: number;
+    averageOrderValue: number;
+  };
+}
+
+// PDF Styles
+const styles = StyleSheet.create({
+  page: {
+    flexDirection: "column",
+    backgroundColor: "#FFFFFF",
+    padding: 30,
+    fontSize: 10,
+    fontFamily: "Helvetica",
+  },
+  section: {
+    marginBottom: 15,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: "bold",
+    marginBottom: 8,
+    color: "#1f2937",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+    paddingBottom: 3,
+  },
+  periodInfo: {
+    backgroundColor: "#f3f4f6",
+    padding: 15,
+    marginBottom: 20,
+    borderRadius: 5,
+  },
+  periodTitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 5,
+    color: "#1f2937",
+  },
+  periodText: {
+    fontSize: 10,
+    color: "#4b5563",
+  },
+  summaryGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginBottom: 20,
+  },
+  summaryCard: {
+    width: "48%",
+    marginBottom: 10,
+    marginRight: "2%",
+    padding: 10,
+    backgroundColor: "#f9fafb",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 3,
+  },
+  summaryLabel: {
+    fontSize: 9,
+    color: "#6b7280",
+    marginBottom: 3,
+  },
+  summaryValue: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#1f2937",
+  },
+  table: {
+    width: "100%",
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    marginBottom: 15,
+  },
+  tableRow: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+    minHeight: 25,
+    alignItems: "center",
+  },
+  tableHeader: {
+    backgroundColor: "#1f2937",
+    color: "#FFFFFF",
+    fontWeight: "bold",
+  },
+  tableCol: {
+    padding: 5,
+    borderRightWidth: 1,
+    borderRightColor: "#e5e7eb",
+    fontSize: 9,
+  },
+  orderCol: { width: "15%" },
+  dateCol: { width: "12%" },
+  buyerCol: { width: "20%" },
+  itemsCol: { width: "8%", textAlign: "center" },
+  amountCol: { width: "15%", textAlign: "right" },
+  paidCol: { width: "15%", textAlign: "right" },
+  outstandingCol: { width: "15%", textAlign: "right" },
+  badge: {
+    fontSize: 7,
+    padding: 2,
+    borderRadius: 2,
+    textAlign: "center",
+    color: "#FFFFFF",
+  },
+  paidBadge: {
+    fontSize: 7,
+    padding: 2,
+    borderRadius: 2,
+    textAlign: "center",
+    backgroundColor: "#10b981",
+    color: "#FFFFFF",
+  },
+  partialBadge: {
+    fontSize: 7,
+    padding: 2,
+    borderRadius: 2,
+    textAlign: "center",
+    backgroundColor: "#f59e0b",
+    color: "#FFFFFF",
+  },
+  pendingBadge: {
+    fontSize: 7,
+    padding: 2,
+    borderRadius: 2,
+    textAlign: "center",
+    backgroundColor: "#ef4444",
+    color: "#FFFFFF",
+  },
+  footer: {
+    marginTop: "auto",
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#e5e7eb",
+    fontSize: 8,
+    color: "#6b7280",
+    textAlign: "center",
+  },
+  pageNumber: {
+    position: "absolute",
+    fontSize: 8,
+    bottom: 20,
+    left: 0,
+    right: 0,
+    textAlign: "center",
+    color: "#6b7280",
+  },
+});
+
+// PDF Document Component
+const SalesReportPDF: React.FC<{ reportData: SalesReportData }> = ({
+  reportData,
+}) => {
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-UG", {
+      style: "currency",
+      currency: "UGX",
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const formatDate = (date: string | Date) => {
+    const dateObj = typeof date === "string" ? new Date(date) : date;
+    return format(dateObj, "MMM dd, yyyy");
+  };
+
+  const getPaymentStatusBadge = (status: string) => {
+    switch (status) {
+      case "PAID":
+        return styles.paidBadge;
+      case "PARTIAL":
+        return styles.partialBadge;
+      default:
+        return styles.pendingBadge;
+    }
+  };
+
+  const getPeriodDescription = () => {
+    const { filter, dateRange, label } = reportData.period;
+
+    if (filter === "custom" && dateRange) {
+      return `Custom Period: ${formatDate(dateRange.from)} - ${formatDate(
+        dateRange.to
+      )}`;
+    }
+
+    return `Report Period: ${label}`;
+  };
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* Reusable Header */}
+        <PDFHeader title="SALES REPORT" />
+
+        {/* Period Information */}
+        <View style={styles.periodInfo}>
+          <Text style={styles.periodTitle}>Sales Report Summary</Text>
+          <Text style={styles.periodText}>{getPeriodDescription()}</Text>
+          <Text style={styles.periodText}>
+            Generated on {format(new Date(), "PPP 'at' p")}
+          </Text>
+        </View>
+
+        {/* Summary Cards */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Performance Summary</Text>
+          <View style={styles.summaryGrid}>
+            <View style={styles.summaryCard}>
+              <Text style={styles.summaryLabel}>Total Orders</Text>
+              <Text style={styles.summaryValue}>
+                {reportData.summary.totalOrders}
+              </Text>
+            </View>
+            <View style={styles.summaryCard}>
+              <Text style={styles.summaryLabel}>Total Revenue</Text>
+              <Text style={styles.summaryValue}>
+                {formatCurrency(reportData.summary.totalRevenue)}
+              </Text>
+            </View>
+            <View style={styles.summaryCard}>
+              <Text style={styles.summaryLabel}>Amount Collected</Text>
+              <Text style={styles.summaryValue}>
+                {formatCurrency(reportData.summary.totalPaid)}
+              </Text>
+            </View>
+            <View style={styles.summaryCard}>
+              <Text style={styles.summaryLabel}>Outstanding Balance</Text>
+              <Text style={styles.summaryValue}>
+                {formatCurrency(reportData.summary.totalOutstanding)}
+              </Text>
+            </View>
+            <View style={styles.summaryCard}>
+              <Text style={styles.summaryLabel}>Paid Orders</Text>
+              <Text style={styles.summaryValue}>
+                {reportData.summary.paidOrders}
+              </Text>
+            </View>
+            <View style={styles.summaryCard}>
+              <Text style={styles.summaryLabel}>Outstanding Orders</Text>
+              <Text style={styles.summaryValue}>
+                {reportData.summary.outstandingOrders}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Orders Table */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            Detailed Order List ({reportData.orders.length} orders)
+          </Text>
+          <View style={styles.table}>
+            {/* Table Header */}
+            <View style={[styles.tableRow, styles.tableHeader]}>
+              <View style={[styles.tableCol, styles.orderCol]}>
+                <Text>Order #</Text>
+              </View>
+              <View style={[styles.tableCol, styles.dateCol]}>
+                <Text>Date</Text>
+              </View>
+              <View style={[styles.tableCol, styles.buyerCol]}>
+                <Text>Buyer</Text>
+              </View>
+              <View style={[styles.tableCol, styles.itemsCol]}>
+                <Text>Items</Text>
+              </View>
+              <View style={[styles.tableCol, styles.amountCol]}>
+                <Text>Total</Text>
+              </View>
+              <View style={[styles.tableCol, styles.paidCol]}>
+                <Text>Paid</Text>
+              </View>
+              <View style={[styles.tableCol, styles.outstandingCol]}>
+                <Text>Outstanding</Text>
+              </View>
+            </View>
+
+            {/* Table Rows */}
+            {reportData.orders.slice(0, 25).map((order, index) => (
+              <View key={order.id} style={styles.tableRow}>
+                <View style={[styles.tableCol, styles.orderCol]}>
+                  <Text style={{ fontWeight: "bold", fontSize: 8 }}>
+                    {order.orderNumber}
+                  </Text>
+                  <Text style={getPaymentStatusBadge(order.paymentStatus)}>
+                    {order.paymentStatus}
+                  </Text>
+                </View>
+                <View style={[styles.tableCol, styles.dateCol]}>
+                  <Text>{formatDate(order.orderDate)}</Text>
+                </View>
+                <View style={[styles.tableCol, styles.buyerCol]}>
+                  <Text style={{ fontWeight: "bold", fontSize: 8 }}>
+                    {order.buyerName}
+                  </Text>
+                  <Text style={{ fontSize: 7, color: "#6b7280" }}>
+                    {order.buyerType.replace("_", " ")}
+                  </Text>
+                </View>
+                <View style={[styles.tableCol, styles.itemsCol]}>
+                  <Text>{order.orderItems.length}</Text>
+                </View>
+                <View style={[styles.tableCol, styles.amountCol]}>
+                  <Text style={{ fontWeight: "bold" }}>
+                    {formatCurrency(order.totalAmount)}
+                  </Text>
+                </View>
+                <View style={[styles.tableCol, styles.paidCol]}>
+                  <Text style={{ color: "#10b981" }}>
+                    {formatCurrency(order.amountPaid)}
+                  </Text>
+                </View>
+                <View style={[styles.tableCol, styles.outstandingCol]}>
+                  <Text style={{ color: "#ef4444" }}>
+                    {formatCurrency(order.outstandingBalance)}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+
+          {reportData.orders.length > 25 && (
+            <Text
+              style={{ fontSize: 8, fontStyle: "italic", textAlign: "center" }}
+            >
+              Showing first 25 orders of {reportData.orders.length} total orders
+            </Text>
+          )}
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text>This report contains confidential business information.</Text>
+          <Text>For inquiries, contact us at info@yourcompany.com</Text>
+        </View>
+
+        {/* Page Number */}
+        <Text
+          style={styles.pageNumber}
+          render={({ pageNumber, totalPages }) =>
+            `Page ${pageNumber} of ${totalPages}`
+          }
+          fixed
+        />
+      </Page>
+    </Document>
+  );
+};
+
+// Main Component Props
+interface SalesReportComponentProps {
+  orders: SalesOrderData[];
+  currentFilter: SalesOrderFilters;
+}
+
+// Hook for sales report functionality
+export const useSalesReport = ({
+  orders,
+  currentFilter,
+}: SalesReportComponentProps) => {
+  // Calculate summary data
+  const summary = React.useMemo(() => {
+    const totalOrders = orders.length;
+    const totalRevenue = orders.reduce(
+      (sum, order) => sum + order.totalAmount,
+      0
+    );
+    const totalPaid = orders.reduce((sum, order) => sum + order.amountPaid, 0);
+    const totalOutstanding = orders.reduce(
+      (sum, order) => sum + order.outstandingBalance,
+      0
+    );
+    const paidOrders = orders.filter(
+      (order) => order.paymentStatus === "PAID"
+    ).length;
+    const outstandingOrders = orders.filter(
+      (order) =>
+        order.paymentStatus === "PENDING" ||
+        order.paymentStatus === "PARTIAL" ||
+        order.paymentStatus === "OVERDUE"
+    ).length;
+    const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+    return {
+      totalOrders,
+      totalRevenue,
+      totalPaid,
+      totalOutstanding,
+      paidOrders,
+      outstandingOrders,
+      averageOrderValue,
+    };
+  }, [orders]);
+
+  // Get period label
+  const getPeriodLabel = () => {
+    const filter = currentFilter.dateFilter || "last7days";
+    switch (filter) {
+      case "today":
+        return "Today";
+      case "last7days":
+        return "Last 7 Days";
+      case "thisMonth":
+        return "This Month";
+      case "thisYear":
+        return "This Year";
+      case "custom":
+        return "Custom Period";
+      case "lifetime":
+        return "All Time";
+      default:
+        return "Last 7 Days";
+    }
+  };
+
+  const reportData: SalesReportData = {
+    orders,
+    period: {
+      filter: currentFilter.dateFilter || "last7days",
+      dateRange: currentFilter.dateRange,
+      label: getPeriodLabel(),
+    },
+    summary,
+  };
+
+  const handlePrint = () => {
+    const generatePDF = async () => {
+      try {
+        const blob = await pdf(
+          <SalesReportPDF reportData={reportData} />
+        ).toBlob();
+        const url = URL.createObjectURL(blob);
+        const printWindow = window.open(url);
+
+        if (printWindow) {
+          printWindow.onload = () => {
+            printWindow.print();
+          };
+        } else {
+          toast.error("Popup blocked. Please allow popups for this site.");
+        }
+      } catch (error) {
+        console.error("Error generating PDF for print:", error);
+        toast.error("Failed to generate PDF for printing");
+      }
+    };
+
+    generatePDF();
+    toast.success("Preparing sales report for printing...");
+  };
+
+  const handleDownload = async () => {
+    try {
+      const blob = await pdf(
+        <SalesReportPDF reportData={reportData} />
+      ).toBlob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Sales-Report-${getPeriodLabel().replace(
+        /\s+/g,
+        "-"
+      )}-${format(new Date(), "yyyy-MM-dd")}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Sales report downloaded successfully!");
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      toast.error("Failed to download sales report");
+    }
+  };
+
+  return {
+    handlePrint,
+    handleDownload,
+    printButton: (
+      <Button variant="outline" onClick={handlePrint} className="gap-2">
+        <Printer className="h-4 w-4" />
+        Print Report
+      </Button>
+    ),
+    downloadButton: (
+      <Button variant="outline" onClick={handleDownload} className="gap-2">
+        <Download className="h-4 w-4" />
+        Download Report
+      </Button>
+    ),
+  };
+};
+
+// Component version (if you need to render the buttons directly)
+const SalesReportComponent: React.FC<SalesReportComponentProps> = ({
+  orders,
+  currentFilter,
+}) => {
+  const { printButton, downloadButton } = useSalesReport({
+    orders,
+    currentFilter,
+  });
+
+  return (
+    <div className="flex gap-2">
+      {printButton}
+      {downloadButton}
+    </div>
+  );
+};
+
+export default SalesReportComponent;
+```
+
+### Lets Create the PDF Header
+
+```tsx
+// components/pdf/PDFHeader.tsx
+import React from "react";
+import { View, Text, StyleSheet } from "@react-pdf/renderer";
+
+interface PDFHeaderProps {
+  title: string;
+  companyName?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+}
+
+const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#1f2937",
+    color: "#FFFFFF",
+    padding: 20,
+    marginBottom: 20,
+  },
+  companyInfo: {
+    flex: 1,
+  },
+  companyName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  companyDetails: {
+    fontSize: 10,
+  },
+  documentTitle: {
+    fontSize: 28,
+    fontWeight: "bold",
+  },
+});
+
+const PDFHeader: React.FC<PDFHeaderProps> = ({
+  title,
+  companyName = "Limibooks (U) Ltd",
+  phone = "+256 772514057",
+  email = "info@limibooks.com",
+  address = "Kampala, Uganda",
+}) => {
+  return (
+    <View style={styles.header}>
+      <View style={styles.companyInfo}>
+        <Text style={styles.companyName}>{companyName}</Text>
+        <Text style={styles.companyDetails}>Phone: {phone}</Text>
+        <Text style={styles.companyDetails}>Email: {email}</Text>
+        <Text style={styles.companyDetails}>Address: {address}</Text>
+      </View>
+      <Text style={styles.documentTitle}>{title}</Text>
+    </View>
+  );
+};
+
+export default PDFHeader;
+```
+
+### Lets Create Data table where we will get the column and DataTable components
+
+```tsx
+// components/ui/data-table/data-table-v2.tsx
+"use client";
+
+import { useState, useEffect, ReactNode } from "react";
+import clsx from "clsx";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
+import RowsPerPage from "@/components/ui/rows-per-page";
+import FilterBar from "./filter-bar-v2";
+import TableActions from "./table-actions-v2";
+import { DateFilterOption, SalesOrderFilters } from "@/actions/sales-orders-v2";
+
+export interface Column<T> {
+  header: string | (() => ReactNode);
+  accessorKey: keyof T | ((row: T) => any);
+  cell?: (row: T) => ReactNode;
+}
+
+interface DataTableProps<T> {
+  title: string;
+  subtitle?: string;
+  data: T[];
+  columns: Column<T>[];
+  keyField: keyof T;
+  isLoading?: boolean;
+  onRefresh?: () => void;
+  actions?: {
+    onAdd?: () => void;
+    onEdit?: (item: T) => void;
+    onDelete?: (item: T) => void;
+    onExport?: (filteredData: T[]) => void;
+    onPrint?: () => void;
+    onDownload?: () => void;
+  };
+  filters?: {
+    searchFields?: (keyof T)[];
+    enableDateFilter?: boolean;
+    onDateFilterChange?: (
+      range: { from: Date; to: Date } | null,
+      option: DateFilterOption
+    ) => void;
+    currentDateFilter?: SalesOrderFilters;
+    additionalFilters?: ReactNode;
+  };
+  renderRowActions?: (item: T) => ReactNode;
+  emptyState?: ReactNode;
+}
+
+export default function DataTableV2<T>({
+  title,
+  subtitle,
+  data,
+  columns,
+  keyField,
+  isLoading = false,
+  onRefresh,
+  actions,
+  filters,
+  renderRowActions,
+  emptyState,
+}: DataTableProps<T>) {
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+
+  // Client-side filter state (only for search now)
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, itemsPerPage, data]);
+
+  // Enhanced search filter that includes number plate search
+  const applySearchFilter = (items: T[]): T[] => {
+    if (!searchQuery.trim()) return items;
+
+    const query = searchQuery.toLowerCase();
+    return items.filter((item) => {
+      // Check standard search fields
+      const standardFieldsMatch = filters?.searchFields?.some((field) => {
+        const value = item[field];
+        if (value === null || value === undefined) return false;
+        return String(value).toLowerCase().includes(query);
+      });
+
+      // Check number plates if the item has orderItems (for SalesOrder type)
+      const numberPlateMatch = (item as any).orderItems?.some(
+        (orderItem: any) => orderItem.numberPlate?.toLowerCase().includes(query)
+      );
+
+      return standardFieldsMatch || numberPlateMatch;
+    });
+  };
+
+  // Apply all client-side filters
+  const filteredData = applySearchFilter(data);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Handle page change
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+
+    if (totalPages <= 5) {
+      // Show all pages if 5 or fewer
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Show first page, current page and neighbors, and last page
+      if (currentPage <= 3) {
+        // Near the beginning
+        for (let i = 1; i <= 4; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push("ellipsis");
+        pageNumbers.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        // Near the end
+        pageNumbers.push(1);
+        pageNumbers.push("ellipsis");
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pageNumbers.push(i);
+        }
+      } else {
+        // Middle
+        pageNumbers.push(1);
+        pageNumbers.push("ellipsis");
+        pageNumbers.push(currentPage - 1);
+        pageNumbers.push(currentPage);
+        pageNumbers.push(currentPage + 1);
+        pageNumbers.push("ellipsis");
+        pageNumbers.push(totalPages);
+      }
+    }
+
+    return pageNumbers;
+  };
+
+  // Get value from accessorKey (which could be a string or function)
+  const getCellValue = (item: T, accessor: keyof T | ((row: T) => any)) => {
+    if (typeof accessor === "function") {
+      return accessor(item);
+    }
+    return item[accessor];
+  };
+
+  return (
+    <Card className="w-full">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle className="text-2xl">{title}</CardTitle>
+          {subtitle && <p className="text-muted-foreground mt-1">{subtitle}</p>}
+        </div>
+
+        <div className="flex items-center gap-2">
+          {onRefresh && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onRefresh}
+              disabled={isLoading}
+              title="Refresh data"
+            >
+              <RefreshCw
+                className={clsx("h-4 w-4", isLoading && "animate-spin")}
+              />
+            </Button>
+          )}
+          {actions?.onPrint && (
+            <TableActions.PrintButton onClick={actions.onPrint} />
+          )}
+          {actions?.onDownload && (
+            <TableActions.DownloadButton onClick={actions.onDownload} />
+          )}
+          {actions?.onAdd && <TableActions.AddButton onClick={actions.onAdd} />}
+        </div>
+      </CardHeader>
+
+      <CardContent>
+        {/* Filter bar */}
+        {filters && (
+          <FilterBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            showDateFilter={filters.enableDateFilter}
+            onDateFilterChange={filters.onDateFilterChange}
+            currentDateFilter={filters.currentDateFilter}
+            additionalFilters={filters.additionalFilters}
+            onExport={
+              actions?.onExport
+                ? () =>
+                    actions &&
+                    actions.onExport &&
+                    actions.onExport(filteredData)
+                : undefined
+            }
+          />
+        )}
+
+        {/* Table */}
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {columns.map((column, index) => (
+                <TableHead key={index}>
+                  {typeof column.header === "function"
+                    ? column.header()
+                    : column.header}
+                </TableHead>
+              ))}
+              {renderRowActions && (
+                <TableHead className="text-right">Actions</TableHead>
+              )}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {currentItems.length > 0 ? (
+              currentItems.map((item) => (
+                <TableRow key={String(item[keyField])}>
+                  {columns.map((column, index) => (
+                    <TableCell key={index}>
+                      {column.cell
+                        ? column.cell(item)
+                        : getCellValue(item, column.accessorKey)}
+                    </TableCell>
+                  ))}
+                  {renderRowActions && (
+                    <TableCell className="text-right">
+                      {renderRowActions(item)}
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length + (renderRowActions ? 1 : 0)}
+                  className="py-6 text-center"
+                >
+                  {emptyState ||
+                    (searchQuery ||
+                    (filters?.currentDateFilter?.dateFilter &&
+                      filters.currentDateFilter.dateFilter !== "lifetime")
+                      ? "No matching items found for the selected filters"
+                      : "No items found")}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+
+        {/* Pagination */}
+        {filteredData.length > 0 && (
+          <div className="mt-4 flex flex-col items-center justify-between sm:flex-row">
+            <div className="flex items-center gap-3">
+              <div className="mb-2 sm:mb-0">
+                <RowsPerPage
+                  value={itemsPerPage}
+                  onChange={setItemsPerPage}
+                  options={[5, 10, 25, 50, 100]}
+                />
+              </div>
+              <div className="text-muted-foreground text-xs">
+                Showing {indexOfFirstItem + 1}-
+                {Math.min(indexOfLastItem, filteredData.length)} of{" "}
+                {filteredData.length}
+              </div>
+            </div>
+            {totalPages > 1 && (
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() =>
+                        handlePageChange(Math.max(1, currentPage - 1))
+                      }
+                      className={clsx(
+                        currentPage === 1
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      )}
+                    />
+                  </PaginationItem>
+
+                  {getPageNumbers().map((page, index) =>
+                    page === "ellipsis" ? (
+                      <PaginationItem key={`ellipsis-${index}`}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    ) : (
+                      <PaginationItem key={`page-${page}`}>
+                        <PaginationLink
+                          onClick={() => handlePageChange(page as number)}
+                          className={clsx(
+                            currentPage === page
+                              ? "bg-primary text-primary-foreground"
+                              : "cursor-pointer"
+                          )}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )
+                  )}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() =>
+                        handlePageChange(Math.min(totalPages, currentPage + 1))
+                      }
+                      className={clsx(
+                        currentPage === totalPages
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      )}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### Lets Create Table Actions
+
+```tsx
+// components/ui/data-table/table-actions.tsx
+"use client";
+
+import { useState } from "react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  FileSpreadsheet,
+  Loader2,
+  Printer,
+  Download,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import clsx from "clsx";
+
+interface ActionButtonProps {
+  onClick: () => void;
+  disabled?: boolean;
+  loading?: boolean;
+  className?: string;
+}
+
+// Add Button
+const AddButton = ({
+  onClick,
+  disabled = false,
+  loading = false,
+  className = "",
+}: ActionButtonProps) => (
+  <Button
+    onClick={onClick}
+    disabled={disabled || loading}
+    className={className}
+  >
+    {loading ? (
+      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+    ) : (
+      <Plus className="mr-2 h-4 w-4" />
+    )}
+    Add New
+  </Button>
+);
+
+// Edit Button
+const EditButton = ({
+  onClick,
+  disabled = false,
+  loading = false,
+  className = "",
+}: ActionButtonProps) => (
+  <Button
+    variant="outline"
+    size="icon"
+    onClick={onClick}
+    disabled={disabled || loading}
+    title="Edit"
+    className={className}
+  >
+    {loading ? (
+      <Loader2 className="h-4 w-4 animate-spin" />
+    ) : (
+      <Edit className="h-4 w-4" />
+    )}
+  </Button>
+);
+
+// Delete Button
+const DeleteButton = ({
+  onClick,
+  disabled = false,
+  loading = false,
+  className = "",
+}: ActionButtonProps) => (
+  <Button
+    variant="outline"
+    size="icon"
+    onClick={onClick}
+    disabled={disabled || loading}
+    title="Delete"
+    className={clsx("text-destructive", className)}
+  >
+    {loading ? (
+      <Loader2 className="h-4 w-4 animate-spin" />
+    ) : (
+      <Trash2 className="h-4 w-4" />
+    )}
+  </Button>
+);
+
+// Print Button
+const PrintButton = ({
+  onClick,
+  disabled = false,
+  loading = false,
+  className = "",
+}: ActionButtonProps) => (
+  <Button
+    variant="outline"
+    onClick={onClick}
+    disabled={disabled || loading}
+    className={className}
+  >
+    {loading ? (
+      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+    ) : (
+      <Printer className="mr-2 h-4 w-4" />
+    )}
+    Print
+  </Button>
+);
+
+// Download Button
+const DownloadButton = ({
+  onClick,
+  disabled = false,
+  loading = false,
+  className = "",
+}: ActionButtonProps) => (
+  <Button
+    variant="outline"
+    onClick={onClick}
+    disabled={disabled || loading}
+    className={className}
+  >
+    {loading ? (
+      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+    ) : (
+      <Download className="mr-2 h-4 w-4" />
+    )}
+    Download
+  </Button>
+);
+
+// Export Button
+const ExportButton = ({
+  onClick,
+  disabled = false,
+  loading = false,
+  className = "",
+}: ActionButtonProps) => {
+  return (
+    <Button
+      variant="outline"
+      onClick={onClick}
+      disabled={disabled || loading}
+      className={className}
+    >
+      {loading ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Exporting...
+        </>
+      ) : (
+        <>
+          <FileSpreadsheet className="mr-2 h-4 w-4" />
+          Export
+        </>
+      )}
+    </Button>
+  );
+};
+
+// Row Actions
+const RowActions = ({
+  onEdit,
+  onDelete,
+  isDeleting = false,
+}: {
+  onEdit?: () => void;
+  onDelete?: () => void;
+  isDeleting?: boolean;
+}) => {
+  return (
+    <div className="flex justify-end gap-2">
+      {onEdit && <EditButton onClick={onEdit} />}
+      {onDelete && <DeleteButton onClick={onDelete} loading={isDeleting} />}
+    </div>
+  );
+};
+
+// Export the components as a single object
+const TableActions = {
+  AddButton,
+  EditButton,
+  DeleteButton,
+  PrintButton,
+  DownloadButton,
+  ExportButton,
+  RowActions,
+};
+
+export default TableActions;
+```

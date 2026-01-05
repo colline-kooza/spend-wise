@@ -1,0 +1,21 @@
+
+> jb.desishub.com@0.1.0 check-types D:\Desishub\desishub-v4
+> tsc --noEmit --pretty
+
+[96msrc/app/(app)/(root)/pricing/page.tsx[0m:[93m5[0m:[93m24[0m - [91merror[0m[90m TS1261: [0mAlready included file name 'D:/Desishub/desishub-v4/src/components/pages/pricing/PricingFAQ.tsx' differs from file name 'D:/Desishub/desishub-v4/src/components/pages/pricing/PricingFaq.tsx' only in casing.
+  The file is in the program because:
+    Imported via "@/components/pages/pricing/PricingFAQ" from file 'D:/Desishub/desishub-v4/src/app/(app)/(root)/pricing/page.tsx'
+    Matched by include pattern '**/*.tsx' in 'D:/Desishub/desishub-v4/tsconfig.json'
+
+[7m5[0m import PricingFAQ from "@/components/pages/pricing/PricingFAQ";
+[7m [0m [91m                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  [96mtsconfig.json[0m:[93m28[0m:[93m5[0m
+    [7m28[0m     "**/*.tsx",
+    [7m  [0m [96m    ~~~~~~~~~~[0m
+    File is matched by include pattern specified here.
+
+
+Found 1 error in src/app/(app)/(root)/pricing/page.tsx[90m:5[0m
+
+ ELIFECYCLE  Command failed with exit code 2.

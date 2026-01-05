@@ -1,0 +1,1155 @@
+---
+title: Self-Hosting Next.js with PostgreSQL and Docker on a $4 VPS - Complete Guide
+description: Learn how to deploy a Next.js application with PostgreSQL database, Nginx reverse proxy, and Docker containers on an affordable DigitalOcean VPS with image optimization, streaming, ISR caching, and more.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwfbJn33tP5J9Uv1CGmQB6KWyfMd30eDqpFZlIR
+category: tutorial
+createdAt: 2025-08-31
+updatedAt: 2025-08-31
+---
+
+# Self-Hosting Next.js with PostgreSQL and Docker on a $4 VPS - Complete Guide
+
+This comprehensive guide walks you through deploying a full-stack Next.js application with PostgreSQL database, Nginx reverse proxy, and advanced features like image optimization, streaming server components, ISR caching, and cron jobs - all running on an affordable $4/month VPS.
+
+## What You'll Build
+
+By the end of this guide, you'll have:
+
+- A Next.js application with App Router
+- PostgreSQL database with Drizzle ORM
+- Nginx reverse proxy with SSL certificates
+- Image optimization on the Next.js server
+- Streaming server components with Suspense
+- ISR (Incremental Static Regeneration) caching
+- Middleware and environment variable handling
+- Cron jobs for database maintenance
+- Rate limiting and security configuration
+- All running in Docker containers on a single VPS
+
+## Prerequisites
+
+- **Domain name** (required for SSL certificates)
+- **VPS or server** (we'll show how to get a $4 DigitalOcean droplet)
+- **Docker installed locally** (install with Homebrew on Mac: `brew install docker`)
+- Basic command line knowledge
+
+## Demo Application Features
+
+The demo application we'll deploy includes:
+
+- **Data fetching** with server components
+- **Image optimization** using Next.js built-in optimization
+- **Streaming** with server components and Suspense boundaries
+- **PostgreSQL integration** with CRUD operations
+- **ISR/Caching** with customizable cache handlers
+- **Middleware** for route protection
+- **Environment variables** (both client and server-side)
+- **Server startup code** with instrumentation
+- **Cron jobs** that hit API routes
+- **Rate limiting** with Nginx configuration
+
+## Step 1: Setting Up Your VPS
+
+### 1.1 Choose a VPS Provider
+
+**DigitalOcean** (used in this tutorial):
+
+- $4/month basic droplet (512MB RAM, 1 CPU, 10GB SSD)
+- Good for small applications and learning
+- Easy-to-use interface with monitoring graphs
+
+**Hetzner** (alternative option):
+
+- Often more hardware for the price
+- Excellent price-to-performance ratio
+- Popular choice for cost-conscious developers
+
+### 1.2 Create DigitalOcean Droplet
+
+1. **Sign up** at DigitalOcean
+2. **Create a new Droplet**:
+
+   - **Image**: Ubuntu (latest LTS version)
+   - **Plan**: Basic ($4/month - 512MB, 1 CPU)
+   - **Region**: Choose closest to your users
+   - **Authentication**: SSH keys (recommended) or password
+   - **Hostname**: Give it a memorable name
+
+3. **Note your server's IP address** - you'll need this for SSH access and DNS configuration
+
+### 1.3 Initial Server Access
+
+Once your droplet is created:
+
+```bash
+ssh root@YOUR_SERVER_IP
+```
+
+Enter your password when prompted. You'll see the Ubuntu welcome message and system information.
+
+## Step 2: Understanding VPS vs Dedicated Servers
+
+### Virtual Private Server (VPS)
+
+- **Shared hardware** among multiple tenants
+- **Very affordable** pricing due to resource sharing
+- **Good performance** for most small to medium applications
+- **Scalable** with upgrade options
+
+### Dedicated Server
+
+- **Exclusive hardware** access
+- **Higher cost** but more control and performance
+- **Better for** high-traffic or resource-intensive applications
+
+### Database Hosting Considerations
+
+- **Shared infrastructure**: Good for development and small apps
+- **Dedicated infrastructure**: Better for production with heavy I/O
+- **Managed services**: Automatic backups, monitoring, scaling (higher cost)
+
+## Step 3: Scaling Strategies
+
+### Vertical Scaling
+
+- **Add more resources** to existing server (CPU, RAM, storage)
+- **Operationally simpler** - just upgrade your plan
+- **Single point of failure** - if server goes down, everything goes down
+
+### Horizontal Scaling
+
+- **Add more containers/servers** behind a load balancer
+- **Better fault tolerance** - multiple instances provide redundancy
+- **Zero-downtime deployments** - route traffic between old and new versions
+- **More complex** operational overhead
+
+## Step 4: Deploying with Docker
+
+### 4.1 Download and Run Deploy Script
+
+The deployment uses a bash script that automates the entire setup process:
+
+```bash
+# Download the deploy script
+curl -fsSL https://raw.githubusercontent.com/your-repo/deploy.sh -o deploy.sh
+
+# Make it executable
+chmod +x deploy.sh
+
+# Edit the configuration (see next step)
+vi deploy.sh
+
+# Run the deployment
+./deploy.sh
+```
+
+### 4.2 Configure Environment Variables
+
+Before running the script, edit the configuration variables:
+
+```bash
+vi deploy.sh
+```
+
+**Key variables to modify:**
+
+```bash
+# Your domain name (required for SSL)
+DOMAIN="your-domain.com"
+
+# Your email for SSL certificate registration
+EMAIL="your-email@example.com"
+
+# PostgreSQL configuration (auto-generated)
+POSTGRES_USER="nextapp"
+POSTGRES_PASSWORD="generated-random-password"
+POSTGRES_DB="nextapp"
+
+# Application secrets (auto-generated)
+NEXTAUTH_SECRET="generated-secret"
+NEXTAUTH_URL="https://your-domain.com"
+```
+
+**Quick Vim editing:**
+
+- `j/k`: Move up/down
+- `w`: Move to next word
+- `ci"`: Change text inside quotes
+- `Escape`: Exit insert mode
+- `:wq`: Save and quit
+
+### 4.3 What the Deploy Script Does
+
+The deploy script automates these tasks:
+
+1. **System Updates**:
+
+   ```bash
+   apt update && apt upgrade -y
+   ```
+
+2. **Swap Space Setup** (critical for 512MB RAM):
+
+   ```bash
+   fallocate -l 1G /swapfile
+   chmod 600 /swapfile
+   mkswap /swapfile
+   swapon /swapfile
+   ```
+
+3. **Docker Installation**:
+
+   ```bash
+   curl -fsSL https://get.docker.com -o get-docker.sh
+   sh get-docker.sh
+   ```
+
+4. **Docker Compose Installation**:
+
+   ```bash
+   curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+   chmod +x /usr/local/bin/docker-compose
+   ```
+
+5. **Git Repository Clone**:
+
+   ```bash
+   git clone https://github.com/your-username/next-self-host.git app
+   ```
+
+6. **Environment File Creation**:
+
+   ```bash
+   cat > app/.env << EOF
+   POSTGRES_USER=$POSTGRES_USER
+   POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+   POSTGRES_DB=$POSTGRES_DB
+   DATABASE_URL=postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@db:5432/$POSTGRES_DB
+   EOF
+   ```
+
+7. **Nginx Installation and Configuration**:
+
+   ```bash
+   apt install nginx -y
+   ```
+
+8. **SSL Certificate Setup**:
+
+   ```bash
+   apt install certbot python3-certbot-nginx -y
+   certbot --nginx -d $DOMAIN --email $EMAIL --agree-tos --non-interactive
+   ```
+
+9. **Nginx Configuration** with:
+
+   - Rate limiting (prevents abuse)
+   - SSL termination
+   - Proxy buffering disabled (enables streaming)
+   - Security headers
+
+10. **Docker Compose Deployment**:
+    ```bash
+    cd app && docker-compose up -d --build
+    ```
+
+## Step 5: Understanding the Docker Setup
+
+### 5.1 Multi-Stage Dockerfile
+
+The Next.js application uses a multi-stage Dockerfile for efficiency:
+
+**Stage 1: Dependencies**
+
+```dockerfile
+FROM node:18-alpine AS deps
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+```
+
+**Stage 2: Build**
+
+```dockerfile
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY . .
+COPY --from=deps /app/node_modules ./node_modules
+RUN npm run build
+```
+
+**Stage 3: Production**
+
+```dockerfile
+FROM node:18-alpine AS runner
+WORKDIR /app
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+EXPOSE 3000
+CMD ["node", "server.js"]
+```
+
+### 5.2 Next.js Standalone Output
+
+**Critical configuration** in `next.config.js`:
+
+```javascript
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  output: "standalone", // Reduces Docker image size by ~80%
+  // Other configurations...
+};
+
+module.exports = nextConfig;
+```
+
+**Package.json start script**:
+
+```json
+{
+  "scripts": {
+    "start": "node .next/standalone/server.js"
+  }
+}
+```
+
+### 5.3 Docker Compose Configuration
+
+The `docker-compose.yml` orchestrates three services:
+
+**Web Application**:
+
+```yaml
+services:
+  web:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://user:pass@db:5432/dbname
+    networks:
+      - app-network
+```
+
+**PostgreSQL Database**:
+
+```yaml
+db:
+  image: postgres:15
+  environment:
+    POSTGRES_USER: ${POSTGRES_USER}
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    POSTGRES_DB: ${POSTGRES_DB}
+  volumes:
+    - postgres_data:/var/lib/postgresql/data
+  networks:
+    - app-network
+```
+
+**Cron Service**:
+
+```yaml
+cron:
+  image: alpine:latest
+  command: >
+    sh -c "echo '*/10 * * * * curl -X POST http://web:3000/api/cleanup' | crontab - && crond -f"
+  networks:
+    - app-network
+```
+
+## Step 6: Advanced Next.js Features Configuration
+
+### 6.1 Image Optimization
+
+Next.js provides built-in image optimization that works seamlessly when self-hosting:
+
+**Basic usage**:
+
+```jsx
+import Image from "next/image";
+
+export default function MyPage() {
+  return (
+    <Image
+      src="https://example.com/image.jpg"
+      alt="Description"
+      width={500}
+      height={300}
+    />
+  );
+}
+```
+
+**Configuration** in `next.config.js`:
+
+```javascript
+module.exports = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        port: "",
+        pathname: "/**",
+      },
+    ],
+    // Prevent abuse with query parameter restrictions
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+  },
+};
+```
+
+**What happens**: Image requests go to `/_next/image?url=...&w=...&q=...`, Next.js optimizes them server-side using Sharp (built-in as of Next.js 15).
+
+**Custom image loader** (optional):
+
+```javascript
+// image-loader.js
+export default function myImageLoader({ src, width, quality }) {
+  return `https://my-cdn.com/${src}?w=${width}&q=${quality || 75}`;
+}
+```
+
+### 6.2 Streaming Server Components
+
+Enable streaming by **disabling proxy buffering** in Nginx:
+
+**Nginx configuration** (handled by deploy script):
+
+```nginx
+location / {
+    proxy_pass http://localhost:3000;
+    proxy_buffering off;  # Critical for streaming
+    proxy_cache off;
+}
+```
+
+**Next.js configuration**:
+
+```javascript
+// next.config.js
+module.exports = {
+  compress: false, // Let Nginx handle compression
+};
+```
+
+**Example streaming page**:
+
+```jsx
+import { Suspense } from "react";
+
+function LoadingCard() {
+  return <div>Loading...</div>;
+}
+
+async function AsyncData({ delay }) {
+  await new Promise((resolve) => setTimeout(resolve, delay * 1000));
+  return <div>Data loaded after {delay} seconds</div>;
+}
+
+export default function StreamingPage() {
+  return (
+    <div>
+      <h1>Streaming Demo</h1>
+      <Suspense fallback={<LoadingCard />}>
+        <AsyncData delay={1} />
+      </Suspense>
+      <Suspense fallback={<LoadingCard />}>
+        <AsyncData delay={2} />
+      </Suspense>
+      <Suspense fallback={<LoadingCard />}>
+        <AsyncData delay={3} />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+### 6.3 PostgreSQL with Drizzle ORM
+
+**Database schema** (`db/schema.ts`):
+
+```typescript
+import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+
+export const todos = pgTable("todos", {
+  id: serial("id").primaryKey(),
+  text: text("text").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+```
+
+**Database connection** (`db/index.ts`):
+
+```typescript
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+
+const connectionString = process.env.DATABASE_URL!;
+const client = postgres(connectionString);
+export const db = drizzle(client);
+```
+
+**Server actions** for CRUD operations:
+
+```typescript
+"use server";
+import { db } from "@/db";
+import { todos } from "@/db/schema";
+import { revalidatePath } from "next/cache";
+
+export async function addTodo(formData: FormData) {
+  const text = formData.get("text") as string;
+
+  await db.insert(todos).values({
+    text: text,
+  });
+
+  revalidatePath("/todos");
+}
+
+export async function deleteTodo(id: number) {
+  await db.delete(todos).where(eq(todos.id, id));
+  revalidatePath("/todos");
+}
+```
+
+**Accessing the database** via Docker:
+
+```bash
+# Connect to PostgreSQL container
+docker exec -it app_db_1 psql -U your_user -d your_database
+
+# View tables
+\d
+
+# Query data
+SELECT * FROM todos;
+```
+
+### 6.4 ISR (Incremental Static Regeneration)
+
+**Basic ISR with time-based revalidation**:
+
+```javascript
+// app/isr/page.js
+async function getPokemon() {
+  const res = await fetch("https://pokeapi.co/api/v2/pokemon/1", {
+    next: { revalidate: 10 }, // Revalidate every 10 seconds
+  });
+  return res.json();
+}
+
+export default async function ISRPage() {
+  const pokemon = await getPokemon();
+
+  return (
+    <div>
+      <h1>{pokemon.name}</h1>
+      <p>Generated at: {new Date().toISOString()}</p>
+    </div>
+  );
+}
+```
+
+**Route-level revalidation**:
+
+```javascript
+// Alternative: set revalidation at page level
+export const revalidate = 10; // seconds
+```
+
+**Manual revalidation**:
+
+```javascript
+"use server";
+import { revalidatePath } from "next/cache";
+
+export async function revalidateISR() {
+  revalidatePath("/isr");
+}
+```
+
+**Custom cache handler** (advanced):
+
+```javascript
+// next.config.js
+module.exports = {
+  cacheHandler: "./cache-handler.js",
+  cacheMaxMemorySize: 0, // Disable in-memory caching
+};
+```
+
+```javascript
+// cache-handler.js
+const fs = require("fs");
+const path = require("path");
+
+const CACHE_DIR = ".cache";
+
+module.exports = class CustomCacheHandler {
+  constructor(options) {
+    if (!fs.existsSync(CACHE_DIR)) {
+      fs.mkdirSync(CACHE_DIR, { recursive: true });
+    }
+  }
+
+  async get(key) {
+    const filePath = path.join(CACHE_DIR, `${key}.json`);
+    try {
+      const data = fs.readFileSync(filePath, "utf8");
+      return JSON.parse(data);
+    } catch {
+      return null;
+    }
+  }
+
+  async set(key, data) {
+    const filePath = path.join(CACHE_DIR, `${key}.json`);
+    fs.writeFileSync(filePath, JSON.stringify(data));
+  }
+
+  async revalidateTag(tag) {
+    // Clear cache entries for this tag
+    console.log(`Revalidating tag: ${tag}`);
+  }
+};
+```
+
+### 6.5 Middleware Configuration
+
+**Route protection** with cookies:
+
+```javascript
+// middleware.js
+import { NextResponse } from "next/server";
+
+export function middleware(request) {
+  const protectedCookie = request.cookies.get("protected");
+
+  if (request.nextUrl.pathname === "/protected") {
+    if (!protectedCookie || protectedCookie.value !== "1") {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+  }
+}
+
+export const config = {
+  matcher: "/protected",
+};
+```
+
+### 6.6 Environment Variables
+
+**Client-side variables** (bundled in build):
+
+```javascript
+// components/ClientComponent.js
+"use client";
+
+export default function ClientComponent() {
+  return (
+    <div>
+      <p>Public key: {process.env.NEXT_PUBLIC_SAFE_KEY}</p>
+    </div>
+  );
+}
+```
+
+**Server-side variables** (runtime only):
+
+```javascript
+// app/protected/page.js
+export default function ProtectedPage() {
+  const secretKey = process.env.SECRET_KEY; // Only available on server
+
+  return (
+    <div>
+      <p>Secret: {secretKey}</p>
+    </div>
+  );
+}
+```
+
+**Server startup code** (`instrumentation.js`):
+
+```javascript
+export async function register() {
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    // Run code when server starts
+    console.log("Server starting up...");
+
+    // Example: Fetch secrets from HashiCorp Vault
+    const vaultResponse = await fetch("https://vault.example.com/secret", {
+      headers: { Authorization: `Bearer ${process.env.VAULT_TOKEN}` },
+    });
+
+    const secrets = await vaultResponse.json();
+    global.SECRET_API_KEY = secrets.apiKey;
+  }
+}
+```
+
+### 6.7 Cron Jobs and Route Handlers
+
+**API route for cleanup** (`app/api/cleanup/route.js`):
+
+```javascript
+import { db } from "@/db";
+import { todos } from "@/db/schema";
+import { revalidatePath } from "next/cache";
+
+export async function POST() {
+  try {
+    // Delete all todos (or add your cleanup logic)
+    await db.delete(todos);
+
+    // Revalidate affected pages
+    revalidatePath("/todos");
+
+    return Response.json({ success: true });
+  } catch (error) {
+    return Response.json({ error: "Cleanup failed" }, { status: 500 });
+  }
+}
+```
+
+**Cron service** (in docker-compose.yml):
+
+```yaml
+cron:
+  image: alpine:latest
+  command: >
+    sh -c "
+    apk add --no-cache curl &&
+    echo '*/10 * * * * curl -X POST http://web:3000/api/cleanup' | crontab - &&
+    crond -f
+    "
+  networks:
+    - app-network
+```
+
+### 6.8 Rate Limiting with Nginx
+
+The deploy script configures **rate limiting** automatically:
+
+```nginx
+# Rate limiting configuration
+http {
+    limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
+
+    server {
+        location / {
+            limit_req zone=api burst=20 nodelay;
+            limit_req_status 429;
+
+            proxy_pass http://localhost:3000;
+        }
+    }
+}
+```
+
+**Test rate limiting**:
+
+```bash
+# Load test tool (install with: apt install wrk)
+wrk -t2 -c10 -d5s https://your-domain.com
+
+# Results will show blocked requests
+```
+
+## Step 7: DNS Configuration
+
+### 7.1 Point Domain to Server
+
+In your domain registrar's DNS settings:
+
+**A Record**:
+
+- **Name**: `@` (root domain)
+- **Value**: Your server's IP address
+- **TTL**: 3600 (1 hour)
+
+**Optional CNAME** for www:
+
+- **Name**: `www`
+- **Value**: `your-domain.com`
+
+### 7.2 Verify DNS Propagation
+
+```bash
+# Check if DNS has propagated
+nslookup your-domain.com
+
+# Test HTTPS certificate
+curl -I https://your-domain.com
+```
+
+## Step 8: Monitoring and Maintenance
+
+### 8.1 Check Application Status
+
+```bash
+# SSH into server
+ssh root@your-server-ip
+
+# Navigate to app directory
+cd app
+
+# Check running containers
+docker ps
+
+# View logs
+docker-compose logs web
+docker-compose logs db
+docker-compose logs cron
+
+# Check environment variables
+cat .env
+```
+
+### 8.2 Resource Monitoring
+
+```bash
+# Check system resources
+htop  # Interactive process viewer
+df -h # Disk usage
+free -h # Memory usage
+
+# Check swap usage (important for 512MB VPS)
+swapon --show
+```
+
+### 8.3 Database Maintenance
+
+```bash
+# Backup database
+docker exec app_db_1 pg_dump -U your_user your_database > backup.sql
+
+# Restore database
+cat backup.sql | docker exec -i app_db_1 psql -U your_user -d your_database
+```
+
+## Step 9: Scaling Considerations
+
+### 9.1 Vertical Scaling (Upgrade Server)
+
+When you outgrow your $4 VPS:
+
+1. **DigitalOcean**: Resize droplet in control panel
+2. **More RAM**: Essential for image optimization and caching
+3. **More CPU**: Helps with concurrent requests and builds
+4. **More storage**: Required as your application data grows
+
+### 9.2 Horizontal Scaling (Multiple Containers)
+
+For higher traffic, consider splitting services:
+
+**Separate Image Optimization**:
+
+```yaml
+# docker-compose.yml
+image-optimizer:
+  image: your-custom-image-service
+  ports:
+    - "3001:3000"
+```
+
+**External Cache** (Redis):
+
+```yaml
+redis:
+  image: redis:7
+  volumes:
+    - redis_data:/data
+```
+
+**Load Balancer** (Nginx):
+
+```nginx
+upstream nextjs_backend {
+    server localhost:3000;
+    server localhost:3002;
+    server localhost:3003;
+}
+
+server {
+    location / {
+        proxy_pass http://nextjs_backend;
+    }
+}
+```
+
+### 9.3 Multi-Server Setup
+
+For production applications:
+
+1. **Dedicated database server**
+2. **Multiple application servers**
+3. **Load balancer** (Nginx or cloud service)
+4. **CDN** for static assets
+5. **Monitoring** (Grafana, Prometheus)
+
+## Step 10: Cost Analysis
+
+### Monthly Costs Breakdown
+
+**Basic Setup**:
+
+- DigitalOcean $4 droplet: $4/month
+- Domain name: ~$1/month (amortized)
+- **Total: ~$5/month**
+
+**Scaling Options**:
+
+- $12 droplet (1GB RAM, 1 CPU): Better performance
+- $18 droplet (2GB RAM, 1 CPU): Recommended for production
+- $24 droplet (2GB RAM, 2 CPU): Good for higher traffic
+
+**Comparison to Managed Services**:
+
+- Vercel Pro: $20/month + usage
+- Railway: $5-20+/month
+- Render: $7-25+/month
+- **Savings**: 60-90% for similar functionality
+
+## Troubleshooting Common Issues
+
+### Memory Issues (512MB VPS)
+
+**Symptoms**:
+
+- Build failures
+- Application crashes
+- Slow performance
+
+**Solutions**:
+
+```bash
+# Check if swap is active
+swapon --show
+
+# Add more swap if needed
+fallocate -l 2G /swapfile
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+
+# Make permanent
+echo '/swapfile none swap sw 0 0' >> /etc/fstab
+```
+
+### SSL Certificate Issues
+
+**Common problems**:
+
+- Domain not pointing to server
+- Firewall blocking ports 80/443
+- DNS not propagated
+
+**Debug steps**:
+
+```bash
+# Test domain resolution
+nslookup your-domain.com
+
+# Check if Nginx is running
+systemctl status nginx
+
+# Manually renew certificate
+certbot renew --dry-run
+```
+
+### Docker Build Failures
+
+**Check logs**:
+
+```bash
+docker-compose logs web
+```
+
+**Rebuild containers**:
+
+```bash
+docker-compose down
+docker-compose up --build -d
+```
+
+### Database Connection Issues
+
+**Verify database is running**:
+
+```bash
+docker-compose ps
+```
+
+**Test connection**:
+
+```bash
+docker exec -it app_db_1 psql -U your_user -d your_database
+```
+
+**Check environment variables**:
+
+```bash
+cat .env | grep DATABASE_URL
+```
+
+## Security Considerations
+
+### Basic Security Measures
+
+1. **Regular updates**:
+
+   ```bash
+   apt update && apt upgrade -y
+   ```
+
+2. **Firewall configuration**:
+
+   ```bash
+   ufw allow ssh
+   ufw allow 80
+   ufw allow 443
+   ufw enable
+   ```
+
+3. **SSH key authentication** (disable password auth):
+
+   ```bash
+   # Edit SSH config
+   nano /etc/ssh/sshd_config
+
+   # Set PasswordAuthentication no
+   # Restart SSH service
+   systemctl restart ssh
+   ```
+
+4. **Regular backups**:
+   ```bash
+   # Database backup script
+   #!/bin/bash
+   docker exec app_db_1 pg_dump -U $POSTGRES_USER $POSTGRES_DB > backup-$(date +%Y%m%d).sql
+   ```
+
+### Advanced Security
+
+- **Fail2Ban**: Prevent brute force attacks
+- **Log monitoring**: Set up alerts for suspicious activity
+- **Container scanning**: Regular security updates
+- **Network segmentation**: Isolate database from public access
+
+## Alternative Deployment Options
+
+### 1. Static Export (No Server)
+
+For simple sites without server-side features:
+
+```javascript
+// next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  output: "export",
+  trailingSlash: true,
+  images: { unoptimized: true },
+};
+
+module.exports = nextConfig;
+```
+
+Deploy to any static hosting (Netlify, GitHub Pages, etc.)
+
+### 2. Kamal (from 37signals)
+
+Production-ready deployment tool:
+
+```yaml
+# config/deploy.yml
+service: myapp
+image: myapp
+
+servers:
+  web:
+    - 192.168.1.1
+
+registry:
+  server: registry.digitalocean.com
+  username: token
+  password: $DOCKER_REGISTRY_TOKEN
+```
+
+### 3. Coolify (Self-hosted PaaS)
+
+Alternative to the manual Docker setup:
+
+- Git integration
+- Automatic deployments
+- Web interface for management
+- Database management
+- SSL certificate automation
+
+### 4. Cloud Provider Adapters
+
+- **SST**: Deploy to AWS Lambda/CloudFront
+- **Vercel**: Official managed platform
+- **Netlify**: JAMstack-focused hosting
+- **Railway**: Simple container hosting
+
+## Best Practices Summary
+
+### Development Workflow
+
+1. **Test locally** with Docker Compose
+2. **Use environment variables** for configuration
+3. **Version control** your deployment scripts
+4. **Monitor application** performance and errors
+5. **Regular backups** of data and configuration
+
+### Production Readiness
+
+1. **Health checks** for containers
+2. **Log aggregation** and monitoring
+3. **Automated deployments** via CI/CD
+4. **Load testing** before high traffic
+5. **Disaster recovery** plan
+
+### Cost Optimization
+
+1. **Start small** and scale as needed
+2. **Monitor resource usage** regularly
+3. **Use CDN** for static assets when traffic grows
+4. **Optimize images** and caching strategies
+5. **Consider managed services** at scale
+
+## Conclusion
+
+Self-hosting Next.js applications provides excellent learning opportunities and significant cost savings. This setup gives you:
+
+- **Full control** over your infrastructure
+- **Deep understanding** of web application deployment
+- **Cost savings** of 60-90% compared to managed platforms
+- **Scalability path** as your application grows
+
+The $4 VPS setup works well for:
+
+- Personal projects and portfolios
+- Small business websites
+- Learning and experimentation
+- MVP and prototype applications
+
+As your application grows, you can scale vertically (upgrade server resources) or horizontally (add more servers and load balancing).
+
+The containerized approach with Docker makes your application portable across different hosting providers, giving you flexibility to migrate if needed.
+
+**Next Steps:**
+
+- Deploy your own application using this guide
+- Experiment with the different Next.js features
+- Monitor performance and optimize as needed
+- Consider managed services when scaling becomes complex
+
+This guide provides a solid foundation for understanding both self-hosted infrastructure and what managed platforms like Vercel provide behind the scenes.

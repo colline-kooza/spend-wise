@@ -1,0 +1,593 @@
+---
+title: Building a Complete Employee Management System in Go
+description: A comprehensive step-by-step tutorial for learning Go fundamentals by building a real-world REST API with CRUD operations, SQLite database integration, and Excel file import functionality.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwfV09OlgA52de3gZr71yOF0aVCmnSLksiKvljQ
+category: tutorial
+createdAt: 2025-10-04
+updatedAt: 2025-10-04
+---
+
+# Complete Go Course: Excel to Employee API
+
+A practical step-by-step guide to learning Go by building a real-world project.
+
+---
+
+## Part 1: Go Basics - Essential Concepts
+
+### 1.1 Variables and Types
+
+Go is statically typed. Here are the most common types you'll use daily:
+
+```go
+// Variable declaration
+var name string = "John"
+age := 25  // Short declaration (type inferred)
+
+// Common types
+var (
+    isActive bool = true
+    count int = 10
+    price float64 = 99.99
+    message string = "Hello"
+)
+```
+
+### 1.2 Structs
+
+Structs are Go's way of creating custom types:
+
+```go
+type Employee struct {
+    ID       string `json:"id"`
+    Name     string `json:"name"`
+    Email    string `json:"email"`
+    Position string `json:"position"`
+}
+
+// Creating an instance
+emp := Employee{
+    ID:       "1",
+    Name:     "John Doe",
+    Email:    "john@example.com",
+    Position: "Developer",
+}
+```
+
+### 1.3 Functions
+
+```go
+// Basic function
+func greet(name string) string {
+    return "Hello, " + name
+}
+
+// Multiple return values (common in Go for error handling)
+func divide(a, b float64) (float64, error) {
+    if b == 0 {
+        return 0, fmt.Errorf("cannot divide by zero")
+    }
+    return a / b, nil
+}
+```
+
+### 1.4 Error Handling
+
+Go uses explicit error handling (no exceptions):
+
+```go
+result, err := divide(10, 0)
+if err != nil {
+    fmt.Println("Error:", err)
+    return
+}
+fmt.Println("Result:", result)
+```
+
+### 1.5 Slices (Dynamic Arrays)
+
+```go
+// Create a slice
+employees := []Employee{}
+
+// Append to slice
+emp := Employee{ID: "1", Name: "John"}
+employees = append(employees, emp)
+
+// Loop through slice
+for i, emp := range employees {
+    fmt.Printf("Index %d: %s\n", i, emp.Name)
+}
+```
+
+### 1.6 Maps (Key-Value Pairs)
+
+```go
+// Create a map
+userRoles := make(map[string]string)
+userRoles["john@example.com"] = "admin"
+
+// Access value
+role := userRoles["john@example.com"]
+```
+
+### 1.7 Pointers
+
+```go
+// Pointers allow you to pass references
+func updateName(emp *Employee) {
+    emp.Name = "Updated Name"
+}
+
+employee := Employee{Name: "John"}
+updateName(&employee)  // Pass pointer with &
+fmt.Println(employee.Name)  // "Updated Name"
+```
+
+### 1.8 Packages and Imports
+
+```go
+package main  // Every Go file belongs to a package
+
+import (
+    "fmt"           // Standard library
+    "database/sql"  // SQL package
+    _ "github.com/mattn/go-sqlite3"  // Third-party package
+)
+```
+
+---
+
+## Part 2: Building the Employee API with CRUD
+
+### Step 1: Project Setup
+
+Create your project structure:
+
+```
+employee-api/
+├── main.go
+├── database.go
+├── handlers.go
+└── go.mod
+```
+
+Initialize the Go module:
+
+```bash
+go mod init employee-api
+```
+
+### Step 2: Install Dependencies
+
+```bash
+go get github.com/mattn/go-sqlite3
+go get github.com/gorilla/mux
+```
+
+### Step 3: Database Setup (database.go)
+
+```go
+package main
+
+import (
+    "database/sql"
+    "log"
+    _ "github.com/mattn/go-sqlite3"
+)
+
+var db *sql.DB
+
+func InitDB() {
+    var err error
+    db, err = sql.Open("sqlite3", "./employees.db")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Create table
+    createTableSQL := `CREATE TABLE IF NOT EXISTS employees (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        position TEXT NOT NULL
+    );`
+
+    _, err = db.Exec(createTableSQL)
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+```
+
+### Step 4: API Handlers (handlers.go)
+
+```go
+package main
+
+import (
+    "encoding/json"
+    "net/http"
+    "github.com/google/uuid"
+    "github.com/gorilla/mux"
+)
+
+type Employee struct {
+    ID       string `json:"id"`
+    Name     string `json:"name"`
+    Email    string `json:"email"`
+    Position string `json:"position"`
+}
+
+// CREATE - Add new employee
+func CreateEmployee(w http.ResponseWriter, r *http.Request) {
+    var emp Employee
+    json.NewDecoder(r.Body).Decode(&emp)
+
+    // Generate ID if not provided
+    if emp.ID == "" {
+        emp.ID = uuid.New().String()
+    }
+
+    _, err := db.Exec("INSERT INTO employees (id, name, email, position) VALUES (?, ?, ?, ?)",
+        emp.ID, emp.Name, emp.Email, emp.Position)
+
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(emp)
+}
+
+// READ - Get all employees
+func GetEmployees(w http.ResponseWriter, r *http.Request) {
+    rows, err := db.Query("SELECT id, name, email, position FROM employees")
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+    defer rows.Close()
+
+    var employees []Employee
+    for rows.Next() {
+        var emp Employee
+        rows.Scan(&emp.ID, &emp.Name, &emp.Email, &emp.Position)
+        employees = append(employees, emp)
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(employees)
+}
+
+// READ - Get single employee by ID
+func GetEmployee(w http.ResponseWriter, r *http.Request) {
+    params := mux.Vars(r)
+    var emp Employee
+
+    err := db.QueryRow("SELECT id, name, email, position FROM employees WHERE id = ?", params["id"]).
+        Scan(&emp.ID, &emp.Name, &emp.Email, &emp.Position)
+
+    if err != nil {
+        http.Error(w, "Employee not found", http.StatusNotFound)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(emp)
+}
+
+// UPDATE - Update employee
+func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
+    params := mux.Vars(r)
+    var emp Employee
+    json.NewDecoder(r.Body).Decode(&emp)
+
+    _, err := db.Exec("UPDATE employees SET name=?, email=?, position=? WHERE id=?",
+        emp.Name, emp.Email, emp.Position, params["id"])
+
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    emp.ID = params["id"]
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(emp)
+}
+
+// DELETE - Delete employee
+func DeleteEmployee(w http.ResponseWriter, r *http.Request) {
+    params := mux.Vars(r)
+
+    _, err := db.Exec("DELETE FROM employees WHERE id=?", params["id"])
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.WriteHeader(http.StatusNoContent)
+}
+```
+
+### Step 5: Main Application (main.go)
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+    "net/http"
+    "github.com/gorilla/mux"
+)
+
+func main() {
+    // Initialize database
+    InitDB()
+    defer db.Close()
+
+    // Setup router
+    router := mux.NewRouter()
+
+    // Define routes
+    router.HandleFunc("/employees", GetEmployees).Methods("GET")
+    router.HandleFunc("/employees/{id}", GetEmployee).Methods("GET")
+    router.HandleFunc("/employees", CreateEmployee).Methods("POST")
+    router.HandleFunc("/employees/{id}", UpdateEmployee).Methods("PUT")
+    router.HandleFunc("/employees/{id}", DeleteEmployee).Methods("DELETE")
+
+    // Start server
+    fmt.Println("Server starting on port 8080...")
+    log.Fatal(http.ListenAndServe(":8080", router))
+}
+```
+
+### Step 6: Run and Test the API
+
+```bash
+# Run the application
+go run .
+
+# Test with curl
+# CREATE
+curl -X POST http://localhost:8080/employees \
+  -H "Content-Type: application/json" \
+  -d '{"name":"John Doe","email":"john@example.com","position":"Developer"}'
+
+# READ ALL
+curl http://localhost:8080/employees
+
+# READ ONE
+curl http://localhost:8080/employees/{id}
+
+# UPDATE
+curl -X PUT http://localhost:8080/employees/{id} \
+  -H "Content-Type: application/json" \
+  -d '{"name":"John Updated","email":"john@example.com","position":"Senior Developer"}'
+
+# DELETE
+curl -X DELETE http://localhost:8080/employees/{id}
+```
+
+---
+
+## Part 3: Excel Import Feature
+
+### Step 1: Install Excel Library
+
+```bash
+go get github.com/xuri/excelize/v2
+```
+
+### Step 2: Create Excel Import Function
+
+Create a new file `excel.go`:
+
+```go
+package main
+
+import (
+    "bytes"
+    "encoding/json"
+    "fmt"
+    "net/http"
+    "github.com/google/uuid"
+    "github.com/xuri/excelize/v2"
+)
+
+type ExcelEmployee struct {
+    Name     string `json:"name"`
+    Email    string `json:"email"`
+    Position string `json:"position"`
+}
+
+func ImportEmployeesFromExcel(filename string) error {
+    // 1. Open Excel file
+    f, err := excelize.OpenFile(filename)
+    if err != nil {
+        return fmt.Errorf("error opening file: %v", err)
+    }
+    defer f.Close()
+
+    // 2. Read rows from first sheet
+    sheetName := f.GetSheetName(0)
+    rows, err := f.GetRows(sheetName)
+    if err != nil {
+        return fmt.Errorf("error reading rows: %v", err)
+    }
+
+    // 3. Convert to slice of structs
+    var employees []Employee
+
+    // Skip header row (index 0)
+    for i, row := range rows {
+        if i == 0 {
+            continue // Skip header
+        }
+
+        // Ensure we have all columns
+        if len(row) < 3 {
+            continue
+        }
+
+        // Create employee with generated ID
+        emp := Employee{
+            ID:       uuid.New().String(), // Generate new UUID
+            Name:     row[0],
+            Email:    row[1],
+            Position: row[2],
+        }
+
+        employees = append(employees, emp)
+    }
+
+    // 4. Convert to JSON for viewing (optional)
+    jsonData, err := json.MarshalIndent(employees, "", "  ")
+    if err != nil {
+        return fmt.Errorf("error converting to JSON: %v", err)
+    }
+    fmt.Println("Extracted Data:")
+    fmt.Println(string(jsonData))
+
+    // 5. Loop through and save each employee to database
+    for i, emp := range employees {
+        err := saveEmployee(emp)
+        if err != nil {
+            fmt.Printf("Error saving employee %d (%s): %v\n", i+1, emp.Name, err)
+            continue
+        }
+        fmt.Printf("✓ Saved employee %d: %s (ID: %s)\n", i+1, emp.Name, emp.ID)
+    }
+
+    fmt.Printf("\nSuccessfully imported %d employees!\n", len(employees))
+    return nil
+}
+
+func saveEmployee(emp Employee) error {
+    _, err := db.Exec(
+        "INSERT INTO employees (id, name, email, position) VALUES (?, ?, ?, ?)",
+        emp.ID, emp.Name, emp.Email, emp.Position,
+    )
+    return err
+}
+```
+
+### Step 3: Add Import Command to Main
+
+Update `main.go`:
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+    "net/http"
+    "os"
+    "github.com/gorilla/mux"
+)
+
+func main() {
+    // Initialize database
+    InitDB()
+    defer db.Close()
+
+    // Check for import command
+    if len(os.Args) > 1 && os.Args[1] == "import" {
+        if len(os.Args) < 3 {
+            fmt.Println("Usage: go run . import <excel-file>")
+            return
+        }
+
+        err := ImportEmployeesFromExcel(os.Args[2])
+        if err != nil {
+            log.Fatal(err)
+        }
+        return
+    }
+
+    // Setup router
+    router := mux.NewRouter()
+
+    // Define routes
+    router.HandleFunc("/employees", GetEmployees).Methods("GET")
+    router.HandleFunc("/employees/{id}", GetEmployee).Methods("GET")
+    router.HandleFunc("/employees", CreateEmployee).Methods("POST")
+    router.HandleFunc("/employees/{id}", UpdateEmployee).Methods("PUT")
+    router.HandleFunc("/employees/{id}", DeleteEmployee).Methods("DELETE")
+
+    // Start server
+    fmt.Println("Server starting on port 8080...")
+    log.Fatal(http.ListenAndServe(":8080", router))
+}
+```
+
+### Step 4: Create Sample Excel File
+
+Create `employees.xlsx` with this structure:
+
+| Name        | Email            | Position  |
+| ----------- | ---------------- | --------- |
+| John Doe    | john@example.com | Developer |
+| Jane Smith  | jane@example.com | Manager   |
+| Bob Johnson | bob@example.com  | Designer  |
+
+### Step 5: Run the Import
+
+```bash
+# Import employees from Excel
+go run . import employees.xlsx
+
+# Start the API server
+go run .
+
+# Verify imported data
+curl http://localhost:8080/employees
+```
+
+---
+
+## Complete Project Structure
+
+```
+employee-api/
+├── main.go          # Entry point and routing
+├── database.go      # Database initialization
+├── handlers.go      # CRUD API handlers
+├── excel.go         # Excel import functionality
+├── employees.xlsx   # Sample Excel file
+├── employees.db     # SQLite database (auto-created)
+└── go.mod          # Dependencies
+```
+
+---
+
+## Key Concepts Review
+
+✅ **Variables & Types** - Declaring and using Go data types  
+✅ **Structs** - Creating custom data structures  
+✅ **Functions** - Writing reusable code blocks  
+✅ **Error Handling** - Go's explicit error checking  
+✅ **Slices** - Working with dynamic arrays  
+✅ **Loops** - Using `for` and `range`  
+✅ **Pointers** - Passing references  
+✅ **Packages** - Organizing code  
+✅ **HTTP APIs** - Building REST endpoints  
+✅ **Database** - SQL operations  
+✅ **JSON** - Encoding and decoding  
+✅ **File Processing** - Reading Excel files
+
+---
+
+## Next Steps
+
+1. Add validation for email format
+2. Add duplicate email checking
+3. Implement pagination for GET all employees
+4. Add authentication middleware
+5. Create unit tests
+6. Deploy to production
+
+Congratulations! You've built a complete Go application with API and Excel integration! 🎉

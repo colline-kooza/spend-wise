@@ -1,0 +1,801 @@
+---
+title: Build Lightning-Fast Next.js APIs with Elysia - Complete CRUD Guide
+description: Master building ultra-fast, type-safe Next.js APIs using Elysia framework with Prisma ORM and React Query. Learn how to create production-ready CRUD operations with end-to-end type safety, achieve 2.5M+ requests/sec performance, and deploy to Vercel with WinterCG compliance.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwfd4rdc0DtTX7HgROGKhuZmVNCYcbaJiAq6woe
+category: tutorial
+createdAt: 2025-11-29
+updatedAt: 2025-11-29
+---
+
+# Building a CRUD API with Elysia in Next.js
+
+Complete guide for creating a type-safe, high-performance Product CRUD API using Elysia, Prisma ORM, and React Query.
+
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Project Setup](#project-setup)
+- [Prisma Configuration](#prisma-configuration)
+- [Elysia API Setup](#elysia-api-setup)
+- [React Query Integration](#react-query-integration)
+- [Usage Examples](#usage-examples)
+- [Deployment](#deployment)
+
+---
+
+## Prerequisites
+
+- Node.js 18+ or Bun runtime
+- Basic knowledge of Next.js, TypeScript, and React
+- Understanding of REST APIs
+
+## Project Setup
+
+### 1. Initialize Next.js Project
+
+```bash
+npx create-next-app@latest elysia-crud-app
+cd elysia-crud-app
+```
+
+Choose the following options:
+
+- TypeScript: Yes
+- ESLint: Yes
+- Tailwind CSS: Yes
+- App Router: Yes
+- src/ directory: Yes
+
+### 2. Install Dependencies
+
+```bash
+# Core dependencies
+npm install elysia @elysiajs/eden
+npm install prisma @prisma/client
+npm install @tanstack/react-query
+
+# Development dependencies
+npm install -D prisma
+```
+
+### 3. Initialize Prisma
+
+```bash
+npx prisma init
+```
+
+---
+
+## Prisma Configuration
+
+### 1. Configure Database (`.env`)
+
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/products_db"
+# For development, you can use SQLite:
+# DATABASE_URL="file:./dev.db"
+```
+
+### 2. Define Schema (`prisma/schema.prisma`)
+
+```prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  stock       Int      @default(0)
+  category    String
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([createdAt])
+}
+```
+
+### 3. Generate Prisma Client & Run Migrations
+
+```bash
+npx prisma generate
+npx prisma migrate dev --name init
+```
+
+### 4. Create Prisma Client Instance (`src/lib/prisma.ts`)
+
+```typescript
+import { PrismaClient } from "@prisma/client";
+
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+export const prisma = globalForPrisma.prisma ?? new PrismaClient();
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+```
+
+---
+
+## Elysia API Setup
+
+### 1. Create Elysia Server (`src/app/api/[...slugs]/route.ts`)
+
+This is the central endpoint that handles all API requests:
+
+```typescript
+import { Elysia, t } from "elysia";
+import { prisma } from "@/lib/prisma";
+
+const app = new Elysia({ prefix: "/api" })
+  // Get all products
+  .get("/products", async () => {
+    const products = await prisma.product.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+    return products;
+  })
+
+  // Get single product by ID
+  .get(
+    "/products/:id",
+    async ({ params }) => {
+      const product = await prisma.product.findUnique({
+        where: { id: params.id },
+      });
+
+      if (!product) {
+        throw new Error("Product not found");
+      }
+
+      return product;
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+    }
+  )
+
+  // Create product
+  .post(
+    "/products",
+    async ({ body }) => {
+      const product = await prisma.product.create({
+        data: body,
+      });
+      return product;
+    },
+    {
+      body: t.Object({
+        name: t.String({ minLength: 1 }),
+        description: t.Optional(t.String()),
+        price: t.Number({ minimum: 0 }),
+        stock: t.Number({ minimum: 0 }),
+        category: t.String({ minLength: 1 }),
+        imageUrl: t.Optional(t.String()),
+      }),
+    }
+  )
+
+  // Update product
+  .put(
+    "/products/:id",
+    async ({ params, body }) => {
+      const product = await prisma.product.update({
+        where: { id: params.id },
+        data: body,
+      });
+      return product;
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+      body: t.Object({
+        name: t.Optional(t.String({ minLength: 1 })),
+        description: t.Optional(t.String()),
+        price: t.Optional(t.Number({ minimum: 0 })),
+        stock: t.Optional(t.Number({ minimum: 0 })),
+        category: t.Optional(t.String({ minLength: 1 })),
+        imageUrl: t.Optional(t.String()),
+      }),
+    }
+  )
+
+  // Delete product
+  .delete(
+    "/products/:id",
+    async ({ params }) => {
+      await prisma.product.delete({
+        where: { id: params.id },
+      });
+      return { success: true, message: "Product deleted" };
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+    }
+  )
+
+  // Get products by category
+  .get(
+    "/products/category/:category",
+    async ({ params }) => {
+      const products = await prisma.product.findMany({
+        where: { category: params.category },
+        orderBy: { createdAt: "desc" },
+      });
+      return products;
+    },
+    {
+      params: t.Object({
+        category: t.String(),
+      }),
+    }
+  );
+
+// Export type for client-side usage
+export type App = typeof app;
+
+// Export HTTP methods for Next.js
+export const GET = app.handle;
+export const POST = app.handle;
+export const PUT = app.handle;
+export const DELETE = app.handle;
+```
+
+### 2. Error Handling (Enhanced Version)
+
+For production, add proper error handling:
+
+```typescript
+import { Elysia, t } from "elysia";
+import { prisma } from "@/lib/prisma";
+
+const app = new Elysia({ prefix: "/api" }).onError(({ code, error, set }) => {
+  if (code === "NOT_FOUND") {
+    set.status = 404;
+    return { error: "Resource not found" };
+  }
+
+  if (code === "VALIDATION") {
+    set.status = 400;
+    return { error: "Validation failed", details: error.message };
+  }
+
+  set.status = 500;
+  return { error: "Internal server error" };
+});
+
+// ... rest of your routes
+```
+
+---
+
+## React Query Integration
+
+### 1. Create React Query Provider (`src/providers/query-provider.tsx`)
+
+```typescript
+'use client'
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useState } from 'react'
+
+export function QueryProvider({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60 * 1000, // 1 minute
+        refetchOnWindowFocus: false,
+      },
+    },
+  }))
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  )
+}
+```
+
+### 2. Wrap App with Provider (`src/app/layout.tsx`)
+
+```typescript
+import { QueryProvider } from '@/providers/query-provider'
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <QueryProvider>
+          {children}
+        </QueryProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+### 3. Create Type-Safe API Client (`src/lib/api.ts`)
+
+```typescript
+import { edenTreaty } from "@elysiajs/eden";
+import type { App } from "@/app/api/[...slugs]/route";
+
+export const api = edenTreaty<App>("http://localhost:3000");
+```
+
+For production, use environment variables:
+
+```typescript
+export const api = edenTreaty<App>(
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+);
+```
+
+### 4. Create Product Hooks (`src/hooks/use-products.ts`)
+
+```typescript
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+
+// Get all products
+export function useProducts() {
+  return useQuery({
+    queryKey: ["products"],
+    queryFn: async () => {
+      const { data } = await api.api.products.get();
+      return data;
+    },
+  });
+}
+
+// Get single product
+export function useProduct(id: string) {
+  return useQuery({
+    queryKey: ["products", id],
+    queryFn: async () => {
+      const { data } = await api.api.products[id].get();
+      return data;
+    },
+    enabled: !!id,
+  });
+}
+
+// Create product
+export function useCreateProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (productData: {
+      name: string;
+      description?: string;
+      price: number;
+      stock: number;
+      category: string;
+      imageUrl?: string;
+    }) => {
+      const { data } = await api.api.products.post(productData);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+  });
+}
+
+// Update product
+export function useUpdateProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      ...productData
+    }: {
+      id: string;
+      name?: string;
+      description?: string;
+      price?: number;
+      stock?: number;
+      category?: string;
+      imageUrl?: string;
+    }) => {
+      const { data } = await api.api.products[id].put(productData);
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["products", variables.id] });
+    },
+  });
+}
+
+// Delete product
+export function useDeleteProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.api.products[id].delete();
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+  });
+}
+
+// Get products by category
+export function useProductsByCategory(category: string) {
+  return useQuery({
+    queryKey: ["products", "category", category],
+    queryFn: async () => {
+      const { data } = await api.api.products.category[category].get();
+      return data;
+    },
+    enabled: !!category,
+  });
+}
+```
+
+---
+
+## Usage Examples
+
+### Example 1: Products List Component (`src/components/products-list.tsx`)
+
+```typescript
+'use client'
+
+import { useProducts, useDeleteProduct } from '@/hooks/use-products'
+
+export function ProductsList() {
+  const { data: products, isLoading, error } = useProducts()
+  const deleteProduct = useDeleteProduct()
+
+  if (isLoading) return <div>Loading products...</div>
+  if (error) return <div>Error loading products</div>
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {products?.map((product) => (
+        <div key={product.id} className="border p-4 rounded-lg">
+          <h3 className="font-bold text-lg">{product.name}</h3>
+          <p className="text-gray-600">{product.description}</p>
+          <p className="text-xl font-semibold">${product.price}</p>
+          <p className="text-sm">Stock: {product.stock}</p>
+          <p className="text-sm text-gray-500">{product.category}</p>
+
+          <button
+            onClick={() => deleteProduct.mutate(product.id)}
+            disabled={deleteProduct.isPending}
+            className="mt-2 bg-red-500 text-white px-4 py-2 rounded"
+          >
+            {deleteProduct.isPending ? 'Deleting...' : 'Delete'}
+          </button>
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+### Example 2: Create Product Form (`src/components/create-product-form.tsx`)
+
+```typescript
+'use client'
+
+import { useCreateProduct } from '@/hooks/use-products'
+import { useState } from 'react'
+
+export function CreateProductForm() {
+  const createProduct = useCreateProduct()
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    price: 0,
+    stock: 0,
+    category: '',
+    imageUrl: ''
+  })
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    try {
+      await createProduct.mutateAsync(formData)
+      // Reset form
+      setFormData({
+        name: '',
+        description: '',
+        price: 0,
+        stock: 0,
+        category: '',
+        imageUrl: ''
+      })
+      alert('Product created successfully!')
+    } catch (error) {
+      alert('Failed to create product')
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
+      <div>
+        <label className="block text-sm font-medium mb-1">Product Name</label>
+        <input
+          type="text"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          required
+          className="w-full border rounded px-3 py-2"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Description</label>
+        <textarea
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+          rows={3}
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Price</label>
+        <input
+          type="number"
+          step="0.01"
+          value={formData.price}
+          onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+          required
+          className="w-full border rounded px-3 py-2"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Stock</label>
+        <input
+          type="number"
+          value={formData.stock}
+          onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) })}
+          required
+          className="w-full border rounded px-3 py-2"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Category</label>
+        <input
+          type="text"
+          value={formData.category}
+          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+          required
+          className="w-full border rounded px-3 py-2"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Image URL</label>
+        <input
+          type="url"
+          value={formData.imageUrl}
+          onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+          className="w-full border rounded px-3 py-2"
+        />
+      </div>
+
+      <button
+        type="submit"
+        disabled={createProduct.isPending}
+        className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+      >
+        {createProduct.isPending ? 'Creating...' : 'Create Product'}
+      </button>
+    </form>
+  )
+}
+```
+
+### Example 3: Update Product Form (`src/components/update-product-form.tsx`)
+
+```typescript
+'use client'
+
+import { useProduct, useUpdateProduct } from '@/hooks/use-products'
+import { useEffect, useState } from 'react'
+
+export function UpdateProductForm({ productId }: { productId: string }) {
+  const { data: product, isLoading } = useProduct(productId)
+  const updateProduct = useUpdateProduct()
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    price: 0,
+    stock: 0,
+    category: '',
+    imageUrl: ''
+  })
+
+  useEffect(() => {
+    if (product) {
+      setFormData({
+        name: product.name,
+        description: product.description || '',
+        price: product.price,
+        stock: product.stock,
+        category: product.category,
+        imageUrl: product.imageUrl || ''
+      })
+    }
+  }, [product])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    try {
+      await updateProduct.mutateAsync({ id: productId, ...formData })
+      alert('Product updated successfully!')
+    } catch (error) {
+      alert('Failed to update product')
+    }
+  }
+
+  if (isLoading) return <div>Loading product...</div>
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
+      {/* Similar form fields as CreateProductForm */}
+      <div>
+        <label className="block text-sm font-medium mb-1">Product Name</label>
+        <input
+          type="text"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          required
+          className="w-full border rounded px-3 py-2"
+        />
+      </div>
+
+      {/* Add other fields similar to CreateProductForm */}
+
+      <button
+        type="submit"
+        disabled={updateProduct.isPending}
+        className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600 disabled:bg-gray-400"
+      >
+        {updateProduct.isPending ? 'Updating...' : 'Update Product'}
+      </button>
+    </form>
+  )
+}
+```
+
+### Example 4: Main Page (`src/app/page.tsx`)
+
+```typescript
+import { ProductsList } from '@/components/products-list'
+import { CreateProductForm } from '@/components/create-product-form'
+
+export default function Home() {
+  return (
+    <main className="container mx-auto p-8">
+      <h1 className="text-3xl font-bold mb-8">Product Management</h1>
+
+      <div className="grid md:grid-cols-2 gap-8 mb-8">
+        <div>
+          <h2 className="text-2xl font-semibold mb-4">Create New Product</h2>
+          <CreateProductForm />
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-2xl font-semibold mb-4">All Products</h2>
+        <ProductsList />
+      </div>
+    </main>
+  )
+}
+```
+
+---
+
+## Deployment
+
+### Deploy to Vercel
+
+1. Push your code to GitHub
+
+2. Connect repository to Vercel
+
+3. Add environment variables:
+
+   ```
+   DATABASE_URL=your_production_database_url
+   NEXT_PUBLIC_API_URL=https://your-domain.vercel.app
+   ```
+
+4. Deploy:
+   ```bash
+   vercel deploy
+   ```
+
+Vercel automatically detects Elysia apps and provisions optimal resources.
+
+### Deploy to Other Platforms
+
+Elysia is WinterCG compliant, so you can deploy to:
+
+- Netlify
+- Cloudflare Pages
+- AWS Lambda
+- Any platform supporting WinterCG
+
+---
+
+## Key Benefits
+
+1. **Type Safety**: Full end-to-end type safety from database to frontend
+2. **Performance**: Near Rust/Go performance levels (2.5M+ requests/sec)
+3. **Developer Experience**: Clean, intuitive API design
+4. **Deployment Flexibility**: Deploy anywhere with WinterCG compliance
+5. **Built-in Validation**: Schema validation with helpful error messages
+6. **No Code Generation**: Types work in real-time without build steps
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**Type errors in Eden client:**
+
+- Ensure you're exporting the `App` type from your route file
+- Check that the API URL matches your development/production environment
+
+**Database connection errors:**
+
+- Verify your `DATABASE_URL` is correct
+- Run `npx prisma generate` after schema changes
+- Check that migrations are applied: `npx prisma migrate deploy`
+
+**API not responding:**
+
+- Verify the catch-all route is in the correct location: `src/app/api/[...slugs]/route.ts`
+- Check that you're exporting GET, POST, PUT, DELETE handlers
+- Ensure the Elysia prefix matches your API path
+
+---
+
+## Additional Resources
+
+- [Elysia Documentation](https://elysiajs.com)
+- [Prisma Documentation](https://www.prisma.io/docs)
+- [React Query Documentation](https://tanstack.com/query)
+- [Next.js Documentation](https://nextjs.org/docs)
+
+---
+
+## License
+
+This guide is provided as-is for educational purposes.

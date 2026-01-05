@@ -1,0 +1,374 @@
+---
+title: Self-Hosting Next.js Apps with Hetzner and Coolify - Complete Step-by-Step Guide
+description: Learn how to self-host your Next.js applications using Hetzner VPS and Coolify for a cost-effective alternative to Vercel with push-to-deploy, SSL certificates, and automatic deployments.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwfe9VwR7ZKSqNhOvVj6p9rg3Icmo05TAEwQ4al
+category: tutorial
+createdAt: 2025-08-31
+updatedAt: 2025-08-31
+---
+
+# Self-Hosting Next.js Apps with Hetzner and Coolify - Complete Step-by-Step Guide
+
+Self-hosting a web application should be simple, but quickly becomes complex when you need SSL certificates, push-to-deploy functionality, webhooks, PR deployments, and more. This guide shows you how to self-host your Next.js applications without losing your sanity while getting all the features of platforms like Vercel at a fraction of the cost.
+
+## What You'll Get
+
+By the end of this guide, you'll have:
+
+- A VPS server running Ubuntu on Hetzner
+- Coolify (open-source PaaS) managing your deployments
+- Automatic SSL certificates
+- Push-to-deploy functionality via GitHub webhooks
+- Custom domain setup
+- Firewall security configuration
+- Cost: ~$7/month vs $20-100+ on managed platforms
+
+## Overview: The Stack
+
+- **Hetzner**: Provides the VPS server (Ubuntu with CPU, RAM, storage)
+- **Coolify**: Open-source, self-hostable PaaS that gives you Vercel-like features
+- **Your Domain**: Custom domain pointing to your applications
+
+Coolify acts as the management layer on top of your Hetzner server, providing the same developer experience as Vercel while keeping costs low.
+
+## Prerequisites
+
+- A domain name (for SSL and professional setup)
+- Basic terminal/SSH knowledge
+- A GitHub account with your Next.js project
+- Credit card for Hetzner VPS (~$7/month)
+
+## Step 1: Setting Up Hetzner VPS
+
+### 1.1 Create Hetzner Account and Get Credits
+
+1. Visit the [Coolify documentation](https://coolify.io/docs) and use their referral link for €20 free Hetzner credits
+2. Register for a Hetzner account using the referral link
+3. Verify your account and add payment method
+
+### 1.2 Create a New Server
+
+1. **Create Project**:
+
+   - Login to Hetzner Cloud Console
+   - Create new project: "Self Hosting Tutorial"
+
+2. **Server Configuration**:
+   - Click "Add Server"
+   - **Location**: Choose closest to your users (or database location)
+   - **Image**: Ubuntu (default selection)
+   - **Type**: Shared CPU (best price-to-performance ratio)
+   - **Size**: CPX21 (3 vCPU, 4GB RAM) - recommended for breathing room
+   - **Networking**: Default (Public IPv4 & IPv6)
+
+### 1.3 Set Up SSH Key
+
+Before creating the server, you need an SSH key for secure access:
+
+1. **Generate SSH Key** (in your terminal):
+
+```bash
+ssh-keygen -b 4096 -t rsa
+```
+
+2. **Get Public Key**:
+
+```bash
+cat ~/.ssh/id_rsa.pub
+```
+
+3. **Add to Hetzner**:
+   - Copy the entire public key output
+   - In Hetzner, click "Add SSH Key"
+   - Paste the key and name it (e.g., "MacBook Pro")
+   - Set as default key
+
+### 1.4 Complete Server Setup
+
+1. **Finalize Configuration**:
+
+   - Skip volumes, firewall (we'll add later), and backups
+   - Add server name: "Server for Demo Application"
+   - Click "Create & Buy Now"
+
+2. **Wait for Server**:
+   - Server will show "Running" status with green indicator
+   - Copy the public IP address
+
+## Step 2: Installing Coolify
+
+### 2.1 SSH into Your Server
+
+```bash
+ssh root@YOUR_PUBLIC_IP
+```
+
+Accept the connection when prompted. You'll see the Ubuntu system information.
+
+### 2.2 Install Coolify
+
+Run the official Coolify installation command:
+
+```bash
+curl -fsSL https://coolify.io/install.sh | bash
+```
+
+This process takes 1-2 minutes. The installer includes programming jokes to keep you entertained while waiting.
+
+### 2.3 Access Coolify Dashboard
+
+1. **Initial Access**:
+
+   - Open `http://YOUR_PUBLIC_IP:8000` in your browser
+   - You'll see "Not Secure" warning (expected at this stage)
+
+2. **Create Admin Account**:
+   - Fill out the registration form for the root admin user
+   - Complete the onboarding wizard
+   - Select "Local Host" for server type (the server where Coolify is running)
+
+## Step 3: Domain Configuration
+
+### 3.1 DNS Setup
+
+Before deploying applications, configure your domain for easier management:
+
+1. **Add DNS Records** (in your domain registrar):
+
+   - **A Record**: `@` → Your server's public IP
+   - **A Record**: `*` → Your server's public IP (for subdomains)
+
+2. **Propagation**:
+   - DNS changes typically take 5-15 minutes to propagate
+   - Test with `nslookup your-domain.com`
+
+### 3.2 Configure Coolify Domain
+
+1. **Update Instance Settings**:
+
+   - Go to Coolify Settings → Instance Settings
+   - Set Instance Domain: `https://admin.yourdomain.com`
+   - Instance Name: "Coolify"
+   - Click "Save"
+
+2. **Test Access**:
+
+   - Visit `https://admin.yourdomain.com`
+   - You should see the Coolify login (now secure with SSL)
+
+3. **Troubleshooting SSL Issues**:
+   If you see "Not Secure" warnings:
+   - Go to Servers → LocalHost
+   - Click "Restart Proxy"
+   - Wait for "Proxy started and configured successfully"
+   - Hard refresh your browser
+
+## Step 4: Deploying Your Next.js Application
+
+### 4.1 Set Up GitHub Integration
+
+1. **Create GitHub App**:
+
+   - Projects → Your Project → "Add New Resource"
+   - Select "Private Repository with GitHub App"
+   - Click "Add New GitHub App"
+
+2. **Configure GitHub App**:
+
+   - Name: "GitHub [Your Name]"
+   - Leave organization empty
+   - Check "System Wide" if desired
+   - Webhook URL: `https://admin.yourdomain.com`
+   - Click "Register Now"
+
+3. **Complete GitHub Setup**:
+   - GitHub will open for app creation
+   - App name: "coolify-[username]-access"
+   - Create the GitHub app
+   - Install on your account
+   - Grant access to repositories (all or selected)
+
+### 4.2 Deploy Your Application
+
+1. **Select Repository**:
+
+   - Back in Coolify: Projects → Add New Resource
+   - Select "Private Repository with GitHub App"
+   - Choose your GitHub app (may take a moment to load repositories)
+   - Select your Next.js repository
+
+2. **Configuration**:
+
+   - **Branch**: main (or your default branch)
+   - **Build Pack**: Nixpacks (default)
+   - **Port**: 3000
+   - **Static Site**: No (for Next.js apps)
+
+3. **Application Settings**:
+
+   - **Name**: Your app name
+   - **Domain**: `https://yourapp.yourdomain.com`
+   - **Build Command**: (uses package.json scripts by default)
+   - Add environment variables if needed
+   - Click "Save"
+
+4. **Deploy**:
+   - Click the "Deploy" button
+   - Click "Show Debug Logs" to monitor progress
+   - Deployment typically takes 1-2 minutes
+
+### 4.3 Verify Deployment
+
+1. **Check Status**:
+
+   - Wait for "Success: application status updated"
+   - Visit your application URL
+   - If you see security warnings, click "Advanced" → "Continue"
+
+2. **Test Auto-Deployment**:
+   - Make a change to your repository
+   - Push to GitHub
+   - Coolify should automatically trigger a new deployment via webhook
+   - Check Deployments tab to see "webhook" initiated deployments
+
+## Step 5: Security Configuration (Firewall)
+
+### 5.1 Create Firewall Rules
+
+Currently, Coolify is accessible via both your domain and the raw IP on port 8000, which is insecure.
+
+1. **Access Hetzner Firewall**:
+
+   - Go to Hetzner Console → Firewalls
+   - Click "Create Firewall"
+
+2. **Configure Rules**:
+
+   **Inbound Rules:**
+
+   - **Rule 1**: Protocol TCP, Port 22 (SSH access)
+   - **Rule 2**: Protocol TCP, Port 80 (HTTP)
+   - **Rule 3**: Protocol TCP, Port 443 (HTTPS)
+
+   **Outbound Rules:**
+
+   - Leave default (allow all outbound)
+
+3. **Apply Firewall**:
+   - Name: "Default Coolify Firewall"
+   - Apply to: Select your server
+   - Click "Create Firewall"
+
+### 5.2 Verify Firewall
+
+1. **Test Blocking**:
+
+   - Try accessing `http://YOUR_IP:8000`
+   - Should fail to connect (endless spinner or connection error)
+
+2. **Confirm Domain Access**:
+   - `https://admin.yourdomain.com` should still work
+   - Your application domain should still work
+
+This setup ensures Coolify is only accessible through your secure domain, not the raw IP.
+
+## Step 6: Additional Features
+
+### 6.1 Environment Variables
+
+1. **Add Variables**:
+   - In your app settings → Environment Variables
+   - Add production environment variables
+   - Save and redeploy
+
+### 6.2 Database Setup
+
+1. **Add Database**:
+   - Projects → Add New Resource → Database
+   - Choose PostgreSQL, MySQL, etc.
+   - Coolify handles backups and management
+
+### 6.3 Multiple Applications
+
+1. **Deploy More Apps**:
+   - Each app gets its own subdomain
+   - Use the same GitHub integration
+   - Manage multiple projects easily
+
+## Troubleshooting Common Issues
+
+### SSL Certificate Problems
+
+- Restart the Coolify proxy: Servers → LocalHost → Restart Proxy
+- Ensure DNS propagation is complete
+- Check domain configuration in settings
+
+### Deployment Failures
+
+- Check debug logs during deployment
+- Verify build commands in package.json
+- Ensure environment variables are set correctly
+
+### Webhook Not Working
+
+- Verify webhook URL in GitHub app settings
+- Check GitHub app permissions
+- Test manual deployments first
+
+### Firewall Issues
+
+- SSH should always work (port 22)
+- Ensure ports 80 and 443 are open
+- Test firewall rules incrementally
+
+## Cost Breakdown
+
+**Monthly Costs:**
+
+- Hetzner CPX21 VPS: ~$7/month
+- Domain (if new): ~$10-15/year
+- **Total**: ~$7-8/month
+
+**Compare to:**
+
+- Vercel Pro: $20/month + usage
+- Railway: $5-20+/month
+- Render: $7-25+/month
+
+**Savings**: 60-80% cost reduction for similar features
+
+## Key Benefits
+
+1. **Full Control**: Own your infrastructure and data
+2. **Cost Effective**: Significant savings over managed platforms
+3. **Feature Complete**: Push-to-deploy, SSL, webhooks, previews
+4. **Scalable**: Add more servers or resources as needed
+5. **No Vendor Lock-in**: Migrate anytime without platform-specific dependencies
+
+## Maintenance
+
+### Regular Tasks
+
+- **Server Updates**: SSH into server and run `apt update && apt upgrade`
+- **Coolify Updates**: Coolify auto-updates or check Settings → Update
+- **Backup Monitoring**: Monitor Coolify's automatic backups
+- **Security**: Review firewall logs periodically
+
+### Scaling
+
+- **Vertical Scaling**: Upgrade Hetzner server specs
+- **Horizontal Scaling**: Add more servers and use Coolify's multi-server features
+- **Database Scaling**: Add dedicated database servers
+
+## Conclusion
+
+You now have a production-ready, self-hosted Next.js deployment setup that rivals managed platforms like Vercel at a fraction of the cost. With Coolify managing the complexity, you get enterprise-grade features while maintaining full control over your infrastructure.
+
+The combination of Hetzner's reliable infrastructure and Coolify's developer-friendly management layer provides an excellent foundation for hosting multiple applications, managing databases, and scaling as your needs grow.
+
+**Next Steps:**
+
+- Deploy additional applications
+- Set up monitoring and alerting
+- Implement backup strategies
+- Explore Coolify's advanced features like PR deployments and staging environments

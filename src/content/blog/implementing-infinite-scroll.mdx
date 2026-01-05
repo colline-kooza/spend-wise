@@ -1,0 +1,779 @@
+---
+title: Building High-Performance Infinite Scroll for E-commerce with Next.js, Prisma, and React Query
+description: Create seamless product browsing experiences with cursor-based pagination, optimistic loading, and intersection observer APIs. This comprehensive guide covers everything from database setup to production-ready infinite scroll implementation that handles thousands of products efficiently.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwf8PKWOP6gkyt19zTYPiHu40ebKX2fd7s6oDBL
+category: tutorial
+createdAt: 2025-09-22
+updatedAt: 2025-09-22
+---
+
+# Complete Guide: Implementing Infinite Scroll in E-commerce with Next.js
+
+This comprehensive guide will walk you through implementing infinite scroll for product listings in an e-commerce application using Next.js, Prisma, PostgreSQL, and React Query.
+
+## Table of Contents
+
+1. [Prerequisites](#prerequisites)
+2. [Project Setup](#project-setup)
+3. [Database Setup with Prisma](#database-setup-with-prisma)
+4. [API Route Implementation](#api-route-implementation)
+5. [Frontend Components](#frontend-components)
+6. [Data Fetching Logic](#data-fetching-logic)
+7. [Styling and UI](#styling-and-ui)
+8. [Testing and Optimization](#testing-and-optimization)
+9. [Troubleshooting](#troubleshooting)
+
+## Prerequisites
+
+Before starting, ensure you have:
+
+- Node.js 18+ installed
+- PostgreSQL database running
+- Basic knowledge of React, Next.js, and TypeScript
+- Understanding of database concepts
+
+## Project Setup
+
+### Step 1: Create Next.js Project
+
+```bash
+npx create-next-app@latest my-ecommerce-app
+cd my-ecommerce-app
+```
+
+When prompted, select:
+
+- ✅ TypeScript
+- ✅ ESLint
+- ✅ Tailwind CSS
+- ✅ App Router
+- ❌ src/ directory (optional)
+
+### Step 2: Install Required Dependencies
+
+```bash
+# Core dependencies
+npm install prisma @prisma/client
+npm install @tanstack/react-query
+npm install react-intersection-observer
+
+# Development dependencies
+npm install -D @types/node
+```
+
+### Step 3: Environment Setup
+
+Create `.env` file in your project root:
+
+```env
+# Database
+DATABASE_URL="postgresql://username:password@localhost:5432/ecommerce_db"
+
+# API Base URL (for production, use your actual domain)
+NEXT_PUBLIC_API_BASE_URL="http://localhost:3000"
+```
+
+## Database Setup with Prisma
+
+### Step 4: Initialize Prisma
+
+```bash
+npx prisma init
+```
+
+### Step 5: Create Prisma Schema
+
+Create or update `prisma/schema.prisma`:
+
+```prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  imageUrl    String?
+  category    String?
+  inStock     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("products")
+}
+```
+
+### Step 6: Set Up Prisma Client
+
+Create `lib/prisma.ts`:
+
+```typescript
+import { PrismaClient } from "@prisma/client";
+
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+export const prisma = globalForPrisma.prisma ?? new PrismaClient();
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+```
+
+### Step 7: Run Database Migration
+
+```bash
+npx prisma migrate dev --name init
+npx prisma generate
+```
+
+### Step 8: Seed Sample Data (Optional)
+
+Create `prisma/seed.ts`:
+
+```typescript
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+async function main() {
+  const products = [];
+
+  for (let i = 1; i <= 50; i++) {
+    products.push({
+      name: `Product ${i}`,
+      description: `This is a description for product ${i}`,
+      price: Math.floor(Math.random() * 1000) + 10,
+      imageUrl: `https://picsum.photos/400/300?random=${i}`,
+      category: ["Electronics", "Clothing", "Books", "Home"][
+        Math.floor(Math.random() * 4)
+      ],
+    });
+  }
+
+  await prisma.product.createMany({
+    data: products,
+  });
+
+  console.log("Seeded 50 products");
+}
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
+```
+
+Add to `package.json`:
+
+```json
+{
+  "scripts": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}
+```
+
+Run the seed:
+
+```bash
+npm install -D tsx
+npm run seed
+```
+
+## API Route Implementation
+
+### Step 9: Create Types
+
+Create `types/product.ts`:
+
+```typescript
+export interface Product {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  imageUrl?: string;
+  category?: string;
+  inStock: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  hasMore: boolean;
+  nextCursor?: string;
+  totalCount?: number;
+}
+```
+
+### Step 10: Create API Route
+
+Create `app/api/products/route.ts`:
+
+```typescript
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { Product, PaginatedResponse } from "@/types/product";
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const cursor = searchParams.get("cursor");
+    const limitParam = searchParams.get("limit");
+    const limit = limitParam ? parseInt(limitParam, 10) : 10;
+
+    if (limit > 50) {
+      return NextResponse.json(
+        { error: "Limit cannot exceed 50 items per request" },
+        { status: 400 }
+      );
+    }
+
+    const queryOptions: any = {
+      take: limit + 1,
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        imageUrl: true,
+        category: true,
+        inStock: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    };
+
+    if (cursor) {
+      queryOptions.cursor = {
+        id: cursor,
+      };
+      queryOptions.skip = 1;
+    }
+
+    const products = await prisma.product.findMany(queryOptions);
+    const hasMore = products.length > limit;
+    const data = hasMore ? products.slice(0, -1) : products;
+    const nextCursor = hasMore ? data[data.length - 1]?.id : undefined;
+
+    const response: PaginatedResponse<Product> = {
+      data,
+      hasMore,
+      nextCursor,
+    };
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+```
+
+## Frontend Components
+
+### Step 11: Set Up React Query Provider
+
+Create `providers/query-provider.tsx`:
+
+```typescript
+'use client';
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useState } from 'react';
+
+export function QueryProvider({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60 * 1000, // 1 minute
+        retry: 1,
+      },
+    },
+  }));
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  );
+}
+```
+
+Update `app/layout.tsx`:
+
+```typescript
+import { QueryProvider } from '@/providers/query-provider';
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <QueryProvider>
+          {children}
+        </QueryProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+### Step 12: Create Data Fetching Action
+
+Create `actions/data.ts`:
+
+```typescript
+import { PaginatedResponse, Product } from "@/types/product";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+
+export async function getProducts(
+  cursor?: string,
+  limit = 10
+): Promise<PaginatedResponse<Product>> {
+  try {
+    const params = new URLSearchParams();
+    params.set("limit", limit.toString());
+    if (cursor) {
+      params.set("cursor", cursor);
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/products?${params}`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch products");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    throw new Error("Failed to fetch products");
+  }
+}
+```
+
+### Step 13: Create Product Card Component
+
+Create `components/product-card.tsx`:
+
+```typescript
+import { Product } from '@/types/product';
+import Image from 'next/image';
+
+interface ProductCardProps {
+  product: Product;
+}
+
+export function ProductCard({ product }: ProductCardProps) {
+  return (
+    <div className="group relative bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
+      <div className="aspect-square w-full overflow-hidden rounded-t-lg bg-gray-200">
+        {product.imageUrl ? (
+          <Image
+            src={product.imageUrl}
+            alt={product.name}
+            width={400}
+            height={400}
+            className="h-full w-full object-cover object-center group-hover:scale-105 transition-transform duration-200"
+          />
+        ) : (
+          <div className="h-full w-full bg-gray-200 flex items-center justify-center">
+            <span className="text-gray-400">No image</span>
+          </div>
+        )}
+      </div>
+
+      <div className="p-4">
+        <h3 className="text-lg font-semibold text-gray-900 truncate">
+          {product.name}
+        </h3>
+
+        {product.description && (
+          <p className="mt-1 text-sm text-gray-600 line-clamp-2">
+            {product.description}
+          </p>
+        )}
+
+        <div className="mt-2 flex items-center justify-between">
+          <p className="text-lg font-bold text-gray-900">
+            ${product.price.toFixed(2)}
+          </p>
+
+          {product.category && (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              {product.category}
+            </span>
+          )}
+        </div>
+
+        <div className="mt-3">
+          <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors duration-200">
+            Add to Cart
+          </button>
+        </div>
+
+        {!product.inStock && (
+          <div className="absolute inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center rounded-lg">
+            <span className="text-white font-semibold">Out of Stock</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+```
+
+## Data Fetching Logic
+
+### Step 14: Create Infinite Scroll Component
+
+Create `components/product-listing.tsx`:
+
+```typescript
+"use client";
+
+import { getProducts } from "@/actions/data";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useInView } from "react-intersection-observer";
+import { ProductCard } from "./product-card";
+
+export function ProductListing() {
+  const { ref, inView } = useInView({
+    threshold: 0,
+    triggerOnce: false,
+  });
+
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    error,
+  } = useInfiniteQuery({
+    queryKey: ["products"],
+    queryFn: ({ pageParam }) => getProducts(pageParam),
+    getNextPageParam: (lastPage) => {
+      return lastPage.hasMore ? lastPage.nextCursor : undefined;
+    },
+    initialPageParam: undefined as string | undefined,
+  });
+
+  useEffect(() => {
+    if (inView && hasNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, fetchNextPage, hasNextPage]);
+
+  const products = data?.pages.flatMap((page) => page.data) ?? [];
+
+  if (isLoading) {
+    return (
+      <section className="container mx-auto px-4 py-8">
+        <h2 className="text-3xl font-bold text-gray-900 mb-6">Products</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="animate-pulse">
+              <div className="bg-gray-200 rounded-lg h-64 mb-4"></div>
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="container mx-auto px-4 py-8">
+        <h2 className="text-3xl font-bold text-gray-900 mb-6">Products</h2>
+        <div className="text-center py-12">
+          <p className="text-red-600">
+            Error loading products: {error.message}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="container mx-auto px-4 py-8">
+      <h2 className="text-3xl font-bold text-gray-900 mb-6">Products</h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
+
+      {/* Loading indicator */}
+      {isFetchingNextPage && (
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      )}
+
+      {/* Intersection observer trigger */}
+      {hasNextPage && (
+        <div ref={ref} className="flex justify-center py-8">
+          <div className="text-gray-500">Loading more products...</div>
+        </div>
+      )}
+
+      {/* No more products */}
+      {!hasNextPage && products.length > 0 && (
+        <div className="text-center py-8">
+          <p className="text-gray-500">
+            You've reached the end of our product catalog!
+          </p>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {products.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-gray-500">No products found.</p>
+        </div>
+      )}
+    </section>
+  );
+}
+```
+
+## Styling and UI
+
+### Step 15: Update Main Page
+
+Update `app/page.tsx`:
+
+```typescript
+import { ProductListing } from '@/components/product-listing';
+
+export default function Home() {
+  return (
+    <main className="min-h-screen bg-gray-50">
+      <div className="bg-white shadow-sm">
+        <div className="container mx-auto px-4 py-6">
+          <h1 className="text-4xl font-bold text-gray-900">E-Commerce Store</h1>
+          <p className="mt-2 text-gray-600">Discover amazing products with infinite scroll</p>
+        </div>
+      </div>
+
+      <ProductListing />
+    </main>
+  );
+}
+```
+
+### Step 16: Add Custom CSS (Optional)
+
+Add to `app/globals.css`:
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom line clamp utility */
+@layer utilities {
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Loading animation improvements */
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(to right, #eeeeee 8%, #dddddd 18%, #eeeeee 33%);
+  background-size: 800px 104px;
+}
+```
+
+## Testing and Optimization
+
+### Step 17: Add Error Boundaries
+
+Create `components/error-boundary.tsx`:
+
+```typescript
+'use client';
+
+import { Component, ReactNode } from 'react';
+
+interface Props {
+  children: ReactNode;
+}
+
+interface State {
+  hasError: boolean;
+}
+
+export class ErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): State {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="text-center py-12">
+          <h2 className="text-xl font-semibold text-red-600">Something went wrong</h2>
+          <button
+            onClick={() => this.setState({ hasError: false })}
+            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Try again
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+```
+
+### Step 18: Performance Optimization
+
+Add to `next.config.js`:
+
+```javascript
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    domains: ["picsum.photos"], // Add your image domains
+    formats: ["image/webp", "image/avif"],
+  },
+  experimental: {
+    optimizeCss: true,
+  },
+};
+
+module.exports = nextConfig;
+```
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+1. **Database Connection Issues**
+
+   ```bash
+   # Test database connection
+   npx prisma db pull
+   ```
+
+2. **Hydration Errors**
+
+   - Ensure all components are properly marked as "use client"
+   - Check for server-client rendering mismatches
+
+3. **Infinite Loading**
+
+   - Verify API endpoint is returning correct `hasMore` and `nextCursor` values
+   - Check browser network tab for failed requests
+
+4. **Performance Issues**
+
+   - Implement image lazy loading
+   - Add proper caching headers
+   - Consider implementing virtual scrolling for large lists
+
+5. **Memory Leaks**
+   - Properly clean up React Query cache
+   - Remove event listeners in useEffect cleanup
+
+### Testing Commands
+
+```bash
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Check database
+npx prisma studio
+
+# View logs
+npm run dev -- --debug
+```
+
+## Next Steps
+
+1. **Add Search and Filtering**: Extend the API to support search parameters
+2. **Implement Categories**: Add category-based filtering
+3. **Add Loading States**: Implement skeleton loading for better UX
+4. **Optimize Images**: Use Next.js Image optimization
+5. **Add Analytics**: Track user behavior and performance metrics
+6. **Implement Caching**: Add Redis or similar for better performance
+7. **Add Tests**: Write unit and integration tests
+
+## Conclusion
+
+You now have a fully functional infinite scroll implementation for an e-commerce product listing. This solution is:
+
+- ✅ **Performance optimized** with cursor-based pagination
+- ✅ **User-friendly** with proper loading states
+- ✅ **Scalable** using React Query for data management
+- ✅ **Type-safe** with TypeScript throughout
+- ✅ **Production-ready** with proper error handling
+
+The implementation follows modern React patterns and provides a smooth user experience for browsing large product catalogs.

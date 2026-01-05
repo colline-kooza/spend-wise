@@ -1,0 +1,406 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                         String                       @id @default(cuid())
+  firstName                  String
+  lastName                   String
+  name                       String
+  phone                      String?                      @unique
+  jobTitle                   String?
+  bio                        String?
+  stripeCustomerId           String?
+  email                      String                       @unique
+  emailVerified              Boolean                      @default(false)
+  image                      String?
+  createdAt                  DateTime                     @default(now())
+  updatedAt                  DateTime                     @updatedAt
+  phoneVerified              Boolean                      @default(false)
+  role                       String?                      @default("user")
+  banned                     Boolean?                     @default(false)
+  banReason                  String?
+  banExpires                 DateTime?
+  invitationId               String?
+  invitations                Invitation[]
+  member                     Member?
+  accounts                   Account[]
+  activityLogs               ActivityLog[]
+  notes                      Note[]
+  ownedProjects              Project[]                    @relation("ProjectOwner")
+  projectCollaborations      ProjectCollaborator[]
+  sentProjectInvitations     ProjectInvitation[]          @relation("ProjectInvitationsSent")
+  projectInvitations         ProjectInvitation[]
+  sessions                   Session[]
+  userSubscription           UserSubscription?
+  walkieTalkieAssignments    WalkieTalkieAssignment[]
+  walkie_talkie_edit_history walkie_talkie_edit_history[]
+
+  @@index([role])
+  @@map("user")
+}
+
+model Session {
+  id                   String   @id @default(cuid())
+  expiresAt            DateTime
+  token                String   @unique
+  createdAt            DateTime
+  updatedAt            DateTime
+  ipAddress            String?
+  userAgent            String?
+  impersonatedBy       String?
+  activeOrganizationId String?
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
+}
+
+model Organization {
+  id                       String                    @id @default(cuid())
+  name                     String
+  slug                     String                    @unique
+  logo                     String?
+  metadata                 String?
+  createdAt                DateTime                  @default(now())
+  invitations              Invitation[]
+  members                  Member[]
+  crewMembers              CrewMember[]
+  organizationSubscription OrganizationSubscription?
+}
+
+model Member {
+  id             String       @id @default(cuid())
+  userId         String       @unique
+  organizationId String
+  role           String
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Invitation {
+  id             String       @id @default(cuid())
+  email          String       @unique
+  inviterId      String
+  organizationId String
+  role           String
+  status         String
+  createdAt      DateTime     @default(now())
+  expiresAt      DateTime
+  user           User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
+
+model Subscription {
+  id                   String    @id @default(cuid())
+  plan                 String
+  referenceId          String
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  status               String
+  periodStart          DateTime?
+  periodEnd            DateTime?
+  cancelAtPeriodEnd    Boolean
+  seats                Int?
+  trialStart           DateTime?
+  trialEnd             DateTime?
+  createdAt            DateTime  @default(now())
+  expiresAt            DateTime?
+}
+
+model UserSubscription {
+  id                   String    @id @default(cuid())
+  plan                 String
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  status               String
+  periodStart          DateTime?
+  periodEnd            DateTime?
+  cancelAtPeriodEnd    Boolean   @default(false)
+  maxProjects          Int       @default(1)
+  maxCollaborators     Int       @default(0)
+  maxWalkieTalkies     Int?
+  trialStart           DateTime?
+  trialEnd             DateTime?
+  createdAt            DateTime  @default(now())
+  expiresAt            DateTime?
+  userId               String    @unique
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_subscription")
+}
+
+model OrganizationSubscription {
+  id                   String       @id @default(cuid())
+  plan                 String
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  status               String
+  periodStart          DateTime?
+  periodEnd            DateTime?
+  cancelAtPeriodEnd    Boolean      @default(false)
+  maxProjects          Int          @default(-1)
+  maxCollaborators     Int          @default(-1)
+  maxWalkieTalkies     Int          @default(-1)
+  trialStart           DateTime?
+  trialEnd             DateTime?
+  createdAt            DateTime     @default(now())
+  expiresAt            DateTime?
+  organizationId       String       @unique
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("organization_subscription")
+}
+
+model Project {
+  id                 String                @id @default(cuid())
+  name               String
+  description        String?
+  status             String                @default("active")
+  ownerId            String
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  activityLogs       ActivityLog[]
+  crewMembers        CrewMember[]
+  departments        WalkieDepartment[]
+  notes              Note[]
+  owner              User                  @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  collaborators      ProjectCollaborator[]
+  projectInvitations ProjectInvitation[]
+  walkieTalkies      WalkieTalkie[]
+
+  @@index([ownerId])
+  @@map("project")
+}
+
+model ProjectCollaborator {
+  id          String    @id @default(cuid())
+  projectId   String
+  userId      String
+  role        String    @default("viewer")
+  permissions Json?
+  invitedBy   String?
+  addedAt     DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  status      String    @default("active")
+  removedAt   DateTime?
+  removedBy   String?
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([userId])
+  @@index([projectId, status])
+  @@index([role])
+  @@map("project_collaborator")
+}
+
+model ProjectInvitation {
+  id          String    @id @default(cuid())
+  projectId   String
+  email       String
+  role        String    @default("viewer")
+  inviterId   String
+  status      String    @default("pending")
+  token       String    @unique @default(cuid())
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime
+  respondedAt DateTime?
+  message     String?
+  userId      String?
+  inviter     User      @relation("ProjectInvitationsSent", fields: [inviterId], references: [id], onDelete: Cascade)
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, email])
+  @@index([email])
+  @@index([projectId])
+  @@index([status])
+  @@index([token])
+  @@map("project_invitation")
+}
+
+model WalkieDepartment {
+  id            String         @id @default(cuid())
+  name          String
+  code          String?
+  description   String?
+  color         String?
+  projectId     String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  crewMembers   CrewMember[]
+  project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  notes         Note[]
+  walkieTalkies WalkieTalkie[]
+
+  @@unique([projectId, name])
+  @@index([projectId])
+  @@map("department")
+}
+
+model WalkieTalkie {
+  id                         String                       @id @default(cuid())
+  serialNumber               String                       @unique
+  label                      String?
+  innerLabel                 String?
+  status                     String                       @default("available")
+  projectId                  String
+  departmentId               String?
+  createdAt                  DateTime                     @default(now())
+  updatedAt                  DateTime                     @updatedAt
+  notes                      Note[]
+  department                 WalkieDepartment?            @relation(fields: [departmentId], references: [id])
+  project                    Project                      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignments                WalkieTalkieAssignment[]
+  walkie_talkie_edit_history walkie_talkie_edit_history[]
+
+  @@index([projectId])
+  @@index([status])
+  @@index([departmentId])
+  @@map("walkie_talkie")
+}
+
+model WalkieTalkieAssignment {
+  id                 String       @id @default(cuid())
+  walkieTalkieId     String
+  assignedToId       String?
+  crewMemberId       String?
+  assignedToName     String?
+  department         String?
+  checkoutDate       DateTime     @default(now())
+  expectedReturnDate DateTime?
+  returnDate         DateTime?
+  returnedAt         DateTime?
+  notes              String?
+  createdAt          DateTime     @default(now())
+  assignedTo         User?        @relation(fields: [assignedToId], references: [id])
+  crewMember         CrewMember?  @relation(fields: [crewMemberId], references: [id])
+  walkieTalkie       WalkieTalkie @relation(fields: [walkieTalkieId], references: [id], onDelete: Cascade)
+
+  @@index([walkieTalkieId])
+  @@index([assignedToId])
+  @@index([crewMemberId])
+  @@map("walkie_talkie_assignment")
+}
+
+model CrewMember {
+  id                      String                   @id @default(cuid())
+  firstName               String
+  lastName                String
+  phone                   String?
+  email                   String?
+  role                    String?
+  projectId               String
+  departmentId            String?
+  organizationId          String?
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  department              WalkieDepartment?        @relation(fields: [departmentId], references: [id])
+  organization            Organization?            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project                 Project                  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  notes                   Note[]
+  walkieTalkieAssignments WalkieTalkieAssignment[]
+
+  @@index([projectId])
+  @@index([departmentId])
+  @@index([organizationId])
+  @@map("crew_member")
+}
+
+model Note {
+  id             String            @id @default(cuid())
+  title          String?
+  content        String
+  projectId      String?
+  crewMemberId   String?
+  walkieTalkieId String?
+  departmentId   String?
+  authorId       String
+  isPinned       Boolean           @default(false)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  author         User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  crewMember     CrewMember?       @relation(fields: [crewMemberId], references: [id], onDelete: Cascade)
+  department     WalkieDepartment? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  project        Project?          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  walkieTalkie   WalkieTalkie?     @relation(fields: [walkieTalkieId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([crewMemberId])
+  @@index([walkieTalkieId])
+  @@index([departmentId])
+  @@index([authorId])
+  @@index([isPinned])
+  @@map("note")
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  action     String
+  entityType String
+  entityId   String
+  details    String?
+  userId     String
+  projectId  String
+  createdAt  DateTime @default(now())
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([userId])
+  @@map("activity_log")
+}
+
+model walkie_talkie_edit_history {
+  id             String       @id @default(cuid())
+  walkieTalkieId String
+  editorId       String
+  changeType     String
+  previousValue  Json?
+  newValue       Json?
+  description    String
+  createdAt      DateTime     @default(now())
+  user           User         @relation(fields: [editorId], references: [id], onDelete: Cascade)
+  walkie_talkie  WalkieTalkie @relation(fields: [walkieTalkieId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([editorId])
+  @@index([walkieTalkieId])
+}

@@ -1,0 +1,1383 @@
+---
+title: Complete Go REST API Guide - JWT Auth, CRUD & PostgreSQL
+description: Master building production-ready Go APIs with JWT authentication, role-based access control, CRUD operations, CORS configuration, and PostgreSQL. Learn project structure, middleware patterns, and best practices for scalable backend development.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwfDJDGNvzpw0c36JH7sOCd8NogZbL2RWiu4yQv
+category: tutorial
+createdAt: 2025-11-18
+updatedAt: 2025-11-18
+---
+
+# Complete Go API Development Guide
+
+## JWT Authentication, CRUD Operations, CORS & Project Structure
+
+### Table of Contents
+
+1. [Project Structure](#project-structure)
+2. [Initial Setup](#initial-setup)
+3. [Database Configuration](#database-configuration)
+4. [Models & DTOs](#models--dtos)
+5. [JWT Authentication](#jwt-authentication)
+6. [Middleware](#middleware)
+7. [CRUD Controllers](#crud-controllers)
+8. [API Routing](#api-routing)
+9. [CORS Configuration](#cors-configuration)
+10. [Testing the API](#testing-the-api)
+
+---
+
+## 1. Project Structure
+
+```
+project-root/
+├── controllers/          # Request handlers
+│   ├── user_controller.go
+│   ├── farmer_controller.go
+│   └── supplier_controller.go
+├── dtos/                # Data Transfer Objects
+│   ├── global_dtos.go
+│   ├── user_dtos.go
+│   ├── farmer_dtos.go
+│   └── supplier_dtos.go
+├── initializers/        # Setup functions
+│   ├── database.go
+│   └── loadEnvVariables.go
+├── middleware/          # Middleware functions
+│   ├── cors.go
+│   └── require_auth.go
+├── migrate/            # Database migrations
+│   └── migrate.go
+├── models/             # Database models
+│   ├── user.go
+│   ├── farmer.go
+│   └── suppliers.go
+├── .env               # Environment variables
+├── go.mod            # Go dependencies
+└── main.go           # Application entry point
+```
+
+---
+
+## 2. Initial Setup
+
+### Step 1: Initialize Go Module
+
+```bash
+go mod init github.com/yourusername/your-project
+```
+
+### Step 2: Install Dependencies
+
+```bash
+go get github.com/gin-gonic/gin
+go get gorm.io/gorm
+go get gorm.io/driver/postgres
+go get github.com/joho/godotenv
+go get github.com/golang-jwt/jwt/v5
+go get golang.org/x/crypto/bcrypt
+go get github.com/gin-contrib/cors
+```
+
+### Step 3: Create `.env` File
+
+```env
+POSTGRES_HOST=localhost
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_password
+POSTGRES_DB=your_database
+POSTGRES_PORT=5432
+SECRET_KEY=your_secret_jwt_key_here
+PORT=8080
+```
+
+---
+
+## 3. Database Configuration
+
+### File: `initializers/loadEnvVariables.go`
+
+```go
+package initializers
+
+import (
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/joho/godotenv"
+)
+
+func LoadEnvVariables() {
+	// Load .env file for local development
+	err := godotenv.Load()
+
+	if err != nil {
+		log.Println("No .env file found, using environment variables from system")
+	}
+
+	// Verify required environment variables
+	fmt.Printf("POSTGRES_HOST: '%s'\n", os.Getenv("POSTGRES_HOST"))
+	fmt.Printf("POSTGRES_USER: '%s'\n", os.Getenv("POSTGRES_USER"))
+	fmt.Printf("POSTGRES_DB: '%s'\n", os.Getenv("POSTGRES_DB"))
+}
+```
+
+### File: `initializers/database.go`
+
+```go
+package initializers
+
+import (
+	"fmt"
+	"log"
+	"os"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+)
+
+var DB *gorm.DB
+
+func ConnectToDB() {
+	var err error
+
+	// Build DSN from environment variables
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+		getEnv("POSTGRES_HOST", "localhost"),
+		getEnv("POSTGRES_USER", "postgres"),
+		getEnv("POSTGRES_PASSWORD", "password"),
+		getEnv("POSTGRES_DB", "database"),
+		getEnv("POSTGRES_PORT", "5432"),
+	)
+
+	log.Printf("Connecting to: host=%s db=%s",
+		getEnv("POSTGRES_HOST", "localhost"),
+		getEnv("POSTGRES_DB", "database"))
+
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+	if err != nil {
+		log.Fatal("Failed to connect to the DB:", err)
+	}
+
+	// Test the connection
+	sqlDB, err := DB.DB()
+	if err != nil {
+		log.Fatal("Failed to get DB instance:", err)
+	}
+
+	if err := sqlDB.Ping(); err != nil {
+		log.Fatal("Failed to ping database:", err)
+	}
+
+	fmt.Println("✅ Successfully connected to database!")
+}
+
+func getEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+```
+
+---
+
+## 4. Models & DTOs
+
+### File: `models/user.go`
+
+```go
+package models
+
+import "gorm.io/gorm"
+
+// Define role constants
+const (
+	RoleUser  = "USER"
+	RoleAdmin = "ADMIN"
+)
+
+type User struct {
+	gorm.Model
+	Name     string
+	Email    string `gorm:"unique"`
+	Password string
+	Role     string `gorm:"default:USER;not null"`
+}
+```
+
+### File: `dtos/global_dtos.go`
+
+```go
+package dtos
+
+// SuccessResponse represents a successful API response
+type SuccessResponse struct {
+	Success bool        `json:"success"`
+	Data    interface{} `json:"data,omitempty"`
+	Message string      `json:"message,omitempty"`
+}
+
+// ErrorResponse represents an error API response
+type ErrorResponse struct {
+	Success bool   `json:"success"`
+	Error   string `json:"error"`
+}
+
+type IDResponse struct {
+	ID uint `json:"id"`
+}
+```
+
+### File: `dtos/user_dtos.go`
+
+```go
+package dtos
+
+type CreateUserRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6,max=100"`
+	Name     string `json:"name" binding:"required,min=3,max=100"`
+}
+
+type LoginUserRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6,max=100"`
+}
+
+type LoginResponse struct {
+	ID    uint   `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+	Token string `json:"token"`
+}
+```
+
+---
+
+## 5. JWT Authentication
+
+### File: `controllers/user_controller.go`
+
+#### Sign Up with Token
+
+```go
+package controllers
+
+import (
+	"net/http"
+	"os"
+	"strings"
+	"time"
+
+	"github.com/yourusername/your-project/dtos"
+	"github.com/yourusername/your-project/initializers"
+	"github.com/yourusername/your-project/models"
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
+)
+
+func SignUpWithToken(c *gin.Context) {
+	var req dtos.CreateUserRequest
+
+	// Validate request body
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Invalid input: " + err.Error(),
+		})
+		return
+	}
+
+	// Hash the password
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), 10)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Failed to hash the password",
+		})
+		return
+	}
+
+	// Create the user
+	user := models.User{
+		Email:    req.Email,
+		Password: string(hash),
+		Role:     models.RoleUser,
+		Name:     req.Name,
+	}
+
+	if err := initializers.DB.Create(&user).Error; err != nil {
+		// Check for duplicate email
+		if strings.Contains(err.Error(), "duplicate") ||
+		   strings.Contains(err.Error(), "unique") {
+			c.JSON(http.StatusConflict, dtos.ErrorResponse{
+				Success: false,
+				Error:   "User with this email already exists",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Failed to create user",
+		})
+		return
+	}
+
+	// Generate JWT token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": user.ID,
+		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
+	})
+
+	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET_KEY")))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Failed to create token",
+		})
+		return
+	}
+
+	// Return success response
+	c.JSON(http.StatusCreated, dtos.SuccessResponse{
+		Success: true,
+		Data: dtos.LoginResponse{
+			ID:    user.ID,
+			Name:  user.Name,
+			Email: user.Email,
+			Token: tokenString,
+		},
+	})
+}
+```
+
+#### Login with Token
+
+```go
+func LoginWithToken(c *gin.Context) {
+	var req dtos.LoginUserRequest
+
+	// Validate request body
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Invalid input: " + err.Error(),
+		})
+		return
+	}
+
+	// Look up user by email
+	var user models.User
+	result := initializers.DB.Where("email = ?", req.Email).First(&user)
+
+	if result.Error != nil {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Invalid email or password",
+		})
+		return
+	}
+
+	// Compare password with stored hash
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Invalid email or password",
+		})
+		return
+	}
+
+	// Generate JWT token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": user.ID,
+		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
+	})
+
+	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET_KEY")))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Failed to create token",
+		})
+		return
+	}
+
+	// Return success response
+	c.JSON(http.StatusOK, dtos.SuccessResponse{
+		Success: true,
+		Data: dtos.LoginResponse{
+			ID:    user.ID,
+			Name:  user.Name,
+			Email: user.Email,
+			Token: tokenString,
+		},
+	})
+}
+```
+
+#### Validate User (Protected Route)
+
+```go
+func Validate(c *gin.Context) {
+	user, _ := c.Get("user")
+	c.JSON(http.StatusOK, dtos.SuccessResponse{
+		Success: true,
+		Data:    user,
+	})
+}
+```
+
+---
+
+## 6. Middleware
+
+### File: `middleware/require_auth.go`
+
+#### Token-Based Authentication
+
+```go
+package middleware
+
+import (
+	"fmt"
+	"net/http"
+	"os"
+	"strings"
+	"time"
+
+	"github.com/yourusername/your-project/dtos"
+	"github.com/yourusername/your-project/initializers"
+	"github.com/yourusername/your-project/models"
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
+)
+
+func RequireAuthWithToken(c *gin.Context) {
+	// Get token from Authorization header
+	authHeader := c.GetHeader("Authorization")
+
+	if authHeader == "" {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Unauthorized - No token provided",
+		})
+		c.Abort()
+		return
+	}
+
+	// Extract token from "Bearer <token>" format
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+
+	if tokenString == authHeader {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Unauthorized - Invalid token format. Use 'Bearer <token>'",
+		})
+		c.Abort()
+		return
+	}
+
+	// Decode/Validate the token
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(os.Getenv("SECRET_KEY")), nil
+	})
+
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Unauthorized - Invalid token",
+		})
+		c.Abort()
+		return
+	}
+
+	// Extract claims and validate
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		// Check expiration
+		if float64(time.Now().Unix()) > claims["exp"].(float64) {
+			c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+				Success: false,
+				Error:   "Unauthorized - Token expired",
+			})
+			c.Abort()
+			return
+		}
+
+		// Find user with token sub
+		var user models.User
+		initializers.DB.First(&user, claims["sub"])
+
+		if user.ID == 0 {
+			c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+				Success: false,
+				Error:   "Unauthorized - User not found",
+			})
+			c.Abort()
+			return
+		}
+
+		// Attach user to context
+		c.Set("user", user)
+
+		// Continue to next handler
+		c.Next()
+	} else {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Unauthorized - Invalid token claims",
+		})
+		c.Abort()
+		return
+	}
+}
+```
+
+#### Cookie-Based Authentication (Alternative)
+
+```go
+func RequireAuthWithCookie(c *gin.Context) {
+	// Get cookie from request
+	tokenString, err := c.Cookie("Authorization")
+
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Unauthorized - No token provided",
+		})
+		c.Abort()
+		return
+	}
+
+	// Decode/Validate token (same as above)
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(os.Getenv("SECRET_KEY")), nil
+	})
+
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Unauthorized - Invalid token",
+		})
+		c.Abort()
+		return
+	}
+
+	// Rest of validation (same as token-based)
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		if float64(time.Now().Unix()) > claims["exp"].(float64) {
+			c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+				Success: false,
+				Error:   "Unauthorized - Token expired",
+			})
+			c.Abort()
+			return
+		}
+
+		var user models.User
+		initializers.DB.First(&user, claims["sub"])
+
+		if user.ID == 0 {
+			c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+				Success: false,
+				Error:   "Unauthorized - User not found",
+			})
+			c.Abort()
+			return
+		}
+
+		c.Set("user", user)
+		c.Next()
+	} else {
+		c.JSON(http.StatusUnauthorized, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Unauthorized - Invalid token claims",
+		})
+		c.Abort()
+		return
+	}
+}
+```
+
+---
+
+## 7. CRUD Controllers
+
+### Example: Supplier Controller
+
+#### File: `dtos/supplier_dtos.go`
+
+```go
+package dtos
+
+type CreateSupplierRequest struct {
+	Name          string  `json:"name" binding:"required,min=3,max=100"`
+	Email         string  `json:"email" binding:"required,email"`
+	Phone         string  `json:"phone" binding:"required"`
+	SupplierType  string  `json:"supplier_type" binding:"required,oneof=INDIVIDUAL COMPANY"`
+	ContactPerson string  `json:"contact_person" binding:"required,min=3,max=100"`
+	Village       string  `json:"village" binding:"required"`
+	District      string  `json:"district" binding:"required"`
+	Parish        string  `json:"parish" binding:"required"`
+}
+
+type UpdateSupplierRequest struct {
+	Name          string `json:"name" binding:"omitempty,min=3,max=100"`
+	Email         string `json:"email" binding:"omitempty,email"`
+	Phone         string `json:"phone" binding:"omitempty"`
+	ContactPerson string `json:"contact_person" binding:"omitempty,min=3,max=100"`
+	Village       string `json:"village" binding:"omitempty"`
+	District      string `json:"district" binding:"omitempty"`
+	Parish        string `json:"parish" binding:"omitempty"`
+}
+
+type SupplierResponse struct {
+	ID            uint   `json:"id"`
+	Name          string `json:"name"`
+	Email         string `json:"email"`
+	Phone         string `json:"phone"`
+	SupplierType  string `json:"supplier_type"`
+	ContactPerson string `json:"contact_person"`
+	Village       string `json:"village"`
+	District      string `json:"district"`
+	Parish        string `json:"parish"`
+	CreatedAt     string `json:"created_at"`
+}
+```
+
+#### File: `controllers/supplier_controller.go`
+
+**Create Supplier**
+
+```go
+package controllers
+
+import (
+	"errors"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/yourusername/your-project/dtos"
+	"github.com/yourusername/your-project/initializers"
+	"github.com/yourusername/your-project/models"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+)
+
+func CreateSupplier(c *gin.Context) {
+	var req dtos.CreateSupplierRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Invalid input: " + err.Error(),
+		})
+		return
+	}
+
+	supplier := models.Supplier{
+		Name:          req.Name,
+		Email:         req.Email,
+		Phone:         req.Phone,
+		SupplierType:  req.SupplierType,
+		ContactPerson: req.ContactPerson,
+		Village:       req.Village,
+		District:      req.District,
+		Parish:        req.Parish,
+	}
+
+	if err := initializers.DB.Create(&supplier).Error; err != nil {
+		if strings.Contains(err.Error(), "duplicate") ||
+		   strings.Contains(err.Error(), "unique") {
+			c.JSON(http.StatusConflict, dtos.ErrorResponse{
+				Success: false,
+				Error:   "Supplier with this email already exists",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Failed to create supplier",
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, dtos.SuccessResponse{
+		Success: true,
+		Data:    dtos.IDResponse{ID: supplier.ID},
+		Message: "Supplier created successfully",
+	})
+}
+```
+
+**Get All Suppliers**
+
+```go
+func GetSuppliers(c *gin.Context) {
+	var suppliers []models.Supplier
+
+	if err := initializers.DB.Find(&suppliers).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Failed to fetch suppliers",
+		})
+		return
+	}
+
+	var supplierResponses []dtos.SupplierResponse
+	for _, supplier := range suppliers {
+		supplierResponses = append(supplierResponses, dtos.SupplierResponse{
+			ID:            supplier.ID,
+			Name:          supplier.Name,
+			Email:         supplier.Email,
+			Phone:         supplier.Phone,
+			SupplierType:  supplier.SupplierType,
+			ContactPerson: supplier.ContactPerson,
+			Village:       supplier.Village,
+			District:      supplier.District,
+			Parish:        supplier.Parish,
+			CreatedAt:     supplier.CreatedAt.Format(time.RFC3339),
+		})
+	}
+
+	c.JSON(http.StatusOK, dtos.SuccessResponse{
+		Success: true,
+		Data:    supplierResponses,
+	})
+}
+```
+
+**Get Single Supplier**
+
+```go
+func GetSupplier(c *gin.Context) {
+	id := c.Param("id")
+
+	var supplier models.Supplier
+	result := initializers.DB.First(&supplier, id)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, dtos.ErrorResponse{
+				Success: false,
+				Error:   "Supplier not found",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Failed to fetch supplier",
+		})
+		return
+	}
+
+	supplierResponse := dtos.SupplierResponse{
+		ID:            supplier.ID,
+		Name:          supplier.Name,
+		Email:         supplier.Email,
+		Phone:         supplier.Phone,
+		SupplierType:  supplier.SupplierType,
+		ContactPerson: supplier.ContactPerson,
+		Village:       supplier.Village,
+		District:      supplier.District,
+		Parish:        supplier.Parish,
+		CreatedAt:     supplier.CreatedAt.Format(time.RFC3339),
+	}
+
+	c.JSON(http.StatusOK, dtos.SuccessResponse{
+		Success: true,
+		Data:    supplierResponse,
+	})
+}
+```
+
+**Update Supplier**
+
+```go
+func UpdateSupplier(c *gin.Context) {
+	id := c.Param("id")
+
+	var req dtos.UpdateSupplierRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Invalid input: " + err.Error(),
+		})
+		return
+	}
+
+	var supplier models.Supplier
+	result := initializers.DB.First(&supplier, id)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, dtos.ErrorResponse{
+				Success: false,
+				Error:   "Supplier not found",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Failed to fetch supplier",
+		})
+		return
+	}
+
+	// Update fields if provided
+	if req.Name != "" {
+		supplier.Name = req.Name
+	}
+	if req.Email != "" {
+		supplier.Email = req.Email
+	}
+	if req.Phone != "" {
+		supplier.Phone = req.Phone
+	}
+	if req.ContactPerson != "" {
+		supplier.ContactPerson = req.ContactPerson
+	}
+	if req.Village != "" {
+		supplier.Village = req.Village
+	}
+	if req.District != "" {
+		supplier.District = req.District
+	}
+	if req.Parish != "" {
+		supplier.Parish = req.Parish
+	}
+
+	if err := initializers.DB.Save(&supplier).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Failed to update supplier",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dtos.SuccessResponse{
+		Success: true,
+		Data:    dtos.IDResponse{ID: supplier.ID},
+		Message: "Supplier updated successfully",
+	})
+}
+```
+
+**Delete Supplier**
+
+```go
+func DeleteSupplier(c *gin.Context) {
+	id := c.Param("id")
+
+	result := initializers.DB.Delete(&models.Supplier{}, id)
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Failed to delete supplier",
+		})
+		return
+	}
+
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Supplier not found",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dtos.SuccessResponse{
+		Success: true,
+		Message: "Supplier deleted successfully",
+	})
+}
+```
+
+---
+
+## 8. API Routing
+
+### File: `main.go`
+
+```go
+package main
+
+import (
+	"github.com/yourusername/your-project/controllers"
+	"github.com/yourusername/your-project/initializers"
+	"github.com/yourusername/your-project/middleware"
+	"github.com/gin-gonic/gin"
+)
+
+func init() {
+	initializers.LoadEnvVariables()
+	initializers.ConnectToDB()
+}
+
+func main() {
+	// Initialize router
+	router := gin.Default()
+	router.Use(middleware.CORSMiddleware())
+
+	// API v1 group
+	v1 := router.Group("/api/v1")
+	{
+		// ============================================
+		// AUTHENTICATION ROUTES (Public)
+		// ============================================
+		users := v1.Group("/users")
+		{
+			users.POST("", controllers.SignUpWithToken)
+			users.POST("/login", controllers.LoginWithToken)
+			users.GET("/validate", middleware.RequireAuthWithToken, controllers.Validate)
+		}
+
+		// ============================================
+		// PROTECTED ROUTES (Require Authentication)
+		// ============================================
+		protected := v1.Group("")
+		protected.Use(middleware.RequireAuthWithToken)
+		{
+			// SUPPLIER ROUTES
+			suppliers := protected.Group("/suppliers")
+			{
+				suppliers.POST("", controllers.CreateSupplier)
+				suppliers.GET("", controllers.GetSuppliers)
+				suppliers.GET("/:id", controllers.GetSupplier)
+				suppliers.PUT("/:id", controllers.UpdateSupplier)
+				suppliers.DELETE("/:id", controllers.DeleteSupplier)
+			}
+
+			// Add more protected routes here...
+		}
+	}
+
+	// Health check endpoint
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status":  "ok",
+			"message": "API is running",
+		})
+	})
+
+	// Start server
+	router.Run() // listens on 0.0.0.0:8080 by default
+}
+```
+
+---
+
+## 9. CORS Configuration
+
+### File: `middleware/cors.go`
+
+```go
+package middleware
+
+import (
+	"time"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+)
+
+func CORSMiddleware() gin.HandlerFunc {
+	return cors.New(cors.Config{
+		AllowAllOrigins:  true, // Use for development
+		// For production, specify origins:
+		// AllowOrigins:     []string{"https://yourdomain.com"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: false, // Must be false when AllowAllOrigins is true
+		MaxAge:           12 * time.Hour,
+	})
+}
+```
+
+**Alternative: Custom CORS Middleware**
+
+```go
+func CustomCORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers",
+			"Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods",
+			"POST, OPTIONS, GET, PUT, DELETE, PATCH")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
+}
+```
+
+---
+
+## 10. Testing the API
+
+### Running the Application
+
+```bash
+go run main.go
+```
+
+### Example API Requests
+
+#### 1. Sign Up
+
+```bash
+curl -X POST http://localhost:8080/api/v1/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "securepassword123"
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+}
+```
+
+#### 2. Login
+
+```bash
+curl -X POST http://localhost:8080/api/v1/users/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john@example.com",
+    "password": "securepassword123"
+  }'
+```
+
+#### 3. Create Supplier (Protected)
+
+```bash
+curl -X POST http://localhost:8080/api/v1/suppliers \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE" \
+  -d '{
+    "name": "ABC Supplies",
+    "email": "abc@supplies.com",
+    "phone": "+1234567890",
+    "supplier_type": "COMPANY",
+    "contact_person": "Jane Smith",
+    "village": "Downtown",
+    "district": "Central",
+    "parish": "Main"
+  }'
+```
+
+#### 4. Get All Suppliers (Protected)
+
+```bash
+curl -X GET http://localhost:8080/api/v1/suppliers \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE"
+```
+
+#### 5. Get Single Supplier (Protected)
+
+```bash
+curl -X GET http://localhost:8080/api/v1/suppliers/1 \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE"
+```
+
+#### 6. Update Supplier (Protected)
+
+```bash
+curl -X PUT http://localhost:8080/api/v1/suppliers/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE" \
+  -d '{
+    "name": "ABC Supplies Updated",
+    "phone": "+9876543210"
+  }'
+```
+
+#### 7. Delete Supplier (Protected)
+
+```bash
+curl -X DELETE http://localhost:8080/api/v1/suppliers/1 \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE"
+```
+
+#### 8. Validate Token (Protected)
+
+```bash
+curl -X GET http://localhost:8080/api/v1/users/validate \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE"
+```
+
+---
+
+## Additional Features
+
+### Database Migration
+
+#### File: `migrate/migrate.go`
+
+```go
+package main
+
+import (
+	"log"
+
+	"github.com/yourusername/your-project/initializers"
+	"github.com/yourusername/your-project/models"
+)
+
+func init() {
+	initializers.LoadEnvVariables()
+	initializers.ConnectToDB()
+}
+
+func main() {
+	log.Println("Starting database migration...")
+
+	// Run migrations for all models
+	err := initializers.DB.AutoMigrate(
+		&models.User{},
+		&models.Supplier{},
+		&models.Farmer{},
+		// Add more models here...
+	)
+
+	if err != nil {
+		log.Fatal("Failed to migrate database:", err)
+	}
+
+	log.Println("✅ Database migration completed successfully!")
+}
+```
+
+**Run Migration:**
+
+```bash
+go run migrate/migrate.go
+```
+
+---
+
+### Bulk Operations Example
+
+#### Bulk Create with Transaction
+
+```go
+func BulkCreateFarmers(c *gin.Context) {
+	var req dtos.BulkCreateFarmersRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Invalid input: " + err.Error(),
+		})
+		return
+	}
+
+	if len(req.Farmers) == 0 {
+		c.JSON(http.StatusBadRequest, dtos.ErrorResponse{
+			Success: false,
+			Error:   "At least one farmer must be provided",
+		})
+		return
+	}
+
+	// Verify supplier exists
+	var supplier models.Supplier
+	if err := initializers.DB.First(&supplier, req.SupplierID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, dtos.ErrorResponse{
+				Success: false,
+				Error:   "Supplier not found",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, dtos.ErrorResponse{
+			Success: false,
+			Error:   "Failed to verify supplier",
+		})
+		return
+	}
+
+	response := dtos.BulkCreateFarmersResponse{
+		TotalCount: len(req.Farmers),
+		Successful: []dtos.BulkFarmerResult{},
+		Failed:     []dtos.BulkFarmerError{},
+	}
+
+	// Process each farmer
+	for _, farmerData := range req.Farmers {
+		farmer := models.Farmer{
+			SupplierID: req.SupplierID,
+			FarmerCode: farmerData.FarmerCode,
+			Name:       farmerData.Name,
+			Phone:      farmerData.Phone,
+			// ... other fields
+		}
+
+		if err := initializers.DB.Create(&farmer).Error; err != nil {
+			errorMsg := "Failed to create farmer"
+			if strings.Contains(err.Error(), "duplicate") {
+				errorMsg = "Farmer with this code already exists"
+			}
+
+			response.Failed = append(response.Failed, dtos.BulkFarmerError{
+				FarmerCode: farmerData.FarmerCode,
+				Name:       farmerData.Name,
+				Error:      errorMsg,
+			})
+			response.FailureCount++
+		} else {
+			response.Successful = append(response.Successful, dtos.BulkFarmerResult{
+				FarmerCode: farmerData.FarmerCode,
+				FarmerID:   farmer.ID,
+				Name:       farmer.Name,
+			})
+			response.SuccessCount++
+		}
+	}
+
+	// Determine status code
+	statusCode := http.StatusCreated
+	if response.SuccessCount == 0 {
+		statusCode = http.StatusBadRequest
+	} else if response.FailureCount > 0 {
+		statusCode = http.StatusMultiStatus // 207
+	}
+
+	c.JSON(statusCode, dtos.SuccessResponse{
+		Success: response.SuccessCount > 0,
+		Data:    response,
+	})
+}
+```
+
+---
+
+## Best Practices Summary
+
+### 1. **Security**
+
+- Always hash passwords with bcrypt
+- Use environment variables for sensitive data
+- Implement JWT with expiration
+- Validate all user inputs
+- Use HTTPS in production
+
+### 2. **Code Organization**
+
+- Separate concerns (controllers, models, DTOs)
+- Use meaningful package names
+- Keep controllers thin
+- Use DTOs for request/response validation
+
+### 3. **Error Handling**
+
+- Return consistent error responses
+- Handle database errors properly
+- Use appropriate HTTP status codes
+- Log errors for debugging
+
+### 4. **Database**
+
+- Use transactions for complex operations
+- Handle unique constraint violations
+- Use proper indexes
+- Implement soft deletes with gorm.Model
+
+### 5. **API Design**
+
+- Use RESTful conventions
+- Version your API (e.g., /api/v1)
+- Return consistent response formats
+- Document your endpoints
+
+---
+
+## Common HTTP Status Codes
+
+| Code | Meaning               | Use Case                   |
+| ---- | --------------------- | -------------------------- |
+| 200  | OK                    | Successful GET, PUT, PATCH |
+| 201  | Created               | Successful POST            |
+| 204  | No Content            | Successful DELETE          |
+| 400  | Bad Request           | Invalid input              |
+| 401  | Unauthorized          | Missing or invalid token   |
+| 403  | Forbidden             | Insufficient permissions   |
+| 404  | Not Found             | Resource doesn't exist     |
+| 409  | Conflict              | Duplicate entry            |
+| 422  | Unprocessable Entity  | Validation errors          |
+| 500  | Internal Server Error | Server-side error          |
+
+---
+
+## Environment Variables Reference
+
+```env
+# Database
+POSTGRES_HOST=localhost
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_password
+POSTGRES_DB=your_database
+POSTGRES_PORT=5432
+
+# JWT
+SECRET_KEY=your_secret_jwt_key_minimum_32_characters
+
+# Server
+PORT=8080
+GIN_MODE=debug  # or 'release' for production
+```
+
+---
+
+## Quick Start Checklist
+
+- [ ] Install Go and PostgreSQL
+- [ ] Create project directory
+- [ ] Initialize Go module
+- [ ] Install dependencies
+- [ ] Create .env file
+- [ ] Set up database connection
+- [ ] Create models
+- [ ] Create DTOs
+- [ ] Implement controllers
+- [ ] Set up middleware
+- [ ] Configure routes
+- [ ] Run migrations
+- [ ] Test endpoints
+- [ ] Deploy to production
+
+---
+
+**This documentation covers all the essential patterns from your project. Use it as a reference for implementing authentication, CRUD operations, CORS, and proper project structure in your Go APIs.**

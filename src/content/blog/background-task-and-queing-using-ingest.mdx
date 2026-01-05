@@ -1,0 +1,523 @@
+---
+title: Implementing Queing, Background tasks and Cron Jobs Using Inngest in Nextjs Application
+description: Move beyond API routes. This guide walks you through using Inngest to offload long-running processes, create durable background jobs, and set up reliable cron-based automation in your Next.js application, ensuring a faster and more resilient user experience.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwfWp1NsdaB2GAq6wtmJQHUsIV8TRSxaFDvP1eO
+category: tutorial
+createdAt: 2025-09-10
+updatedAt: 2025-09-10
+---
+
+# Implementing Inngest for School Management System - Complete Guide
+
+## Overview
+
+This guide covers implementing Inngest in your Next.js multi-school management system for:
+
+1. **Email Queue System**: Send emails to ~1000 parents when headmaster creates a notice
+2. **Monthly Billing Cron Job**: Automatically charge schools on the 28th of each month
+
+## Step 1: Install and Setup Inngest
+
+### Install Inngest
+
+```bash
+npm install inngest
+```
+
+### Start Development Server
+
+```bash
+npx inngest-cli@latest dev
+```
+
+This starts the Inngest dev server at `http://localhost:8288` with a dashboard for monitoring.
+
+## Step 2: Create Inngest Client and Configuration
+
+Create `lib/inngest.ts`:
+
+```typescript
+import { Inngest } from "inngest";
+
+// Create Inngest client
+export const inngest = new Inngest({
+  id: "school-management-system",
+  name: "School Management System",
+});
+```
+
+## Step 3: Create API Route for Inngest Integration
+
+Create `app/api/inngest/route.ts`:
+
+```typescript
+import { serve } from "inngest/next";
+import { inngest } from "@/lib/inngest";
+import { sendNoticeEmails, monthlyBilling } from "@/lib/inngest/functions";
+
+// Export the functions array
+export const functions = [sendNoticeEmails, monthlyBilling];
+
+// Create the handler
+export const { GET, POST, PUT } = serve({
+  client: inngest,
+  functions: functions,
+});
+```
+
+## Step 4: Create Email Queue Function
+
+Create `lib/inngest/functions.ts`:
+
+```typescript
+import { inngest } from "../inngest";
+import { prisma } from "@/lib/prisma"; // Assuming you're using Prisma
+import { sendEmail } from "@/lib/email"; // Your email service
+
+// Function to handle notice email sending
+export const sendNoticeEmails = inngest.createFunction(
+  {
+    id: "send-notice-emails",
+    name: "Send Notice Emails to Parents",
+  },
+  {
+    event: "school/notice.created",
+  },
+  async ({ event, step }) => {
+    const { noticeId, schoolId, headmasterId } = event.data;
+
+    // Step 1: Save notice to database
+    const notice = await step.run("save-notice-to-database", async () => {
+      return await prisma.notice.create({
+        data: {
+          id: noticeId,
+          schoolId: schoolId,
+          headmasterId: headmasterId,
+          title: event.data.title,
+          content: event.data.content,
+          createdAt: new Date(),
+        },
+      });
+    });
+
+    // Step 2: Get all parents for the school
+    const parents = await step.run("fetch-parents", async () => {
+      return await prisma.parent.findMany({
+        where: {
+          schoolId: schoolId,
+          isActive: true,
+        },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+        },
+      });
+    });
+
+    // Step 3: Send emails in batches to avoid overwhelming email service
+    const batchSize = 50; // Send 50 emails per batch
+    const batches = [];
+
+    for (let i = 0; i < parents.length; i += batchSize) {
+      batches.push(parents.slice(i, i + batchSize));
+    }
+
+    // Process each batch
+    for (let i = 0; i < batches.length; i++) {
+      await step.run(`send-email-batch-${i + 1}`, async () => {
+        const batch = batches[i];
+        const emailPromises = batch.map((parent) =>
+          sendEmail({
+            to: parent.email,
+            subject: `New Notice: ${notice.title}`,
+            template: "notice-email",
+            data: {
+              parentName: `${parent.firstName} ${parent.lastName}`,
+              noticeTitle: notice.title,
+              noticeContent: notice.content,
+              schoolName: event.data.schoolName,
+            },
+          })
+        );
+
+        const results = await Promise.allSettled(emailPromises);
+
+        // Log failed emails
+        results.forEach((result, index) => {
+          if (result.status === "rejected") {
+            console.error(
+              `Failed to send email to ${batch[index].email}:`,
+              result.reason
+            );
+          }
+        });
+
+        return {
+          batchNumber: i + 1,
+          totalSent: results.filter((r) => r.status === "fulfilled").length,
+          totalFailed: results.filter((r) => r.status === "rejected").length,
+        };
+      });
+
+      // Add small delay between batches to respect email service limits
+      if (i < batches.length - 1) {
+        await step.sleep("batch-delay", "30s");
+      }
+    }
+
+    // Step 4: Update notice status
+    await step.run("update-notice-status", async () => {
+      return await prisma.notice.update({
+        where: { id: noticeId },
+        data: {
+          emailsSent: true,
+          emailsSentAt: new Date(),
+          totalParentsNotified: parents.length,
+        },
+      });
+    });
+
+    return {
+      message: "Notice emails sent successfully",
+      totalParents: parents.length,
+      batches: batches.length,
+    };
+  }
+);
+```
+
+## Step 5: Create Monthly Billing Cron Job
+
+Add to `lib/inngest/functions.ts`:
+
+```typescript
+import { stripe } from "@/lib/stripe"; // Assuming you're using Stripe
+
+// Monthly billing cron job
+export const monthlyBilling = inngest.createFunction(
+  {
+    id: "monthly-billing",
+    name: "Monthly School Billing",
+  },
+  {
+    cron: "0 9 28 * *", // Every 28th day of the month at 9 AM
+  },
+  async ({ step }) => {
+    // Step 1: Get all active schools
+    const schools = await step.run("fetch-active-schools", async () => {
+      return await prisma.school.findMany({
+        where: {
+          isActive: true,
+          subscriptionStatus: "ACTIVE",
+        },
+        include: {
+          paymentMethod: true,
+        },
+      });
+    });
+
+    // Step 2: Process billing for each school
+    const billingResults = [];
+
+    for (let i = 0; i < schools.length; i++) {
+      const school = schools[i];
+
+      const result = await step.run(`charge-school-${school.id}`, async () => {
+        try {
+          // Calculate billing amount based on school's plan
+          const billingAmount = calculateBillingAmount(school);
+
+          // Create payment intent with saved payment method
+          const paymentIntent = await stripe.paymentIntents.create({
+            amount: billingAmount * 100, // Convert to cents
+            currency: "usd",
+            customer: school.stripeCustomerId,
+            payment_method: school.paymentMethod.stripePaymentMethodId,
+            confirm: true,
+            automatic_payment_methods: {
+              enabled: true,
+              allow_redirects: "never",
+            },
+          });
+
+          // Record the transaction
+          const transaction = await prisma.transaction.create({
+            data: {
+              schoolId: school.id,
+              amount: billingAmount,
+              status: "COMPLETED",
+              stripePaymentIntentId: paymentIntent.id,
+              billingPeriod: new Date(),
+              description: `Monthly subscription - ${new Date().toLocaleString("default", { month: "long", year: "numeric" })}`,
+            },
+          });
+
+          // Send billing confirmation email
+          await sendEmail({
+            to: school.billingEmail,
+            subject: `Monthly Billing Confirmation - ${school.name}`,
+            template: "billing-confirmation",
+            data: {
+              schoolName: school.name,
+              amount: billingAmount,
+              transactionId: transaction.id,
+              billingPeriod: new Date().toLocaleString("default", {
+                month: "long",
+                year: "numeric",
+              }),
+            },
+          });
+
+          return {
+            schoolId: school.id,
+            schoolName: school.name,
+            amount: billingAmount,
+            status: "SUCCESS",
+            transactionId: transaction.id,
+          };
+        } catch (error) {
+          console.error(`Billing failed for school ${school.id}:`, error);
+
+          // Record failed transaction
+          await prisma.transaction.create({
+            data: {
+              schoolId: school.id,
+              amount: calculateBillingAmount(school),
+              status: "FAILED",
+              billingPeriod: new Date(),
+              description: `Monthly subscription - ${new Date().toLocaleString("default", { month: "long", year: "numeric" })}`,
+              errorMessage: error.message,
+            },
+          });
+
+          // Send billing failure notification
+          await sendEmail({
+            to: school.billingEmail,
+            subject: `Billing Failed - ${school.name}`,
+            template: "billing-failed",
+            data: {
+              schoolName: school.name,
+              error: error.message,
+            },
+          });
+
+          return {
+            schoolId: school.id,
+            schoolName: school.name,
+            status: "FAILED",
+            error: error.message,
+          };
+        }
+      });
+
+      billingResults.push(result);
+
+      // Add delay between charges to avoid rate limits
+      if (i < schools.length - 1) {
+        await step.sleep("billing-delay", "5s");
+      }
+    }
+
+    // Step 3: Generate billing summary
+    const summary = await step.run("generate-billing-summary", async () => {
+      const successful = billingResults.filter((r) => r.status === "SUCCESS");
+      const failed = billingResults.filter((r) => r.status === "FAILED");
+
+      return {
+        totalSchools: schools.length,
+        successful: successful.length,
+        failed: failed.length,
+        totalRevenue: successful.reduce((sum, r) => sum + (r.amount || 0), 0),
+        failedSchools: failed.map((f) => ({
+          schoolId: f.schoolId,
+          schoolName: f.schoolName,
+          error: f.error,
+        })),
+      };
+    });
+
+    return summary;
+  }
+);
+
+// Helper function to calculate billing amount
+function calculateBillingAmount(school: any): number {
+  // Implement your billing logic here
+  switch (school.planType) {
+    case "BASIC":
+      return 99; // $99/month
+    case "PREMIUM":
+      return 199; // $199/month
+    case "ENTERPRISE":
+      return 299; // $299/month
+    default:
+      return 99;
+  }
+}
+```
+
+## Step 6: Trigger Notice Email Function from Your App
+
+In your notice creation API route or server action:
+
+```typescript
+// app/api/notices/route.ts or in a server action
+import { inngest } from "@/lib/inngest";
+
+export async function POST(request: Request) {
+  const { title, content, schoolId, headmasterId } = await request.json();
+
+  // Generate unique notice ID
+  const noticeId = crypto.randomUUID();
+
+  // Trigger the email function
+  await inngest.send({
+    name: "school/notice.created",
+    data: {
+      noticeId,
+      schoolId,
+      headmasterId,
+      title,
+      content,
+      schoolName: "Example School", // Get from database
+    },
+  });
+
+  return Response.json({
+    message: "Notice created and emails are being sent",
+    noticeId,
+  });
+}
+```
+
+## Step 7: Add Rate Limiting and Prioritization
+
+Update your email function with advanced features:
+
+```typescript
+export const sendNoticeEmails = inngest.createFunction(
+  {
+    id: "send-notice-emails",
+    name: "Send Notice Emails to Parents",
+    // Rate limiting: max 5 executions per hour per school
+    rateLimit: {
+      limit: 5,
+      period: "1h",
+      key: "event.data.schoolId",
+    },
+    // Concurrency: max 3 concurrent executions
+    concurrency: {
+      limit: 3,
+    },
+    // Priority for premium schools
+    priority: {
+      run: "event.data.schoolType === 'PREMIUM' ? 100 : 50",
+    },
+  },
+  {
+    event: "school/notice.created",
+  }
+  // ... rest of the function
+);
+```
+
+## Step 8: Environment Configuration
+
+Add to your `.env.local`:
+
+```env
+# Inngest
+INNGEST_EVENT_KEY=your_event_key_here
+INNGEST_SIGNING_KEY=your_signing_key_here
+
+# For production
+INNGEST_BASE_URL=https://your-app.com/api/inngest
+```
+
+## Step 9: Monitoring and Dashboard
+
+### Local Development
+
+- Access dashboard at `http://localhost:8288`
+- View function runs, logs, and metrics
+- Manually trigger functions for testing
+
+### Production Setup
+
+1. Sign up at [inngest.com](https://inngest.com)
+2. Connect your app using the dashboard
+3. Configure environment variables
+4. Deploy your functions
+
+## Step 10: Testing
+
+### Test Notice Email Function
+
+```typescript
+// In your test file or development script
+await inngest.send({
+  name: "school/notice.created",
+  data: {
+    noticeId: "test-notice-123",
+    schoolId: "school-123",
+    headmasterId: "headmaster-123",
+    title: "Test Notice",
+    content: "This is a test notice",
+    schoolName: "Test School",
+  },
+});
+```
+
+### Test Monthly Billing (Manual Trigger)
+
+You can manually trigger the cron job from the Inngest dashboard for testing.
+
+## Additional Features
+
+### Error Handling and Retries
+
+Inngest automatically retries failed functions with exponential backoff. You can customize this:
+
+```typescript
+export const sendNoticeEmails = inngest.createFunction(
+  {
+    id: "send-notice-emails",
+    retries: 3,
+    name: "Send Notice Emails to Parents",
+  }
+  // ... rest of configuration
+);
+```
+
+### Webhooks and Notifications
+
+Set up webhooks to get notified when functions complete or fail:
+
+```typescript
+// Add to your webhook handler
+export async function POST(request: Request) {
+  const webhook = await request.json();
+
+  if (webhook.event === "function/finished") {
+    // Send notification to admin
+    await sendAdminNotification({
+      message: `Function ${webhook.function.name} completed`,
+      status: webhook.output.status,
+    });
+  }
+}
+```
+
+## Best Practices
+
+1. **Batch Processing**: Always process large datasets in batches
+2. **Error Handling**: Use try-catch blocks and log errors properly
+3. **Rate Limiting**: Respect third-party service limits
+4. **Monitoring**: Use the Inngest dashboard to monitor function performance
+5. **Testing**: Test functions locally before deploying
+6. **Security**: Keep sensitive data in environment variables
+7. **Idempotency**: Ensure functions can be safely retried
+
+This implementation provides a robust foundation for handling background jobs and scheduled tasks in your school management system.

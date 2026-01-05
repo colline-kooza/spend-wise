@@ -1,0 +1,309 @@
+{
+  "meta": {
+    "company": "DesisHub",
+    "file": "industries-2.json",
+    "industries": ["Real Estate & Property Technology", "E-Commerce & Retail", "Human Resources & Recruitment"],
+    "last_updated": "January 2026"
+  },
+  "industries": [
+    {
+      "id": 4,
+      "slug": "real-estate-property-technology",
+      "name": "Real Estate & Property Technology",
+      "tagline": "Modernize Property Management & Real Estate Operations",
+      "shortDescription": "Consistently strong demand with digital transformation in property management",
+      "longDescription": "The real estate and property technology sector is experiencing rapid digitalization. From property listings to facility management, modern PropTech solutions enable real estate professionals to streamline operations, enhance tenant experiences, and maximize property values through data-driven insights.",
+      "seo": {
+        "metaTitle": "Real Estate & Property Technology Solutions | PropTech | DesisHub",
+        "metaDescription": "Transform real estate operations with modern PropTech solutions. Property management, listings, CRM, and construction management. Trusted by 3,000+ real estate businesses.",
+        "keywords": [
+          "property management software",
+          "real estate technology",
+          "proptech solutions",
+          "property listing platform",
+          "real estate CRM",
+          "facility management software",
+          "construction management",
+          "tenant management system",
+          "real estate software",
+          "property tech"
+        ],
+        "ogTitle": "Modern PropTech Solutions for Real Estate Professionals",
+        "ogDescription": "Streamline property management, enhance tenant experiences, and grow your real estate business with comprehensive technology solutions.",
+        "ogImage": "/images/industries/proptech-og.jpg"
+      },
+      "hero": {
+        "headline": "Real Estate Technology That Works",
+        "subheadline": "Manage properties, delight tenants, and close more deals with comprehensive PropTech solutions",
+        "ctaText": "Explore PropTech Solutions",
+        "ctaLink": "/industries/real-estate-property-technology/solutions",
+        "imageUrl": "/images/heroes/proptech.jpg"
+      },
+      "stats": [
+        {"value": "3K+", "label": "Real Estate Businesses"},
+        {"value": "500K+", "label": "Properties Managed"},
+        {"value": "85%", "label": "Faster Lease Processing"},
+        {"value": "40%", "label": "Reduction in Vacancies"}
+      ],
+      "problemStatement": {
+        "title": "Real Estate Operational Challenges",
+        "description": "Property professionals struggle with fragmented systems and manual processes.",
+        "problems": [
+          {"title": "Tenant Communication", "description": "Managing maintenance requests and tenant inquiries is time-consuming", "icon": "message-square"},
+          {"title": "Vacancy Costs", "description": "Long vacancy periods and inefficient marketing reduce revenue", "icon": "home"},
+          {"title": "Paperwork Overload", "description": "Manual lease agreements and documentation slow operations", "icon": "file-text"},
+          {"title": "Scattered Data", "description": "Property information spread across multiple systems", "icon": "database"}
+        ]
+      },
+      "solutions": {
+        "title": "Complete PropTech Platform",
+        "description": "End-to-end solutions for modern real estate operations",
+        "totalApps": 6,
+        "appIds": [19, 20, 21, 22, 23, 24]
+      },
+      "benefits": [
+        {"title": "Streamlined Operations", "description": "Centralize property management, leasing, and maintenance in one integrated platform.", "icon": "settings"},
+        {"title": "Enhanced Tenant Experience", "description": "Self-service portals, online payments, and instant communication improve satisfaction.", "icon": "smile"},
+        {"title": "Reduced Vacancies", "description": "Advanced marketing tools and streamlined leasing reduce time-to-lease by 85%.", "icon": "trending-up"},
+        {"title": "Better Decision Making", "description": "Real-time analytics on property performance, market trends, and ROI.", "icon": "bar-chart"},
+        {"title": "Increased Efficiency", "description": "Automate rent collection, maintenance scheduling, and reporting workflows.", "icon": "zap"},
+        {"title": "Scalable Growth", "description": "Manage unlimited properties and units without adding administrative overhead.", "icon": "maximize"}
+      ],
+      "whoIsThisFor": [
+        {"title": "Property Management Companies", "description": "Comprehensive tools for managing residential and commercial portfolios at scale.", "icon": "building"},
+        {"title": "Real Estate Agents & Brokers", "description": "CRM, listing management, and transaction coordination tools to close more deals.", "icon": "briefcase"},
+        {"title": "Landlords", "description": "Simple yet powerful solutions for individual property owners and small portfolios.", "icon": "key"},
+        {"title": "Commercial Property Managers", "description": "Advanced features for office buildings, retail spaces, and industrial properties.", "icon": "building-2"},
+        {"title": "Real Estate Developers", "description": "Project management tools for construction, sales, and post-completion management.", "icon": "hard-hat"}
+      ],
+      "features": [
+        {"category": "Property Management", "items": ["Tenant Screening", "Lease Management", "Online Rent Collection", "Maintenance Tracking", "Document Storage", "Automated Reminders"]},
+        {"category": "Listings & Marketing", "items": ["Property Listing Portal", "Virtual Tours", "Lead Capture Forms", "MLS Integration", "Social Media Posting", "SEO Optimization"]},
+        {"category": "Financial Management", "items": ["Rent Tracking", "Expense Management", "Financial Reporting", "Owner Statements", "Tax Reporting", "Budget Forecasting"]},
+        {"category": "Tenant Portal", "items": ["Online Payment", "Maintenance Requests", "Lease Documents", "Communication Hub", "Community Board", "Mobile Access"]}
+      ],
+      "faqs": [
+        {"question": "Can tenants pay rent online?", "answer": "Yes, our tenant portal supports multiple payment methods including ACH, credit cards, and digital wallets. Tenants can set up automatic payments and receive payment confirmations instantly."},
+        {"question": "How does tenant screening work?", "answer": "We integrate with leading background check providers to offer comprehensive screening including credit checks, criminal history, eviction records, and employment verification. Results are typically available within 24-48 hours."},
+        {"question": "Can I manage multiple properties?", "answer": "Absolutely. Our platform is designed to handle unlimited properties and units. You can easily switch between properties, view consolidated reports, and manage everything from a single dashboard."},
+        {"question": "Do you offer accounting integration?", "answer": "Yes, we integrate with QuickBooks, Xero, and other popular accounting software. Financial transactions automatically sync to keep your books accurate."},
+        {"question": "How do maintenance requests work?", "answer": "Tenants submit requests through the portal with photos and descriptions. You can assign tasks to vendors, track progress, and keep tenants updated automatically. Complete maintenance history is stored for each property."},
+        {"question": "Can I create and manage lease agreements digitally?", "answer": "Yes, our platform includes customizable lease templates with e-signature capability. Leases are stored securely and accessible anytime. Automated reminders notify you of lease renewals."},
+        {"question": "What kind of reports can I generate?", "answer": "Generate comprehensive reports including rent rolls, vacancy reports, financial statements, maintenance logs, tenant ledgers, and custom reports. Schedule automated report delivery."},
+        {"question": "Is there a mobile app?", "answer": "Yes, both property managers and tenants have access to mobile apps for iOS and Android. Manage properties, communicate with tenants, and approve maintenance from anywhere."}
+      ],
+      "testimonials": [
+        {"quote": "We manage 300+ units and DesisHub has transformed our operations. Rent collection is 99% automated and maintenance response time dropped by 60%. Our tenants are happier than ever.", "author": "Jennifer Martinez", "role": "Operations Manager", "organization": "Metro Properties Group", "avatar": "/images/testimonials/proptech-1.jpg"},
+        {"quote": "As an independent landlord, I finally have professional-grade tools. The tenant portal eliminated so many phone calls and the financial reports make tax season painless.", "author": "Robert Chang", "role": "Property Owner", "organization": "Chang Residential", "avatar": "/images/testimonials/proptech-2.jpg"},
+        {"quote": "The listing platform with virtual tours helped us reduce vacancy periods by 40%. Properties now lease in days, not weeks. ROI was immediate.", "author": "Amanda Foster", "role": "Leasing Director", "organization": "Summit Real Estate", "avatar": "/images/testimonials/proptech-3.jpg"}
+      ],
+      "caseStudies": [
+        {"title": "Metro Properties: 60% Faster Maintenance Resolution", "summary": "Automated workflows and vendor management transformed service delivery.", "link": "/case-studies/metro-properties-maintenance"},
+        {"title": "Summit Real Estate: From 45 Days to 7 Days to Lease", "summary": "Virtual tours and automated follow-ups revolutionized leasing.", "link": "/case-studies/summit-real-estate-leasing"}
+      ],
+      "pricing": {
+        "model": "Per-unit pricing with portfolio discounts",
+        "startingPrice": "$1/unit/month",
+        "description": "Scale affordably from single properties to large portfolios",
+        "features": ["30-day free trial", "No setup fees", "Free data migration", "Unlimited users", "Portfolio discounts", "Cancel anytime"]
+      },
+      "relatedBlogs": ["/blog/reduce-property-vacancy-rates", "/blog/tenant-screening-best-practices", "/blog/property-management-automation", "/blog/virtual-tours-real-estate"],
+      "cta": {
+        "primary": {"text": "Start Free Trial", "link": "/signup?industry=proptech"},
+        "secondary": {"text": "View Pricing", "link": "/pricing?industry=proptech"}
+      }
+    },
+    {
+      "id": 5,
+      "slug": "ecommerce-retail",
+      "name": "E-Commerce & Retail",
+      "tagline": "Build, Grow, and Scale Your Online Business",
+      "shortDescription": "Largest online business sector with continuous growth in digital retail",
+      "longDescription": "The e-commerce and retail sector continues its explosive growth as more businesses move online. From customizable online stores to sophisticated inventory management, modern retail technology enables businesses to create exceptional shopping experiences, streamline operations, and compete effectively in the digital marketplace.",
+      "seo": {
+        "metaTitle": "E-Commerce & Retail Software Solutions | Online Store Platform | DesisHub",
+        "metaDescription": "Launch and scale your online business with comprehensive e-commerce solutions. Store builders, inventory management, POS systems, and more. Trusted by 8,000+ retailers.",
+        "keywords": ["ecommerce software", "online store builder", "retail management system", "inventory management", "POS system", "ecommerce platform", "online shopping cart", "retail technology", "multi-channel selling", "ecommerce solutions"],
+        "ogTitle": "Complete E-Commerce Solutions for Modern Retailers",
+        "ogDescription": "Everything you need to launch, manage, and grow a successful online retail business.",
+        "ogImage": "/images/industries/ecommerce-og.jpg"
+      },
+      "hero": {
+        "headline": "Your Complete E-Commerce Platform",
+        "subheadline": "Launch beautiful online stores, manage inventory seamlessly, and sell everywhere your customers shop",
+        "ctaText": "Start Your Online Store",
+        "ctaLink": "/industries/ecommerce-retail/solutions",
+        "imageUrl": "/images/heroes/ecommerce.jpg"
+      },
+      "stats": [
+        {"value": "8K+", "label": "Active Online Stores"},
+        {"value": "$500M+", "label": "GMV Processed Annually"},
+        {"value": "99.9%", "label": "Platform Uptime"},
+        {"value": "150+", "label": "Countries Supported"}
+      ],
+      "problemStatement": {
+        "title": "E-Commerce Challenges",
+        "description": "Online retailers face complex operational and competitive pressures.",
+        "problems": [
+          {"title": "Technical Complexity", "description": "Building and maintaining an online store requires technical expertise", "icon": "code"},
+          {"title": "Inventory Chaos", "description": "Managing stock across multiple channels leads to overselling", "icon": "package"},
+          {"title": "Customer Acquisition", "description": "Rising advertising costs make customer acquisition expensive", "icon": "users"},
+          {"title": "Payment & Shipping", "description": "Integrating payments and logistics is complicated", "icon": "credit-card"}
+        ]
+      },
+      "solutions": {
+        "title": "Complete E-Commerce Ecosystem",
+        "description": "Everything you need to run a successful online retail business",
+        "totalApps": 6,
+        "appIds": [25, 26, 27, 28, 29, 30]
+      },
+      "benefits": [
+        {"title": "Launch in Minutes", "description": "No-code store builder with beautiful templates gets you online fast without developers.", "icon": "zap"},
+        {"title": "Unified Inventory", "description": "Sync inventory across your website, marketplaces, and physical stores in real-time.", "icon": "package"},
+        {"title": "Sell Everywhere", "description": "Reach customers on your website, Amazon, eBay, social media, and more from one platform.", "icon": "globe"},
+        {"title": "Optimize Conversions", "description": "Built-in tools for abandoned cart recovery, upsells, and customer retention.", "icon": "trending-up"},
+        {"title": "Simplified Operations", "description": "Automate order processing, shipping, and fulfillment to save time and reduce errors.", "icon": "settings"},
+        {"title": "Data-Driven Growth", "description": "Analytics and insights help you understand customers and optimize for profitability.", "icon": "bar-chart"}
+      ],
+      "whoIsThisFor": [
+        {"title": "New Online Sellers", "description": "Launch your first online store with easy-to-use tools designed for beginners.", "icon": "rocket"},
+        {"title": "Retail Store Owners", "description": "Extend your brick-and-mortar business online with unified POS and inventory.", "icon": "store"},
+        {"title": "Wholesale Businesses", "description": "B2B features including bulk ordering, custom pricing, and purchase orders.", "icon": "briefcase"},
+        {"title": "Growing E-Commerce Brands", "description": "Scale with enterprise features while keeping costs predictable.", "icon": "trending-up"},
+        {"title": "Multi-Channel Sellers", "description": "Manage sales across marketplaces, social commerce, and your website.", "icon": "layers"}
+      ],
+      "features": [
+        {"category": "Store Building", "items": ["Drag-and-Drop Builder", "Mobile-Responsive Themes", "Product Variants", "Custom Domains", "SEO Optimization", "Multilingual Support"]},
+        {"category": "Sales & Marketing", "items": ["Discount Codes", "Email Marketing", "Abandoned Cart Recovery", "Customer Reviews", "Loyalty Programs", "Affiliate Management"]},
+        {"category": "Operations", "items": ["Order Management", "Inventory Tracking", "Shipping Integration", "Returns Management", "Multi-Warehouse Support", "Dropshipping"]},
+        {"category": "Payments & Checkout", "items": ["Multiple Payment Gateways", "One-Click Checkout", "Guest Checkout", "Multi-Currency", "Tax Calculation", "Fraud Protection"]}
+      ],
+      "faqs": [
+        {"question": "Do I need technical skills to build a store?", "answer": "No technical skills required. Our drag-and-drop store builder and pre-designed templates make it easy for anyone to create a professional online store in minutes."},
+        {"question": "Can I sell on multiple channels?", "answer": "Yes, our platform integrates with Amazon, eBay, Etsy, Facebook, Instagram, and more. Manage all sales channels from one dashboard with automatic inventory sync."},
+        {"question": "What payment methods do you support?", "answer": "We integrate with all major payment gateways including Stripe, PayPal, Square, and regional processors. Support for credit cards, digital wallets, bank transfers, and buy-now-pay-later options."},
+        {"question": "How does shipping integration work?", "answer": "Connect with major carriers (USPS, FedEx, UPS, DHL) to automatically calculate rates, print labels, and provide tracking. We also support local delivery and pickup options."},
+        {"question": "Can I manage physical and online inventory together?", "answer": "Absolutely. Our unified inventory system syncs stock levels across your online store, physical locations, and marketplaces in real-time to prevent overselling."},
+        {"question": "Is the platform mobile-friendly?", "answer": "Yes, all stores are fully responsive and optimized for mobile shopping. We also provide mobile apps for store management on the go."},
+        {"question": "What about SEO?", "answer": "Built-in SEO tools include customizable meta tags, clean URLs, sitemaps, schema markup, and fast page loads to help you rank higher in search results."},
+        {"question": "Can I migrate from another platform?", "answer": "Yes, we offer free migration assistance from Shopify, WooCommerce, Magento, and other platforms. We'll help transfer your products, customers, and order history."}
+      ],
+      "testimonials": [
+        {"quote": "We launched our store in an afternoon and made our first sale the same day. The platform is incredibly intuitive and the built-in marketing tools helped us grow to $50K/month.", "author": "Jessica Park", "role": "Founder", "organization": "Urban Garden Supply", "avatar": "/images/testimonials/ecommerce-1.jpg"},
+        {"quote": "Managing inventory across our website, Amazon, and two retail locations was a nightmare. Now it's all synced automatically. We've eliminated stockouts and overselling completely.", "author": "Marcus Johnson", "role": "Operations Director", "organization": "TechGear Pro", "avatar": "/images/testimonials/ecommerce-2.jpg"},
+        {"quote": "The abandoned cart recovery alone pays for the platform. We're recovering 25% of abandoned carts and that's added $15K in monthly revenue.", "author": "Sophia Lee", "role": "E-Commerce Manager", "organization": "Fashion Forward", "avatar": "/images/testimonials/ecommerce-3.jpg"}
+      ],
+      "caseStudies": [
+        {"title": "How Urban Garden Supply Scaled to $50K/Month in 6 Months", "summary": "Multi-channel selling and marketing automation drove exponential growth.", "link": "/case-studies/urban-garden-supply-growth"},
+        {"title": "TechGear Pro: Eliminating Stockouts Across 3 Channels", "summary": "Unified inventory management transformed operations.", "link": "/case-studies/techgear-inventory-management"}
+      ],
+      "pricing": {
+        "model": "Transaction-based pricing that scales with your business",
+        "startingPrice": "$29/month",
+        "description": "Start small, pay as you grow - no hidden fees",
+        "features": ["14-day free trial", "No transaction fees on higher plans", "Free SSL certificate", "Unlimited products", "24/7 support", "Free migration"]
+      },
+      "relatedBlogs": ["/blog/start-online-store-2026", "/blog/increase-ecommerce-conversion-rate", "/blog/multi-channel-selling-strategy", "/blog/ecommerce-seo-guide"],
+      "cta": {
+        "primary": {"text": "Start Free Trial", "link": "/signup?industry=ecommerce"},
+        "secondary": {"text": "View Demo Store", "link": "/demo-store"}
+      }
+    },
+    {
+      "id": 6,
+      "slug": "human-resources-recruitment",
+      "name": "Human Resources & Recruitment",
+      "tagline": "Streamline Talent Management & HR Operations",
+      "shortDescription": "Essential for all growing businesses with focus on talent management",
+      "longDescription": "The HR and recruitment sector is evolving rapidly with technology-driven solutions for talent acquisition, employee management, and workforce optimization. Modern HR technology enables organizations to attract top talent, engage employees, and build high-performing teams while reducing administrative burden and ensuring compliance.",
+      "seo": {
+        "metaTitle": "HR & Recruitment Software Solutions | Human Resources Platform | DesisHub",
+        "metaDescription": "Transform HR operations with comprehensive solutions. ATS, onboarding, performance management, and more. Trusted by 4,000+ organizations.",
+        "keywords": ["HR software", "recruitment software", "applicant tracking system", "employee onboarding", "performance management", "time and attendance", "employee engagement", "talent management", "HR technology", "recruitment platform"],
+        "ogTitle": "Complete HR & Recruitment Solutions for Growing Organizations",
+        "ogDescription": "Attract, engage, and retain top talent with modern HR technology designed for today's workforce.",
+        "ogImage": "/images/industries/hr-og.jpg"
+      },
+      "hero": {
+        "headline": "Build High-Performing Teams",
+        "subheadline": "Streamline recruiting, onboarding, performance management, and employee engagement with comprehensive HR solutions",
+        "ctaText": "Explore HR Solutions",
+        "ctaLink": "/industries/human-resources-recruitment/solutions",
+        "imageUrl": "/images/heroes/hr.jpg"
+      },
+      "stats": [
+        {"value": "4K+", "label": "Organizations"},
+        {"value": "500K+", "label": "Employees Managed"},
+        {"value": "75%", "label": "Faster Hiring"},
+        {"value": "90%", "label": "Employee Satisfaction"}
+      ],
+      "problemStatement": {
+        "title": "HR & Recruitment Challenges",
+        "description": "Organizations struggle with manual HR processes and fragmented talent management systems.",
+        "problems": [
+          {"title": "Slow Hiring Process", "description": "Manual resume screening and scheduling delays time-to-hire", "icon": "clock"},
+          {"title": "Poor Onboarding", "description": "Disorganized onboarding leads to lower employee engagement", "icon": "user-x"},
+          {"title": "Compliance Risks", "description": "Labor law compliance and documentation are complex", "icon": "alert-triangle"},
+          {"title": "Low Employee Engagement", "description": "Lack of feedback and development opportunities hurt retention", "icon": "trending-down"}
+        ]
+      },
+      "solutions": {
+        "title": "Complete HR Technology Suite",
+        "description": "End-to-end solutions for the entire employee lifecycle",
+        "totalApps": 6,
+        "appIds": [31, 32, 33, 34, 35, 36]
+      },
+      "benefits": [
+        {"title": "Faster Hiring", "description": "AI-powered resume screening and automated scheduling reduce time-to-hire by 75%.", "icon": "zap"},
+        {"title": "Better Employee Experience", "description": "Streamlined onboarding, self-service portals, and engagement tools improve satisfaction.", "icon": "smile"},
+        {"title": "Data-Driven Decisions", "description": "Analytics on hiring metrics, turnover, performance, and workforce planning.", "icon": "bar-chart"},
+        {"title": "Compliance Assurance", "description": "Built-in compliance with labor laws, automated documentation, and audit trails.", "icon": "shield-check"},
+        {"title": "Improved Retention", "description": "Performance management and engagement tools reduce turnover by 40%.", "icon": "users"},
+        {"title": "Reduced Admin Work", "description": "Automation eliminates manual HR tasks, saving 20+ hours per week.", "icon": "trending-up"}
+      ],
+      "whoIsThisFor": [
+        {"title": "Growing Companies", "description": "Organizations scaling from 10 to 500+ employees needing professional HR infrastructure.", "icon": "trending-up"},
+        {"title": "HR Departments", "description": "HR teams looking to automate administrative work and focus on strategic initiatives.", "icon": "briefcase"},
+        {"title": "Recruitment Agencies", "description": "Staffing firms managing multiple clients and high-volume candidate pipelines.", "icon": "users"},
+        {"title": "Remote-First Companies", "description": "Distributed teams needing digital-first HR tools and employee engagement solutions.", "icon": "globe"},
+        {"title": "Enterprise Organizations", "description": "Large companies requiring advanced features, compliance, and multi-location support.", "icon": "building"}
+      ],
+      "features": [
+        {"category": "Recruitment", "items": ["Applicant Tracking", "AI Resume Screening", "Job Board Integration", "Interview Scheduling", "Candidate Portal", "Offer Management"]},
+        {"category": "Employee Management", "items": ["Digital Onboarding", "Employee Database", "Document Management", "Time & Attendance", "Leave Management", "Self-Service Portal"]},
+        {"category": "Performance & Development", "items": ["Goal Setting", "Performance Reviews", "360° Feedback", "Skill Tracking", "Training Management", "Career Development"]},
+        {"category": "Analytics & Compliance", "items": ["HR Dashboards", "Turnover Analytics", "Compliance Reporting", "Payroll Integration", "Labor Law Updates", "Audit Trails"]}
+      ],
+      "faqs": [
+        {"question": "How does AI resume screening work?", "answer": "Our AI analyzes resumes against job requirements, ranking candidates by fit. It considers skills, experience, education, and keywords while eliminating bias. You can customize screening criteria for each position."},
+        {"question": "Can employees access the system on mobile?", "answer": "Yes, our mobile apps for iOS and Android allow employees to view pay stubs, request time off, update information, complete training, and access all self-service features."},
+        {"question": "Do you support multi-location organizations?", "answer": "Absolutely. Our platform handles multiple locations, departments, and legal entities with location-specific policies, reporting, and compliance requirements."},
+        {"question": "How does performance management work?", "answer": "Set goals, conduct regular check-ins, gather 360° feedback, and complete formal reviews all in one platform. Track progress, identify development needs, and tie performance to compensation."},
+        {"question": "Can I integrate with payroll systems?", "answer": "Yes, we integrate with major payroll providers including ADP, Paychex, Gusto, and QuickBooks. Time, attendance, and employee data sync automatically."},
+        {"question": "What compliance features do you offer?", "answer": "We help with EEOC, FLSA, FMLA, and state labor law compliance through automated tracking, required documentation, audit trails, and compliance reporting."},
+        {"question": "How do employee engagement surveys work?", "answer": "Create custom surveys or use our templates for pulse surveys, eNPS, engagement assessments, and exit interviews. Anonymous responses and real-time analytics help you identify and address issues."},
+        {"question": "Can I customize onboarding workflows?", "answer": "Yes, create custom onboarding checklists, assign tasks, set deadlines, and track completion. Automate document collection, training assignments, and equipment provisioning for new hires."}
+      ],
+      "testimonials": [
+        {"quote": "We cut our time-to-hire from 45 days to 12 days. The AI screening saves our recruiters 20 hours per week, and candidates love the streamlined experience.", "author": "Maria Santos", "role": "VP of Talent", "organization": "TechCorp Solutions", "avatar": "/images/testimonials/hr-1.jpg"},
+        {"quote": "Employee turnover dropped by 35% after implementing performance management and engagement tools. Our people finally feel heard and supported.", "author": "James Thompson", "role": "Chief People Officer", "organization": "InnovateCo", "avatar": "/images/testimonials/hr-2.jpg"},
+        {"quote": "Managing HR for 300+ employees across 5 states was a nightmare. Now everything is centralized, compliant, and employees can self-serve. Game changer.", "author": "Rachel Green", "role": "HR Director", "organization": "National Retail Group", "avatar": "/images/testimonials/hr-3.jpg"}
+      ],
+      "caseStudies": [
+        {"title": "How TechCorp Reduced Time-to-Hire by 73%", "summary": "AI screening and automated scheduling transformed the recruitment process.", "link": "/case-studies/techcorp-hiring-speed"},
+        {"title": "InnovateCo's Retention Turnaround", "summary": "Performance management and engagement tools reduced turnover by 35%.", "link": "/case-studies/innovateco-retention"}
+      ],
+      "pricing": {
+        "model": "Per-employee pricing with volume discounts",
+        "startingPrice": "$5/employee/month",
+        "description": "Affordable HR technology that scales with your organization",
+        "features": ["30-day free trial", "No setup fees", "Free implementation", "Unlimited admins", "Volume discounts", "Cancel anytime"]
+      },
+      "relatedBlogs": ["/blog/reduce-time-to-hire-2026", "/blog/employee-onboarding-best-practices", "/blog/improve-employee-engagement", "/blog/hr-compliance-checklist"],
+      "cta": {
+        "primary": {"text": "Start Free Trial", "link": "/signup?industry=hr"},
+        "secondary": {"text": "Schedule Demo", "link": "/demo?industry=hr"}
+      }
+    }
+  ]
+}

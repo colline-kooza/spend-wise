@@ -1,0 +1,560 @@
+# DesiHub Perfect Tech Stack
+
+A comprehensive, production-ready stack for your banking application that balances performance, security, and cost-effectiveness.
+
+## Backend (Golang API)
+
+### Core Framework & ORM
+
+- **Gin Framework** - HTTP web framework (Free, MIT License)
+- **GORM** - ORM for database operations (Free, MIT License)
+
+### Essential Packages
+
+**Authentication & Security**
+
+- **golang-jwt/jwt** (`github.com/golang-jwt/jwt/v5`) - JWT token generation/validation (Free)
+- **bcrypt** (`golang.org/x/crypto/bcrypt`) - Password hashing (Free)
+- **casbin** (`github.com/casbin/casbin/v2`) - RBAC authorization engine (Free)
+- **go-guardian** (`github.com/shaj13/go-guardian`) - Authentication strategies (Free)
+- **validator** (`github.com/go-playground/validator/v10`) - Request validation (Free)
+
+**Database & Caching**
+
+- **PostgreSQL** - Primary database (Free, open source)
+- **Redis** - Caching & session management (Free, open source)
+  - **go-redis** (`github.com/redis/go-redis/v9`) - Redis client (Free)
+- **pgx** (`github.com/jackc/pgx/v5`) - PostgreSQL driver with connection pooling (Free)
+
+**Message Queue & Events**
+
+- **RabbitMQ** - Message broker for microservices (Free, open source)
+  - **amqp091-go** (`github.com/rabbitmq/amqp091-go`) - RabbitMQ client (Free)
+- **Alternative: Apache Kafka** - For higher throughput (Free, but more resource-intensive)
+  - **segmentio/kafka-go** - Kafka client (Free)
+
+**Payment Integration**
+
+- **Stripe Go SDK** - Payment processing (Transaction fees: 2.9% + $0.30)
+- **Paystack** (if targeting Africa) - (1.5% + ₦100 local, 3.9% international)
+- **Flutterwave** - Multi-payment gateway (1.4% - 3%)
+
+**API Documentation**
+
+- **swaggo/swag** - Swagger/OpenAPI documentation generator (Free)
+- **swaggo/gin-swagger** - Gin integration (Free)
+
+**Logging & Monitoring**
+
+- **zap** (`go.uber.org/zap`) - Structured logging (Free)
+- **logrus** - Alternative logging library (Free)
+- **prometheus/client_golang** - Metrics collection (Free)
+
+**Configuration**
+
+- **viper** (`github.com/spf13/viper`) - Configuration management (Free)
+- **godotenv** - Environment variables (Free)
+
+**Testing**
+
+- **testify** (`github.com/stretchr/testify`) - Testing assertions & mocks (Free)
+- **gomock** - Mock generation (Free)
+- **httptest** - HTTP testing (Built-in, Free)
+
+**Rate Limiting & Security**
+
+- **gin-contrib/rate** - Rate limiting middleware (Free)
+- **ulule/limiter** - Advanced rate limiting (Free)
+- **secure** (`github.com/unrolled/secure`) - Security headers middleware (Free)
+- **cors** (`github.com/gin-contrib/cors`) - CORS handling (Free)
+
+**Background Jobs**
+
+- **asynq** (`github.com/hibiken/asynq`) - Distributed task queue with Redis (Free)
+- **gocraft/work** - Alternative job processing (Free)
+
+**File Upload & Processing**
+
+- **google/uuid** - UUID generation for file naming (Free)
+- **disintegration/imaging** - Image processing (Free)
+
+**Utilities**
+
+- **copier** (`github.com/jinzhu/copier`) - Object copying (Free)
+- **decimal** (`github.com/shopspring/decimal`) - Precise decimal calculations for money (Free)
+- **gobreaker** - Circuit breaker pattern (Free)
+
+## Frontend (Next.js)
+
+**State Management & Data Fetching**
+
+- **Simple Store** (as specified) - State management
+- **TanStack Query (React Query)** - Server state management (Free)
+- **axios** - HTTP client (Free)
+
+**UI Components**
+
+- **Tailwind CSS** - Styling (Free)
+- **Shadcn/ui** - Component library (Free)
+- **Radix UI** - Headless components (Free)
+
+**Form Handling**
+
+- **React Hook Form** - Form management (Free)
+- **Zod** - Schema validation (Free)
+
+**Authentication**
+
+- **NextAuth.js** - Authentication for Next.js (Free)
+
+## Database
+
+**Primary Database**
+
+- **PostgreSQL 16** (Free, open source)
+  - Managed: **Supabase** (Free tier: 500MB, then $25/month for 8GB)
+  - Managed: **Neon** (Free tier: 3GB, then $19/month)
+  - Self-hosted: Free (just server costs)
+
+**Caching Layer**
+
+- **Redis** (Free, open source)
+  - Managed: **Upstash** (Free tier: 10K commands/day, then pay-as-you-go ~$0.20/100K requests)
+  - Self-hosted: Free
+
+## File Storage
+
+**Options:**
+
+1. **AWS S3**
+
+   - Cost: ~$0.023/GB/month storage + $0.09/GB data transfer
+   - First 5GB free for 12 months
+   - Best for: Scalability & reliability
+
+2. **Cloudflare R2**
+
+   - Cost: $0.015/GB/month storage, $0 egress
+   - 10GB free storage
+   - Best for: Cost savings on bandwidth
+
+3. **Supabase Storage**
+
+   - Cost: Included in database plan ($25/month for 100GB)
+   - Best for: Simplicity & integration
+
+4. **Backblaze B2**
+   - Cost: $0.005/GB/month storage + $0.01/GB egress
+   - 10GB free storage
+   - Best for: Budget-conscious projects
+
+**Recommendation:** Start with **Cloudflare R2** (free egress saves money at scale)
+
+## DevOps & Infrastructure
+
+### Version Control
+
+- **GitHub** - Code repository (Free for team of 10)
+- **Git** - Version control (Free)
+
+### CI/CD
+
+- **GitHub Actions**
+  - 2,000 minutes/month free for private repos
+  - $0.008/minute after
+  - Perfect for team of 10
+
+### Containerization
+
+- **Docker** - Containerization (Free)
+- **Docker Compose** - Multi-container orchestration (Free)
+
+### Container Registry
+
+- **GitHub Container Registry** - Free with GitHub
+- **Docker Hub** - Free tier: 1 private repo, unlimited public
+- **AWS ECR** - $0.10/GB/month
+
+### Orchestration
+
+- **Kubernetes** (self-managed) - Free, but complex
+- **Docker Swarm** - Simpler alternative (Free)
+- **Nomad** - Lightweight orchestrator (Free)
+
+**Recommendation:** Start with **Docker Compose**, scale to **K3s** (lightweight K8s) when needed
+
+## Hosting & Infrastructure
+
+### VPS Providers (Self-Managed)
+
+**1. Hetzner (Best Value)**
+
+- **Cost:** €4.15/month (2 vCPU, 4GB RAM) to €36.26/month (8 vCPU, 32GB RAM)
+- **Traffic:** 20TB included
+- **Best for:** European/global traffic, best price-performance
+- **Setup:** 3-5 VPS instances for redundancy
+
+**2. DigitalOcean**
+
+- **Cost:** $12/month (2 vCPU, 2GB RAM) to $96/month (8 vCPU, 16GB RAM)
+- **Traffic:** 2-5TB included
+- **Best for:** Great UX, good documentation
+- **Managed Databases:** PostgreSQL from $15/month
+
+**3. Linode (Akamai)**
+
+- **Cost:** $12/month (2 vCPU, 4GB RAM) to $96/month (8 vCPU, 16GB RAM)
+- **Traffic:** 4-8TB included
+- **Best for:** Reliability & support
+
+**4. Vultr**
+
+- **Cost:** $12/month (2 vCPU, 4GB RAM) to $96/month (8 vCPU, 16GB RAM)
+- **Best for:** Global datacenter options
+
+### Platform-as-a-Service (Managed)
+
+**1. Railway**
+
+- **Cost:** $5/month base + $0.000463/GB-minute RAM
+- ~$20-50/month for small apps
+- **Best for:** Rapid deployment, less DevOps overhead
+
+**2. Render**
+
+- **Cost:** $7/month per service (512MB RAM)
+- PostgreSQL: $7/month (1GB)
+- **Best for:** Simple deployment pipeline
+
+**3. Fly.io**
+
+- **Cost:** Free tier available, then pay-as-you-go
+- ~$30-70/month for production
+- **Best for:** Edge deployment, global latency
+
+### Recommendation for 5000 Users/Day
+
+**Budget-Conscious Stack:**
+
+```
+- 2x Hetzner VPS (€9.04/month each) - App servers: €18/month
+- 1x Hetzner VPS (€4.15/month) - Database/Redis: €4.15/month
+- Cloudflare (free tier) - CDN & DDoS protection: Free
+- Backblaze B2 (50GB) - File storage: $0.25/month
+- Total: ~€25/month ($27/month)
+```
+
+**Recommended Production Stack:**
+
+```
+- 3x Hetzner VPS (€9.04/month each) - App servers: €27/month
+- 1x Hetzner VPS (€15.40/month) - PostgreSQL (4 vCPU, 8GB): €15.40/month
+- 1x Hetzner VPS (€4.15/month) - Redis/RabbitMQ: €4.15/month
+- Cloudflare Pro - CDN & WAF: $20/month
+- Cloudflare R2 (100GB) - File storage: $1.50/month
+- Total: ~€70/month ($75/month)
+```
+
+## Load Balancing & CDN
+
+**1. Cloudflare (Recommended)**
+
+- **Free tier:** DDoS protection, CDN, SSL
+- **Pro:** $20/month (WAF, image optimization)
+- **Best for:** Global CDN + security
+
+**2. Nginx (Self-Hosted)**
+
+- **Cost:** Free
+- **Best for:** Load balancing between app servers
+- **Setup:** Install on separate VPS or use round-robin DNS
+
+**3. HAProxy**
+
+- **Cost:** Free (open source)
+- **Best for:** Advanced load balancing needs
+
+**4. Traefik**
+
+- **Cost:** Free
+- **Best for:** Docker/microservices integration
+
+**Recommendation:** Cloudflare (free) + Nginx on dedicated VPS for internal load balancing
+
+## Monitoring & Observability
+
+**Application Performance Monitoring**
+
+**1. Grafana Stack (Self-Hosted) - RECOMMENDED**
+
+- **Prometheus** - Metrics collection (Free)
+- **Grafana** - Dashboards (Free)
+- **Loki** - Log aggregation (Free)
+- **Cost:** Free + VPS resources
+- **Setup:** ~€4.15/month Hetzner VPS
+
+**2. New Relic**
+
+- **Cost:** Free tier (100GB/month data), then $0.30/GB
+- **Best for:** Comprehensive APM with minimal setup
+
+**3. Datadog**
+
+- **Cost:** $15/host/month (can get expensive)
+- **Best for:** Enterprise-grade monitoring
+
+**4. Sentry**
+
+- **Cost:** Free tier (5K errors/month), then $26/month
+- **Best for:** Error tracking & performance
+
+**5. Better Stack (Logtail + Uptime)**
+
+- **Cost:** Free tier available, $10/month starter
+- **Best for:** Simple logging & uptime monitoring
+
+**Uptime Monitoring**
+
+- **UptimeRobot** - Free for 50 monitors, 5-min intervals
+- **Better Uptime** - $10/month, includes status page
+
+## Testing & Quality Assurance
+
+**Load Testing**
+
+- **k6** (`k6.io`) - Modern load testing (Free, open source)
+- **Grafana Cloud k6** - Managed ($49/month for 10K VUh)
+- **Apache JMeter** - Traditional load testing (Free)
+- **wrk** - HTTP benchmarking (Free)
+
+**API Testing**
+
+- **Postman** - Free for teams up to 3, $12/user/month after
+- **Bruno** - Open source alternative (Free)
+- **Insomnia** - Free tier available
+
+**End-to-End Testing**
+
+- **Playwright** - E2E testing (Free)
+- **Cypress** - Free open source, $75/month for dashboard
+
+**Code Quality**
+
+- **SonarQube Community** - Code analysis (Free, self-hosted)
+- **golangci-lint** - Go linting (Free)
+- **ESLint** - JavaScript linting (Free)
+
+## Security Tools
+
+**1. SSL Certificates**
+
+- **Let's Encrypt** - Free SSL via Certbot
+- **Cloudflare SSL** - Free with Cloudflare
+
+**2. Security Scanning**
+
+- **Snyk** - Dependency vulnerability scanning (Free for open source)
+- **Trivy** - Container security scanning (Free)
+- **OWASP ZAP** - Security testing (Free)
+
+**3. Secrets Management**
+
+- **HashiCorp Vault** - Secrets management (Free, open source)
+- **Doppler** - Free tier available, $12/user/month
+- **AWS Secrets Manager** - $0.40/secret/month + $0.05/10K requests
+
+**4. DDoS Protection**
+
+- **Cloudflare** - Included in free tier
+- **AWS Shield Standard** - Free basic protection
+
+## Communication & Collaboration
+
+**Project Management**
+
+- **Linear** - $8/user/month (best for dev teams)
+- **Jira** - Free for 10 users, then $7.75/user/month
+- **GitHub Projects** - Free with GitHub
+
+**Communication**
+
+- **Slack** - Free tier, $7.25/user/month for Pro
+- **Discord** - Free
+- **Microsoft Teams** - $4/user/month
+
+**Documentation**
+
+- **Notion** - Free for teams up to 10
+- **GitBook** - Free for open source
+- **Docusaurus** - Free, self-hosted
+
+## Notification Services
+
+**Email**
+
+- **Resend** - 3K emails/month free, then $20/month for 50K
+- **SendGrid** - 100 emails/day free, $19.95/month for 50K
+- **Amazon SES** - $0.10/1000 emails
+
+**SMS**
+
+- **Twilio** - $0.0079/SMS (US), varies by country
+- **Africa's Talking** - Good for African markets
+- **Infobip** - Enterprise-grade
+
+**Push Notifications**
+
+- **Firebase Cloud Messaging** - Free
+- **OneSignal** - Free up to 10K subscribers
+- **Pusher Beams** - Free for 1K devices
+
+**In-App Notifications**
+
+- **Build custom with WebSockets** - Free
+- **Pusher Channels** - Free for 100 connections, $49/month for 500
+
+## Analytics
+
+**Application Analytics**
+
+- **PostHog** - Free self-hosted, $0.000248/event cloud
+- **Plausible** - $9/month for 10K pageviews (privacy-focused)
+- **Google Analytics** - Free
+
+**Business Intelligence**
+
+- **Metabase** - Free, open source (self-hosted)
+- **Grafana** - Can be used for business metrics (Free)
+
+## Backup & Disaster Recovery
+
+**Database Backups**
+
+- **pg_dump/pg_restore** - Built-in PostgreSQL tools (Free)
+- **wal-g** - Continuous PostgreSQL backups (Free)
+- **Automated scripts** - Store in Backblaze B2
+
+**Backup Storage**
+
+- **Backblaze B2** - $0.005/GB/month
+- **Wasabi** - $5.99/TB/month (minimum 1TB)
+
+**Recommendation:** Daily automated backups to Backblaze B2 (~$1-5/month)
+
+## Development Tools
+
+**Code Editor**
+
+- **VS Code** - Free
+- **GoLand** - $89/year (first year), $71/year (second year)
+
+**API Development**
+
+- **Postman** - Free for teams
+- **Bruno** - Free alternative
+- **Insomnia** - Free
+
+**Database Management**
+
+- **DBeaver** - Free, universal database tool
+- **pgAdmin** - Free PostgreSQL tool
+- **TablePlus** - $89 one-time (great UX)
+
+**Git GUI**
+
+- **GitKraken** - Free for open source
+- **Sourcetree** - Free
+- **GitHub Desktop** - Free
+
+---
+
+## Recommended Architecture for 5000 Users/Day
+
+### Phase 1: MVP (Months 1-3) - ~$100/month
+
+```
+Infrastructure:
+- 1x Hetzner VPS (4 vCPU, 8GB RAM) - App + DB: €15.40/month
+- 1x Hetzner VPS (2 vCPU, 4GB RAM) - Redis/Queue: €4.15/month
+- Cloudflare Free - CDN & SSL
+- Cloudflare R2 - File storage: ~$2/month
+- Resend - Email: Free tier
+- Total: ~€25/month ($27)
+
+Tools:
+- GitHub Actions - Free tier
+- Sentry - Free tier for errors
+- UptimeRobot - Free monitoring
+- Self-hosted Grafana stack
+```
+
+### Phase 2: Growth (Months 4-12) - ~$200-300/month
+
+```
+Infrastructure:
+- 3x Hetzner VPS (4 vCPU, 8GB RAM) - App servers: €46.20/month
+- 1x Hetzner VPS (8 vCPU, 16GB RAM) - PostgreSQL: €36.26/month
+- 1x Hetzner VPS (4 vCPU, 8GB RAM) - Redis/RabbitMQ: €15.40/month
+- 1x Hetzner VPS (2 vCPU, 4GB RAM) - Monitoring: €4.15/month
+- Cloudflare Pro: $20/month
+- Cloudflare R2 (500GB): ~$8/month
+- Supabase/Neon (backup DB): $25/month
+- Better Stack: $10/month
+- Total: ~€130/month ($140)
+
+Additional:
+- Linear: $80/month (10 users)
+- Domain: $12/year
+- SSL: Free (Let's Encrypt)
+```
+
+### Phase 3: Scale (Year 2+) - ~$500-1000/month
+
+```
+Infrastructure:
+- Kubernetes cluster (5 nodes)
+- Managed PostgreSQL (replication)
+- Redis cluster
+- CDN upgrade
+- Advanced monitoring
+- Dedicated load balancers
+```
+
+## Team Breakdown & Responsibilities
+
+**For team of 10:**
+
+- 3 Backend Developers (Go/Microservices)
+- 2 Frontend Developers (Next.js)
+- 1 DevOps Engineer
+- 1 QA Engineer
+- 1 Product Manager
+- 1 UI/UX Designer
+- 1 Full-stack Developer (floater)
+
+## Estimated Total Costs (Phase 1)
+
+**Monthly Recurring:**
+
+- Infrastructure: $75
+- Monitoring: Free (self-hosted)
+- Email: Free tier
+- SMS/Notifications: Pay-as-you-go (~$10-50)
+- File Storage: $2-10
+- **Total: ~$100-150/month**
+
+**One-Time:**
+
+- Domain: $12/year
+- SSL: Free
+
+**Developer Licenses (Optional):**
+
+- GoLand licenses: $890/year (10 users)
+- TablePlus: $890 one-time (10 users)
+
+**Annual Cost Estimate:** $1,200-2,000 (infrastructure) + $890 (tools) = **~$2,500/year**
+
+---
+
+This stack balances cost-effectiveness with production-readiness. Start with Phase 1 and scale as your user base grows. The focus is on open-source tools and cost-efficient hosting while maintaining enterprise-grade reliability and security for a banking application.

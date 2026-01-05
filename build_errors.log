@@ -1,0 +1,142 @@
+
+> jb.desishub.com@0.1.0 check-types D:\Desishub\desishub-v4
+> tsc --noEmit --pretty
+
+[96msrc/app/(app)/(root)/get-quote/Quote.tsx[0m:[93m224[0m:[93m19[0m - [91merror[0m[90m TS2322: [0mType '{ hidden: { opacity: number; x: number; }; visible: { opacity: number; x: number; transition: { duration: number; ease: string; }; }; exit: { opacity: number; x: number; transition: { duration: number; ease: string; }; }; }' is not assignable to type 'Variants'.
+  Property 'visible' is incompatible with index signature.
+    Type '{ opacity: number; x: number; transition: { duration: number; ease: string; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number; x: number; transition: { duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number; x: number; transition: { duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ duration: number; ease: string; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+
+[7m224[0m                   variants={containerVariants}
+[7m   [0m [91m                  ~~~~~~~~[0m
+
+  [96mnode_modules/.pnpm/motion-dom@12.23.12/node_modules/motion-dom/dist/index.d.ts[0m:[93m1792[0m:[93m5[0m
+    [7m1792[0m     variants?: Variants;
+    [7m    [0m [96m    ~~~~~~~~[0m
+    The expected type comes from property 'variants' which is declared here on type 'IntrinsicAttributes & Omit<HTMLMotionProps<"div">, "ref"> & RefAttributes<HTMLDivElement>'
+
+[96msrc/app/(app)/(root)/get-quote/Quote.tsx[0m:[93m289[0m:[93m19[0m - [91merror[0m[90m TS2322: [0mType '{ hidden: { opacity: number; x: number; }; visible: { opacity: number; x: number; transition: { duration: number; ease: string; }; }; exit: { opacity: number; x: number; transition: { duration: number; ease: string; }; }; }' is not assignable to type 'Variants'.
+  Property 'visible' is incompatible with index signature.
+    Type '{ opacity: number; x: number; transition: { duration: number; ease: string; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number; x: number; transition: { duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number; x: number; transition: { duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ duration: number; ease: string; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+
+[7m289[0m                   variants={containerVariants}
+[7m   [0m [91m                  ~~~~~~~~[0m
+
+  [96mnode_modules/.pnpm/motion-dom@12.23.12/node_modules/motion-dom/dist/index.d.ts[0m:[93m1792[0m:[93m5[0m
+    [7m1792[0m     variants?: Variants;
+    [7m    [0m [96m    ~~~~~~~~[0m
+    The expected type comes from property 'variants' which is declared here on type 'IntrinsicAttributes & Omit<HTMLMotionProps<"div">, "ref"> & RefAttributes<HTMLDivElement>'
+
+[96msrc/app/(app)/(root)/get-quote/Quote.tsx[0m:[93m366[0m:[93m19[0m - [91merror[0m[90m TS2322: [0mType '{ hidden: { opacity: number; x: number; }; visible: { opacity: number; x: number; transition: { duration: number; ease: string; }; }; exit: { opacity: number; x: number; transition: { duration: number; ease: string; }; }; }' is not assignable to type 'Variants'.
+  Property 'visible' is incompatible with index signature.
+    Type '{ opacity: number; x: number; transition: { duration: number; ease: string; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number; x: number; transition: { duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number; x: number; transition: { duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ duration: number; ease: string; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+
+[7m366[0m                   variants={containerVariants}
+[7m   [0m [91m                  ~~~~~~~~[0m
+
+  [96mnode_modules/.pnpm/motion-dom@12.23.12/node_modules/motion-dom/dist/index.d.ts[0m:[93m1792[0m:[93m5[0m
+    [7m1792[0m     variants?: Variants;
+    [7m    [0m [96m    ~~~~~~~~[0m
+    The expected type comes from property 'variants' which is declared here on type 'IntrinsicAttributes & Omit<HTMLMotionProps<"div">, "ref"> & RefAttributes<HTMLDivElement>'
+
+[96msrc/app/(app)/(root)/get-quote/Quote.tsx[0m:[93m446[0m:[93m19[0m - [91merror[0m[90m TS2322: [0mType '{ hidden: { opacity: number; x: number; }; visible: { opacity: number; x: number; transition: { duration: number; ease: string; }; }; exit: { opacity: number; x: number; transition: { duration: number; ease: string; }; }; }' is not assignable to type 'Variants'.
+  Property 'visible' is incompatible with index signature.
+    Type '{ opacity: number; x: number; transition: { duration: number; ease: string; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number; x: number; transition: { duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number; x: number; transition: { duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ duration: number; ease: string; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+
+[7m446[0m                   variants={containerVariants}
+[7m   [0m [91m                  ~~~~~~~~[0m
+
+  [96mnode_modules/.pnpm/motion-dom@12.23.12/node_modules/motion-dom/dist/index.d.ts[0m:[93m1792[0m:[93m5[0m
+    [7m1792[0m     variants?: Variants;
+    [7m    [0m [96m    ~~~~~~~~[0m
+    The expected type comes from property 'variants' which is declared here on type 'IntrinsicAttributes & Omit<HTMLMotionProps<"div">, "ref"> & RefAttributes<HTMLDivElement>'
+
+[96msrc/app/(app)/(root)/get-quote/Quote.tsx[0m:[93m523[0m:[93m19[0m - [91merror[0m[90m TS2322: [0mType '{ hidden: { opacity: number; x: number; }; visible: { opacity: number; x: number; transition: { duration: number; ease: string; }; }; exit: { opacity: number; x: number; transition: { duration: number; ease: string; }; }; }' is not assignable to type 'Variants'.
+  Property 'visible' is incompatible with index signature.
+    Type '{ opacity: number; x: number; transition: { duration: number; ease: string; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number; x: number; transition: { duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number; x: number; transition: { duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ duration: number; ease: string; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+
+[7m523[0m                   variants={containerVariants}
+[7m   [0m [91m                  ~~~~~~~~[0m
+
+  [96mnode_modules/.pnpm/motion-dom@12.23.12/node_modules/motion-dom/dist/index.d.ts[0m:[93m1792[0m:[93m5[0m
+    [7m1792[0m     variants?: Variants;
+    [7m    [0m [96m    ~~~~~~~~[0m
+    The expected type comes from property 'variants' which is declared here on type 'IntrinsicAttributes & Omit<HTMLMotionProps<"div">, "ref"> & RefAttributes<HTMLDivElement>'
+
+[96msrc/app/(app)/(root)/pricing/page.tsx[0m:[93m5[0m:[93m24[0m - [91merror[0m[90m TS1261: [0mAlready included file name 'D:/Desishub/desishub-v4/src/components/pages/pricing/PricingFAQ.tsx' differs from file name 'D:/Desishub/desishub-v4/src/components/pages/pricing/PricingFaq.tsx' only in casing.
+  The file is in the program because:
+    Imported via "@/components/pages/pricing/PricingFAQ" from file 'D:/Desishub/desishub-v4/src/app/(app)/(root)/pricing/page.tsx'
+    Matched by include pattern '**/*.tsx' in 'D:/Desishub/desishub-v4/tsconfig.json'
+
+[7m5[0m import PricingFAQ from "@/components/pages/pricing/PricingFAQ";
+[7m [0m [91m                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  [96mtsconfig.json[0m:[93m28[0m:[93m5[0m
+    [7m28[0m     "**/*.tsx",
+    [7m  [0m [96m    ~~~~~~~~~~[0m
+    File is matched by include pattern specified here.
+
+[96msrc/components/pages/contact/Contact.tsx[0m:[93m123[0m:[93m35[0m - [91merror[0m[90m TS7053: [0mElement implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ primary: string; secondary: string; ghost: string; link: string; }'.
+
+[7m123[0m       className={`${baseStyles} ${variants[variant]} ${className}`}
+[7m   [0m [91m                                  ~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/components/pages/home/bento copy.tsx[0m:[93m41[0m:[93m35[0m - [91merror[0m[90m TS7053: [0mElement implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ primary: string; secondary: string; ghost: string; link: string; }'.
+
+[7m41[0m       className={`${baseStyles} ${variants[variant]} ${className}`}
+[7m  [0m [91m                                  ~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/components/pages/home/bento.tsx[0m:[93m57[0m:[93m35[0m - [91merror[0m[90m TS7053: [0mElement implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ primary: string; secondary: string; ghost: string; link: string; }'.
+
+[7m57[0m       className={`${baseStyles} ${variants[variant]} ${className}`}
+[7m  [0m [91m                                  ~~~~~~~~~~~~~~~~~[0m
+
+
+Found 9 errors in 5 files.
+
+Errors  Files
+     5  src/app/(app)/(root)/get-quote/Quote.tsx[90m:224[0m
+     1  src/app/(app)/(root)/pricing/page.tsx[90m:5[0m
+     1  src/components/pages/contact/Contact.tsx[90m:123[0m
+     1  src/components/pages/home/bento copy.tsx[90m:41[0m
+     1  src/components/pages/home/bento.tsx[90m:57[0m
+ ELIFECYCLE  Command failed with exit code 1.

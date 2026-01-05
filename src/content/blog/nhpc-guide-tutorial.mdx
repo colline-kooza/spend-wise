@@ -1,0 +1,524 @@
+---
+title: Next.js + Hono + Cloudflare + Prisma
+description: This tutorial will guide you through setting up a full-stack application progressively, starting from a simple frontend and backend, and incrementally adding features like database integration, validation, and documentation.
+image: https://14j7oh8kso.ufs.sh/f/HLxTbDBCDLwfQ6mTFd12dUpbZMhq91EDYNxtWIkHfo5Flg3y
+category: tutorial
+createdAt: 2025-12-02
+updatedAt: 2025-12-02
+---
+
+# Full Stack Tutorial: Next.js + Hono + Cloudflare + Prisma
+
+This tutorial will guide you through setting up a full-stack application progressively, starting from a simple frontend and backend, and incrementally adding features like database integration, validation, and documentation.
+
+## Prerequisites
+
+- Node.js (v18 or later)
+- npm or pnpm
+- A Cloudflare account (for deploying the backend)
+
+---
+
+## Step 1: Create a Simple Next.js App
+
+First, we'll set up the frontend using Next.js.
+
+1.  **Initialize the project:**
+
+    ```bash
+    npx create-next-app@latest web
+    # Select the following options:
+    # - TypeScript: Yes
+    # - ESLint: Yes
+    # - Tailwind CSS: Yes
+    # - `src/` directory: Yes
+    # - App Router: Yes
+    # - Customize import alias: No
+    ```
+
+2.  **Navigate to the web directory:**
+
+    ```bash
+    cd web
+    ```
+
+3.  **Create a Contact Form:**
+    Open `src/app/page.tsx` and replace the content with a simple form.
+
+    ```tsx
+    // src/app/page.tsx
+    "use client";
+
+    import { useState } from "react";
+
+    export default function Home() {
+      const [name, setName] = useState("");
+      const [phone, setPhone] = useState("");
+
+      const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const data = { name, phone };
+        console.log("Form Data:", data);
+        alert(JSON.stringify(data, null, 2));
+      };
+
+      return (
+        <div className="flex min-h-screen flex-col items-center justify-center p-24">
+          <h1 className="mb-8 text-4xl font-bold">Add Contact</h1>
+          <form
+            onSubmit={handleSubmit}
+            className="flex w-full max-w-md flex-col gap-4"
+          >
+            <input
+              type="text"
+              placeholder="Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="rounded border p-2 text-black"
+              required
+            />
+            <input
+              type="tel"
+              placeholder="Phone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="rounded border p-2 text-black"
+              required
+            />
+            <button
+              type="submit"
+              className="rounded bg-blue-500 p-2 text-white hover:bg-blue-600"
+            >
+              Submit
+            </button>
+          </form>
+        </div>
+      );
+    }
+    ```
+
+4.  **Run the frontend:**
+    ```bash
+    npm run dev
+    ```
+    Open `http://localhost:3000` and test the form. You should see the data logged in your browser console.
+
+---
+
+## Step 2: Create a Simple Hono App (Backend)
+
+Now, let's set up the backend with Hono and Cloudflare Workers.
+
+1.  **Initialize the project:**
+    Go back to the root directory and create the api project.
+
+    ```bash
+    cd ..
+    npm create hono@latest api
+    # Select the following options:
+    # - Template: Nodejs
+    # - Install dependencies: Yes
+    ```
+
+2.  **Navigate to the api directory:**
+
+    ```bash
+    cd api
+    ```
+
+3.  **Configure Port 8000:**
+    Open `package.json` and update the `dev` script to run on port 8000.
+
+    ```tsx
+    serve(
+      {
+        fetch: app.fetch,
+        port: 8787,
+      },
+      (info) => {
+        console.log(`Server is running on http://localhost:${info.port}`);
+      }
+    );
+    ```
+
+4.  **Create a POST Endpoint:**
+    Open `src/index.ts` and set up the server.
+
+    ```typescript
+    // src/index.ts
+    import { Hono } from "hono";
+    import { cors } from "hono/cors";
+
+    const app = new Hono();
+
+    // Enable CORS so our frontend can talk to the backend
+    app.use("/*", cors());
+
+    app.get("/", (c) => {
+      return c.text("Hello Hono!");
+    });
+
+    app.post("/contacts", async (c) => {
+      const body = await c.req.json();
+      console.log("Received data:", body);
+      return c.json({ message: "Data received", data: body });
+    });
+
+    export default app;
+    ```
+
+5.  **Run the backend:**
+    ```bash
+    npm run dev
+    ```
+    The server is now listening on `http://localhost:8787`.
+
+---
+
+## Step 3: Connect Frontend to Backend
+
+Now we will update the frontend to send data to our new Hono API.
+
+1.  **Update `src/app/page.tsx` in the `web` directory:**
+
+    ```tsx
+    // src/app/page.tsx
+    // ... imports
+
+    export default function Home() {
+      // ... state
+
+      const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const data = { name, phone };
+
+        try {
+          const response = await fetch("http://localhost:8000/contacts", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          });
+
+          const result = await response.json();
+          console.log("Server Response:", result);
+          alert("Saved! Check server console.");
+        } catch (error) {
+          console.error("Error:", error);
+          alert("Failed to save.");
+        }
+      };
+
+      // ... return
+    }
+    ```
+
+2.  **Test it:**
+    Run both frontend and backend. Submit the form on the frontend. You should see "Received data: ..." in the terminal where the Hono app is running.
+
+---
+
+## Step 4: Add Prisma Integration
+
+Let's add a database to store our contacts.
+
+1.  **Install Prisma and Postgres driver in `api`:**
+
+    ```bash
+    pnpm install prisma tsx @types/pg --save-dev
+    pnpm install @prisma/client @prisma/adapter-pg dotenv pg
+    ```
+
+2.  **Initialize Prisma:**
+
+    ```bash
+    npx prisma init --db --output ../src/generated/prisma
+    ```
+
+3.  **Configure Database URL:**
+    In `api/.env`, add your PostgreSQL connection string (e.g., from Neon, Supabase, or local).
+
+    ```env
+    DATABASE_URL="postgresql://user:password@host:5432/db?sslmode=require"
+    DIRECT_URL="postgresql://user:password@host:5432/db?sslmode=require"
+    # Note: For Cloudflare Workers, use the connection pool URL for DATABASE_URL if available, or use Prisma Accelerate.
+    ```
+
+4.  **Define Schema:**
+    Open `prisma/schema.prisma` and add the Contact model.
+
+    ```prisma
+
+        generator client {
+          provider = "prisma-client"
+          output   = "../src/generated/prisma"
+        }
+
+        datasource db {
+          provider = "postgresql"
+        }
+
+        model Invoice {
+          id            String        @id @default(cuid())
+          invoice       String        @unique
+          paymentStatus PaymentStatus @default(Pending)
+          totalAmount   Float
+          paymentMethod String
+          createdAt     DateTime      @default(now())
+          updatedAt     DateTime      @updatedAt
+        }
+
+        enum PaymentStatus {
+          Paid
+          Pending
+          Failed
+        }
+
+    ```
+
+5.  **Run Migrations:**
+
+    ```bash
+    npx prisma migrate dev --name init
+    ```
+
+6.  **Generate Client:**
+
+        ```bash
+        npx prisma generate
+        ```
+
+        ### Create Prisma global Instance
+
+        ```tsx
+            // import { PrismaClient } from "../app/generated/prisma/client";
+            import { PrismaPg } from "@prisma/adapter-pg";
+            import { PrismaClient } from "../generated/prisma/client.js";
+            import "dotenv/config";
+
+            const globalForPrisma = global as unknown as {
+            prisma: PrismaClient;
+            };
+
+            const adapter = new PrismaPg({
+            connectionString: process.env.DATABASE_URL,
+            });
+
+            const prisma =
+            globalForPrisma.prisma ||
+            new PrismaClient({
+            adapter,
+            });
+
+            if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+
+            export default prisma;
+
+    ```
+
+    ```
+
+7.  **Update Hono Handler:**
+    Update `src/index.ts` to save data to the database.
+
+    ```typescript
+    import { serve } from "@hono/node-server";
+    import { Hono } from "hono";
+    import { cors } from "hono/cors";
+    // import db from "./lib/db.js";
+    import prisma from "./lib/db.js";
+    // import type { PrismaClient } from "./generated/prisma/client.js";
+
+    // type ContextWithPrisma = {
+    //   Variables: {
+    //     prisma: PrismaClient;
+    //   };
+    // };
+
+    const app = new Hono();
+    // const app = new Hono<ContextWithPrisma>();
+
+    app.use("/*", cors());
+    app.get("/", (c) => {
+      return c.json({
+        message: "Hello World",
+      });
+    });
+    app.get("/invoices", async (c) => {
+      // console.log(prisma);
+      // const invoices: any = [];
+      const invoices = await prisma.invoice.findMany();
+      return c.json(invoices);
+    });
+    app.post("/invoices", async (c) => {
+      const data = await c.req.json();
+      const index = await prisma.invoice.count({
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      const stringIndex = (index + 1).toString().padStart(4, "000");
+      const invoiceNumber = `INV${stringIndex}`;
+      console.log("INVOICE NUMBER", invoiceNumber);
+      const payload = {
+        invoice: invoiceNumber,
+        totalAmount: data.amount,
+        paymentMethod: data.paymentMethod,
+      };
+      console.log("PAYLOAD", payload);
+      const newInvoice = await prisma.invoice.create({
+        data: {
+          invoice: payload.invoice,
+          totalAmount: Number(payload.totalAmount),
+          paymentMethod: payload.paymentMethod,
+        },
+      });
+      console.log("RECEIVED DATA", newInvoice);
+      return c.json(data);
+    });
+
+    serve(
+      {
+        fetch: app.fetch,
+        port: 8787,
+      },
+      (info) => {
+        console.log(`Server is running on http://localhost:${info.port}`);
+      }
+    );
+    ```
+
+---
+
+## CLONE A STARTER HERE :
+
+(https://github.com/MUKE-coder/nhpc-invoice-starterkit)
+
+## Step 5: Add Zod Validation
+
+Now we'll ensure the data sent to the API is valid.
+
+1.  **Install Zod:**
+
+    ```bash
+    npm install zod @hono/zod-validator
+    ```
+
+2.  **Create a Schema and Validator:**
+    Update `src/index.ts`.
+
+    ```typescript
+    // src/index.ts
+    import { z } from "zod";
+    import { zValidator } from "@hono/zod-validator";
+
+    // ... imports
+
+    const contactSchema = z.object({
+      name: z.string().min(2),
+      phone: z.string().min(10),
+    });
+
+    app.post(
+      "/contacts",
+      zValidator("json", contactSchema), // Middleware validates the body
+      async (c) => {
+        const body = c.req.valid("json"); // Typed body!
+
+        // ... prisma create logic using 'body'
+      }
+    );
+    ```
+
+---
+
+## Step 6: Add Scalar Docs (OpenAPI)
+
+Finally, let's document our API.
+
+1.  **Install Dependencies:**
+
+    ```bash
+    npm install @scalar/hono-api-reference @hono/zod-openapi
+    ```
+
+2.  **Update App to use OpenAPI:**
+    We need to switch from standard `Hono` to `OpenAPIHono` and define our routes using `createRoute`.
+
+    ```typescript
+    // src/index.ts
+    import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
+    import { apiReference } from "@scalar/hono-api-reference";
+    import { cors } from "hono/cors";
+    // ... prisma imports
+
+    const app = new OpenAPIHono();
+    app.use("/*", cors());
+
+    const contactSchema = z.object({
+      name: z.string().min(2).openapi({ example: "John Doe" }),
+      phone: z.string().min(10).openapi({ example: "1234567890" }),
+    });
+
+    const route = createRoute({
+      method: "post",
+      path: "/contacts",
+      request: {
+        body: {
+          content: {
+            "application/json": {
+              schema: contactSchema,
+            },
+          },
+        },
+      },
+      responses: {
+        200: {
+          content: {
+            "application/json": {
+              schema: z.object({
+                message: z.string(),
+                contact: contactSchema,
+              }),
+            },
+          },
+          description: "Contact created successfully",
+        },
+      },
+    });
+
+    app.openapi(route, async (c) => {
+      const body = c.req.valid("json");
+      // ... prisma logic
+      return c.json({ message: "Created", contact: body }); // Simplified for example
+    });
+
+    // Serve the docs
+    app.doc("/doc", {
+      openapi: "3.0.0",
+      info: {
+        version: "1.0.0",
+        title: "My API",
+      },
+    });
+
+    app.get(
+      "/reference",
+      apiReference({
+        spec: {
+          url: "/doc",
+        },
+      })
+    );
+
+    export default app;
+    ```
+
+3.  **View Docs:**
+    Run the server and visit `http://localhost:8000/reference`. You will see interactive API documentation generated by Scalar!
+
+```
+
+```
