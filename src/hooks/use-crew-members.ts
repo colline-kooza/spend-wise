@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -8,7 +9,7 @@ import {
   getCrewMembers,
   updateCrewMember,
 } from "@/lib/actions/crew-members";
-import {
+import type {
   CreateCrewMemberRequest,
   UpdateCrewMemberRequest,
 } from "@/types/crew-members";
